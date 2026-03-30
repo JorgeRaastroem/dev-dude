@@ -13,7 +13,7 @@ Before starting the feature workflow:
    - Plain text description → use directly
    - File path to spec/PRD → read the file
    - Image paths → read images for visual spec
-3. **Read Serena project memories** for codebase context
+3. **Read project context** using the active indexer's memory/context tools (e.g., Serena project memories)
 4. **Derive feature slug** from the description (lowercase, hyphenated, e.g., "user-profile-caching")
 
 ## Phase 1: Design
@@ -30,7 +30,7 @@ Code-Flow-Analyzer task:
     - Relevant architecture docs (if available)
     - Keywords and area hints from the feature description
   Process:
-    - Search codebase for related components using Serena tools
+    - Search codebase for related components using the active code indexer tools
     - Trace existing flows that the feature will interact with
     - Identify integration points, extension points, patterns
     - Document constraints, conventions, and anti-patterns to avoid
@@ -87,7 +87,7 @@ Feature-Implementer tasks (per component/module):
       - Design document
       - Investigation results for context
     Process:
-      - Read existing code patterns using Serena
+      - Read existing code patterns using the active code indexer tools
       - Implement the assigned component
       - Run available validation (build, lint)
     Output:

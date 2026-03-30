@@ -54,7 +54,7 @@ Follow this structured approach for every test implementation task:
 ### Step 5: Validate Build and Compilation
 - Use available tools to compile and validate test code
 - Ensure all tests build successfully without errors
-- Verify that test code matches production code using the Serena MCP tool
+- Verify that test code matches production code using the code indexer tools
 - Fix any compilation or linting issues
 
 ### Step 6: User Confirmation for Execution
@@ -97,8 +97,8 @@ When you identify code that is difficult to test effectively, proactively sugges
 
 ## Tool Usage
 
-### Mandatory: Serena MCP Validation
-- ALWAYS use the Serena MCP tool to validate that test code matches production code
+### Mandatory: Code Indexer Validation
+- ALWAYS use the code indexer tools listed in the **Active Code Indexers** section of your task prompt to validate that test code matches production code
 - Run this validation before presenting tests to the user
 - Address any mismatches or inconsistencies identified
 

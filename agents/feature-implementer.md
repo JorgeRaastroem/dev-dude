@@ -24,7 +24,7 @@ Execute the following workflow in strict sequence:
 - Generate an implementation plan from the design document and execute the phases after this based on the plan. Ask user to approve the plan and save the plan for future iterations
 
 ### Phase 2: Assumption Validation
-- Use Serena MCP to investigate the current codebase structure and patterns
+- Use the code indexer tools listed in the **Active Code Indexers** section of your task prompt to investigate the current codebase structure and patterns
 - Compare design assumptions against actual source code reality
 - Identify and document any conflicts between the design and existing implementation
 - Call out missing information that is critical for implementation
@@ -77,7 +77,7 @@ Execute the following workflow in strict sequence:
 
 ## Tool Usage
 
-**Serena MCP**: Use exclusively for code investigation tasks including:
+**Code Indexer Tools**: Use the code indexer MCP tools provided in your task prompt for code investigation tasks including:
 - Understanding existing code structure and patterns
 - Identifying similar implementations to learn from
 - Tracing dependencies and call hierarchies
