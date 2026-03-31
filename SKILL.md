@@ -11,8 +11,9 @@ description: >
   swarms with a user review gate between design and implementation phases. Accepts feature
   descriptions, spec file paths, or image paths. Produces design docs and implementation in
   ./docs/<feature-slug>/.
-  Prerequisites: Serena MCP server, Team tools (TeamCreate), and the bundled agent crew
-  (code-flow-analyzer, investigation-documenter, feature-implementer, test-implementer).
+  Prerequisites: At least one code-indexing MCP server (e.g., Serena, aider, sourcegraph),
+  Team tools (TeamCreate), and the bundled agent crew (code-flow-analyzer,
+  investigation-documenter, feature-implementer, test-implementer).
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
@@ -47,10 +48,51 @@ Files to install:
 For each file: check if `.claude/agents/<name>.md` already exists (check both project local claude folder and global). If not, copy it. If it exists,
 skip (do not overwrite — user may have customized it).
 
-### Verify Serena MCP
+### Detect & Select Code Indexers
 
-Run `mcp__serena__check_onboarding_performed`. If onboarding hasn't been done, run
-`mcp__serena__onboarding` and follow its instructions before proceeding.
+Discover which code-indexing MCP servers are available in the current environment and let the
+user choose which ones to use. At least one indexer is required.
+
+1. **Auto-detect available indexers** — probe for known MCP tool prefixes:
+   | Indexer | Detection probe | Capabilities |
+   |---------|----------------|--------------|
+   | Serena | `mcp__serena__check_onboarding_performed` | list_dir, find_file, search_for_pattern, get_symbols_overview, find_symbol, find_referencing_symbols, replace_symbol_body, insert_after_symbol, insert_before_symbol, rename_symbol, memories (write/read/list/delete/edit), activate_project, onboarding, think_about_* |
+   | *Add new indexers here by extending this table* | | |
+
+2. **Present detected indexers** to the user:
+   ```
+   Detected code indexers:
+     [1] Serena  ✓ available
+     [2] ...
+
+   Select indexers to use (comma-separated, or 'all'): ___
+   ```
+   If only one indexer is detected, auto-select it and inform the user.
+
+3. **Run indexer-specific onboarding** for each selected indexer:
+   - Serena: call `mcp__serena__check_onboarding_performed`; if not onboarded, run `mcp__serena__onboarding`
+   - Other indexers: follow their specific onboarding steps
+
+4. **Build the indexer context block** — a structured summary to pass to agents:
+   ```
+   ## Active Code Indexers
+   The following code-indexing MCP servers are available for this session.
+   Use these tools for code search, symbol lookup, and codebase navigation.
+
+   ### <Indexer Name>
+   - **Tool prefix**: mcp__<prefix>__
+   - **Capabilities**: <comma-separated list>
+   - **Key tools for code search**: <list of search/symbol tools>
+   - **Key tools for code modification**: <list of edit tools>
+   - **Memory/context tools**: <list, if any>
+   ```
+   Store this block as `$INDEXER_CONTEXT` for inclusion in agent task prompts.
+
+If no indexers are detected, print:
+```
+ERROR: No code-indexing MCP servers found. DevDude requires at least one
+code indexer (e.g., Serena). Install and configure an indexer, then retry.
+```
 
 ### Verify Team Tools
 
@@ -70,11 +112,12 @@ After installing agents, confirm all 4 subagent types are available via the Task
 
 ### Load Project Context
 
-Read Serena project memories for context about the active project:
+Use the active indexer(s) to load project context. For example, with Serena:
 ```
 mcp__serena__list_memories()
 → Read any relevant memories (project_overview, style_and_conventions, etc.)
 ```
+Other indexers: use their equivalent context/memory retrieval tools.
 
 If any prerequisite fails, print the error with remediation steps and stop.
 
@@ -117,10 +160,10 @@ Investigates and documents codebase architecture using parallel agent swarms.
 
 ### Codebase Discovery (Phase 0)
 
-Use Serena tools to dynamically discover the project structure — never hardcode areas:
+Use the selected code indexer(s) to dynamically discover the project structure — never hardcode areas:
 
-1. `mcp__serena__list_dir(".", recursive=false)` — scan project root
-2. `mcp__serena__find_file("package.json", ".")` (or equivalent manifest for the project's language)
+1. Scan project root using `list_dir` capability (e.g., `mcp__serena__list_dir(".", recursive=false)`)
+2. Search for manifest files using `find_file` capability (e.g., `mcp__serena__find_file("package.json", ".")`)
 3. Scan key directories to identify module/package boundaries
 4. Identify tech stack from config files
 5. Build investigation area list from what's actually in the codebase
@@ -136,6 +179,9 @@ Use Serena tools to dynamically discover the project structure — never hardcod
   - Updates existing overview document with new cross-references
 
 ### Swarm Execution
+
+**IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
+prompt so agents know which code indexer tools are available.
 
 See [references/arch-investigation-workflow.md](references/arch-investigation-workflow.md) for
 detailed phase-by-phase workflow including:
@@ -179,6 +225,8 @@ Parse the feature argument:
 Derive a feature slug from the description (lowercase, hyphenated, max 40 chars).
 
 ### Phase 1: Design
+
+**IMPORTANT**: Include `$INDEXER_CONTEXT` in all agent task prompts.
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 

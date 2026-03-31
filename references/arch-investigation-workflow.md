@@ -6,11 +6,11 @@ Detailed steps for the `DudeWhereIsMyArch` command.
 
 Before any investigation, dynamically discover the project structure:
 
-1. **Scan project root**: `mcp__serena__list_dir(".", recursive=false)` to see top-level structure
-2. **Read Serena memories**: `mcp__serena__list_memories()` then read relevant ones for existing context
+1. **Scan project root**: Use the indexer's `list_dir` capability (e.g., `mcp__serena__list_dir(".", recursive=false)`) to see top-level structure
+2. **Read indexer memories/context**: Use the indexer's memory/context tools (e.g., `mcp__serena__list_memories()`) then read relevant ones for existing context
 3. **Identify package/module boundaries**:
    - Look for `package.json`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `pyproject.toml` etc.
-   - Use `mcp__serena__find_file("package.json", ".")` or equivalent for the project's language
+   - Use `find_file` capability (e.g., `mcp__serena__find_file("package.json", ".")`) or equivalent for the project's language
    - Scan key directories: `src/`, `packages/`, `libs/`, `modules/`, `apps/`, `services/`
 4. **Identify tech stack**: Read root config files to determine languages, frameworks, build tools
 5. **Build area list**: Create a list of investigation areas from discovered modules/packages/directories
@@ -39,9 +39,9 @@ For each discovered area, create a Code-Flow-Analyzer task:
 All area tasks run in parallel (max 4-6 concurrent).
 ```
 
-Each Code-Flow-Analyzer task should:
-1. Use `get_symbols_overview` on key files in the area
-2. Trace major flows from entry points using `find_symbol` and `find_referencing_symbols`
+Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONTEXT`):
+1. Use `get_symbols_overview` (or equivalent) on key files in the area
+2. Trace major flows from entry points using `find_symbol` and `find_referencing_symbols` (or equivalent)
 3. Map internal dependencies and external integration points
 4. Document patterns, conventions, and design decisions
 5. Create mermaid diagrams for major flows
