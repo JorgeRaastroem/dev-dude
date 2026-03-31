@@ -58,8 +58,19 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 | Requirement | Purpose |
 |------------|---------|
 | [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | CLI agent runtime |
-| [Serena MCP Server](https://github.com/oraios/serena) | Semantic code analysis (symbol lookup, flow tracing) |
+| Code-indexing MCP server | Semantic code analysis (symbol lookup, flow tracing) — see [Supported Indexers](#supported-indexers) |
 | Team capability | Agent swarm orchestration (`TeamCreate` tool) |
+
+### Supported Indexers
+
+DevDude auto-detects available code-indexing MCP servers at startup. At least one is required.
+
+| Indexer | Repository | Capabilities |
+|---------|-----------|--------------|
+| [Serena](https://github.com/oraios/serena) | `oraios/serena` | list_dir, find_file, search_for_pattern, get_symbols_overview, find_symbol, find_referencing_symbols, symbol editing, project memories |
+| *More indexers* | *Extend the detection table in `SKILL.md`* | — |
+
+On first run, DevDude probes for known indexers, presents the detected ones to you, and lets you choose which to use. If only one is available it is auto-selected. After selection, indexer-specific onboarding is performed automatically.
 
 ## Installation
 
@@ -160,12 +171,14 @@ Output templates are defined in `references/doc-format-templates.md` and can be 
 
 | Decision | Rationale |
 |----------|-----------|
-| **Generic, not repo-specific** | Works on any codebase — discovers structure dynamically via Serena |
+| **Generic, not repo-specific** | Works on any codebase — discovers structure dynamically via the active code indexer |
+| **Configurable indexers** | Not locked to Serena — any MCP code-indexing server can be used; new indexers can be added by extending the detection table in `SKILL.md` |
 | **Dynamic area discovery** | No hardcoded module lists; reads project manifests and directory structure |
 | **Build/test command discovery** | Reads `package.json`, `Makefile`, `Cargo.toml` etc. to find the right commands |
 | **User review gate** | Prevents wasted implementation effort by getting design approval first |
 | **One-pass verification** | Verifies docs once and applies fixes — no infinite re-verification loops |
 | **Progressive disclosure** | SKILL.md stays lean; detailed workflows live in reference files loaded on demand |
+| **`$INDEXER_CONTEXT` injection** | Agents receive a structured description of active indexer tools via task prompts so they can adapt to any indexer without hardcoded tool names |
 
 ## License
 
