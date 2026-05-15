@@ -1,10 +1,10 @@
 # DevDude
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that orchestrates **agent swarms** to investigate codebase architecture and implement features. Works on any codebase — it dynamically discovers project structure, modules, and conventions at runtime.
+A skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [GitHub Copilot coding agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent) that orchestrates **agent swarms** to investigate codebase architecture and implement features. Works on any codebase — it dynamically discovers project structure, modules, and conventions at runtime.
 
 ## What It Does
 
-DevDude provides two commands accessible via `/dev-dude` in Claude Code:
+DevDude provides two commands accessible via `/dev-dude` in Claude Code (or as a Copilot coding agent skill):
 
 ### `DudeWhereIsMyArch` — Architecture Investigation
 
@@ -57,7 +57,7 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 
 | Requirement | Purpose |
 |------------|---------|
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | CLI agent runtime |
+| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [GitHub Copilot coding agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent) | Agent runtime |
 | Code-indexing MCP server | Semantic code analysis (symbol lookup, flow tracing) — see [Supported Indexers](#supported-indexers) |
 | Team capability | Agent swarm orchestration (`TeamCreate` tool) |
 
@@ -74,13 +74,15 @@ On first run, DevDude probes for known indexers, presents the detected ones to y
 
 ## Installation
 
-### Option 1: Install via Claude Code CLI
+### Claude Code
+
+#### Option 1: Install via Claude Code CLI
 
 ```bash
 claude install-skill /path/to/dev-dude
 ```
 
-### Option 2: Manual installation
+#### Option 2: Manual installation
 
 Copy the `dev-dude/` directory into your Claude Code skills folder:
 
@@ -92,9 +94,30 @@ Copy the `dev-dude/` directory into your Claude Code skills folder:
 <project>/.claude/skills/dev-dude/
 ```
 
-### Agent auto-install
+#### Agent auto-install
 
 On first run, the skill automatically copies its bundled agent definitions from `agents/` into `.claude/agents/`, making them available as Task tool subagent types. Existing agent files are not overwritten.
+
+### GitHub Copilot coding agent
+
+Copy the `dev-dude/` directory into your repository and place the agent definitions where Copilot can discover them:
+
+```
+# Copy skill files to your repo
+<project>/dev-dude/
+
+# Copy agent definitions to the Copilot agents folder
+<project>/.github/agents/
+```
+
+Manually copy the agent definition files from `agents/` into `.github/agents/`:
+
+```
+agents/code-flow-analyzer.md    → .github/agents/code-flow-analyzer.md
+agents/investigation-documenter.md → .github/agents/investigation-documenter.md
+agents/feature-implementer.md   → .github/agents/feature-implementer.md
+agents/test-implementer.md      → .github/agents/test-implementer.md
+```
 
 ## Skill Structure
 
@@ -112,6 +135,13 @@ dev-dude/
     ├── doc-format-templates.md               #   Output document templates
     └── verification-workflow.md              #   How docs are verified against code
 ```
+
+After installation the agent definitions are placed in the runtime-specific agents folder:
+
+| Runtime | Agents folder |
+|---------|--------------|
+| Claude Code | `.claude/agents/` |
+| GitHub Copilot coding agent | `.github/agents/` |
 
 ## Agent Swarm Architecture
 
@@ -161,7 +191,7 @@ All documents use consistent templates with:
 
 ### Agent definitions
 
-Agent files in `.claude/agents/` can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
+Agent files in `.claude/agents/` (Claude Code) or `.github/agents/` (GitHub Copilot) can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
 
 ### Document templates
 
