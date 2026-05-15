@@ -100,24 +100,13 @@ On first run, the skill automatically copies its bundled agent definitions from 
 
 ### GitHub Copilot coding agent
 
-Copy the `dev-dude/` directory into your repository and place the agent definitions where Copilot can discover them:
+Copy the `dev-dude/` directory into your repository:
 
 ```
-# Copy skill files to your repo
 <project>/dev-dude/
-
-# Copy agent definitions to the Copilot agents folder
-<project>/.github/agents/
 ```
 
-Manually copy the agent definition files from `agents/` into `.github/agents/`:
-
-```
-agents/code-flow-analyzer.md    → .github/agents/code-flow-analyzer.md
-agents/investigation-documenter.md → .github/agents/investigation-documenter.md
-agents/feature-implementer.md   → .github/agents/feature-implementer.md
-agents/test-implementer.md      → .github/agents/test-implementer.md
-```
+On first run, the skill automatically copies its bundled agent definitions from `agents/` into `.github/agents/`, making them available to Copilot. Existing agent files are not overwritten.
 
 ## Skill Structure
 
