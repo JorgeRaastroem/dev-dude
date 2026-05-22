@@ -84,7 +84,7 @@ claude install-skill /path/to/dev-dude
 
 #### Option 2: Manual installation
 
-Copy the `dev-dude/` directory into your Claude Code skills folder:
+Copy the `Claude skill/dev-dude/` directory from this repository into your Claude Code skills folder:
 
 ```
 # Global (available in all projects)
@@ -100,18 +100,20 @@ On first run, the skill automatically copies its bundled agent definitions from 
 
 ### GitHub Copilot coding agent
 
-Copy the `dev-dude/` directory into your repository:
+Copy the `Copilot/dev-dude/` directory from this repository into your project:
 
 ```
 <project>/dev-dude/
 ```
 
-On first run, the skill automatically copies its bundled agent definitions from `agents/` into `.github/agents/`, making them available to Copilot. Existing agent files are not overwritten.
+On first run, the skill automatically copies its bundled agent definitions from `agents/` into `~/.copilot/agents/`, making them available to Copilot. Existing agent files are not overwritten.
 
 ## Skill Structure
 
+### Claude Code (`Claude skill/dev-dude/`)
+
 ```
-dev-dude/
+Claude skill/dev-dude/
 ├── SKILL.md                                  # Main skill (loaded when triggered)
 ├── agents/                                   # Bundled agent definitions
 │   ├── code-flow-analyzer.md                 #   Traces code flows, maps dependencies
@@ -125,12 +127,29 @@ dev-dude/
     └── verification-workflow.md              #   How docs are verified against code
 ```
 
+### GitHub Copilot coding agent (`Copilot/dev-dude/`)
+
+```
+Copilot/dev-dude/
+├── SKILL.md                                  # Main skill (loaded when triggered)
+├── agents/                                   # Bundled agent definitions
+│   ├── code-flow-analyzer-copilot.md         #   Traces code flows, maps dependencies
+│   ├── investigation-documenter-copilot.md   #   Creates structured docs from findings
+│   ├── feature-implementer-copilot.md        #   Implements features from design specs
+│   └── test-implementer-copilot.md           #   Writes and runs tests
+└── references/                               # Detailed workflow guides (loaded on demand)
+    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
+    ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
+    ├── doc-format-templates.md               #   Output document templates
+    └── verification-workflow.md              #   How docs are verified against code
+```
+
 After installation the agent definitions are placed in the runtime-specific agents folder:
 
 | Runtime | Agents folder |
 |---------|--------------|
 | Claude Code | `.claude/agents/` |
-| GitHub Copilot coding agent | `.github/agents/` |
+| GitHub Copilot coding agent | `~/.copilot/agents/` |
 
 ## Agent Swarm Architecture
 
@@ -180,7 +199,7 @@ All documents use consistent templates with:
 
 ### Agent definitions
 
-Agent files in `.claude/agents/` (Claude Code) or `.github/agents/` (GitHub Copilot) can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
+Agent files in `.claude/agents/` (Claude Code) or `~/.copilot/agents/` (GitHub Copilot) can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
 
 ### Document templates
 
