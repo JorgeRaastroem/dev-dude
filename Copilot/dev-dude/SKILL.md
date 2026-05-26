@@ -1,18 +1,18 @@
 ---
 name: dev-dude
 description: >
-  Architecture investigation and feature implementation using agent swarms.
+  Architecture investigation and feature implementation using agent fleets.
   Works on any codebase — dynamically discovers project structure, areas, and conventions.
   Two sub-commands:
   (1) DudeWhereIsMyArch (aliases: arch, where) — Investigate and document codebase architecture
-  using parallel agent swarms. Produces structured architecture docs with mermaid diagrams
+  using parallel agent fleets. Produces structured architecture docs with mermaid diagrams
   in ./docs/ArchOverview/. Use for full codebase investigation or targeted area deep-dives.
   (2) DudeWriteMyFeature (aliases: feature, write) — Design and implement features using agent
-  swarms with a user review gate between design and implementation phases. Accepts feature
+  fleets with a user review gate between design and implementation phases. Accepts feature
   descriptions, spec file paths, or image paths. Produces design docs and implementation in
   ./docs/<feature-slug>/.
-  Prerequisites: At least one code-indexing MCP server (e.g., Serena) and the bundled agent
-  crew (code-flow-analyzer-copilot, investigation-documenter-copilot, feature-implementer-copilot,
+  Prerequisites: At least one code-indexing MCP server (e.g., Serena) and the bundled fleet
+  agents (code-flow-analyzer-copilot, investigation-documenter-copilot, feature-implementer-copilot,
   test-implementer-copilot).
 ---
 argument-hint:
@@ -25,7 +25,7 @@ argument-hint:
 
 # DevDude
 
-Architecture investigation and feature implementation powered by agent swarms.
+Architecture investigation and feature implementation powered by agent fleets.
 
 ## 1. Prerequisites
 
@@ -154,7 +154,7 @@ Examples:
 
 ## 3. DudeWhereIsMyArch
 
-Investigates and documents codebase architecture using parallel agent swarms.
+Investigates and documents codebase architecture using parallel agent fleets.
 
 ### Codebase Discovery (Phase 0)
 
@@ -176,7 +176,11 @@ Use the selected code indexer(s) or standard tools to dynamically discover the p
   - Targeted deep-dive into the specified area
   - Updates existing overview document with new cross-references
 
-### Swarm Execution
+### Fleet Execution
+
+For architecture work, run a fleet using the bundled agents:
+- `code-flow-analyzer-copilot`
+- `investigation-documenter-copilot`
 
 **IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
 prompt so agents know which code indexer tools are available.
@@ -204,7 +208,13 @@ detailed phase-by-phase workflow including:
 
 ## 4. DudeWriteMyFeature
 
-Designs and implements features using agent swarms with a user review gate.
+Designs and implements features using agent fleets with a user review gate.
+
+For feature work, run a fleet using all bundled agents:
+- `code-flow-analyzer-copilot`
+- `investigation-documenter-copilot`
+- `feature-implementer-copilot`
+- `test-implementer-copilot`
 
 ### Prerequisites Check
 
