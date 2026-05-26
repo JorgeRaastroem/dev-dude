@@ -24,20 +24,33 @@ Triggered when area is "all"/broad OR `./docs/ArchOverview/` doesn't exist.
 
 ### Phase 1: Parallel Investigation
 
-Launch one Code-Flow-Analyzer agent per discovered area, all in parallel:
+Launch a Code-Flow-Analyzer and UX-Design-Reviewer agent per discovered area, all in parallel:
 
 ```
-For each discovered area, launch a task tool call:
-  agent_type: "code-flow-analyzer-copilot"
-  mode: "background"
-  prompt: "Investigate <area-name>"
-  Include in prompt:
-    - Area path (e.g., "packages/core/auth/")
-    - Area description from discovery
-    - Key entry points identified
-    - $INDEXER_CONTEXT block
-  Expected output:
-    - ./docs/ArchOverview/.tmp/<area-slug>.md
+For each discovered area, launch two task tool calls:
+  Task A:
+    agent_type: "code-flow-analyzer-copilot"
+    mode: "background"
+    prompt: "Investigate <area-name>"
+    Include in prompt:
+      - Area path (e.g., "packages/core/auth/")
+      - Area description from discovery
+      - Key entry points identified
+      - $INDEXER_CONTEXT block
+    Expected output:
+      - ./docs/ArchOverview/.tmp/<area-slug>.md
+
+  Task B:
+    agent_type: "ux-design-reviewer-copilot"
+    mode: "background"
+    prompt: "Review UX for <area-name>"
+    Include in prompt:
+      - Area path or user-facing scope
+      - Existing screens/specs relevant to the area
+      - Any project UX guidelines (or instruction to interview user and create them)
+      - $INDEXER_CONTEXT block
+    Expected output:
+      - ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
 Max 4-6 concurrent agents. If more areas, batch them.
 ```
@@ -60,19 +73,19 @@ Task 1: Overview document (needs ALL Phase 1 outputs)
   agent_type: "investigation-documenter-copilot"
   mode: "background"
   prompt:
-    - Input: All .tmp/<area>.md files
+    - Input: All .tmp/<area>.md and .tmp/ux-<area>.md files
     - Output: ./docs/ArchOverview/<project>-architecture-overview.md
     - Include: Executive summary, high-level architecture diagram (mermaid),
-      area summaries with cross-references, glossary
+      area summaries with cross-references, glossary, and text-only UX collateral when relevant
 
 Tasks 2-N: Deep-dive documents (one per area)
   agent_type: "investigation-documenter-copilot"
   mode: "background"
   prompt:
-    - Input: .tmp/<area>.md for the specific area
+    - Input: .tmp/<area>.md and .tmp/ux-<area>.md for the specific area
     - Output: ./docs/ArchOverview/<project>-<area-slug>.md
     - Include: Detailed component breakdown, data flow diagrams,
-      key interfaces, dependencies
+      key interfaces, dependencies, and text-only layout maps when relevant
 ```
 
 **Wait for all Phase 2 tasks** before proceeding.
@@ -94,7 +107,22 @@ One task per generated document, all in parallel:
 
 **Wait for all Phase 3 tasks** before proceeding.
 
-### Phase 4: Fix Application (after all Phase 3 tasks complete)
+### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
+
+Launch a single Architecture-Reviewer to critique the mapped architecture:
+
+```
+  agent_type: "architecture-reviewer-copilot"
+  mode: "sync"
+  prompt:
+    - Input: Final architecture overview + deep-dive documents
+    - Include: All verification reports
+    - Process: Critique reusability, performance, scalability, and operational cost
+    - Output: ./docs/ArchOverview/.tmp/architecture-review.md
+    - Require: "Future Considerations" list for the project
+```
+
+### Phase 5: Fix Application (after Phase 4 completes)
 
 Launch a single Investigation-Documenter to apply corrections:
 
@@ -102,9 +130,10 @@ Launch a single Investigation-Documenter to apply corrections:
   agent_type: "investigation-documenter-copilot"
   mode: "sync"
   prompt:
-    - Input: All verification reports
+    - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
     - Process: Apply corrections to documents, update inaccurate
-      file paths/symbol names/descriptions, note unverifiable items
+      file paths/symbol names/descriptions, fold in architecture critique,
+      add future considerations, note unverifiable items
     - Output: Updated documents in ./docs/ArchOverview/
     - Cleanup: Remove .tmp/ directory
 ```
@@ -114,12 +143,20 @@ Launch a single Investigation-Documenter to apply corrections:
 Triggered when a specific area is requested AND `./docs/ArchOverview/` already exists.
 
 ```
-Step 1: Code-Flow-Analyzer (sync)
-  agent_type: "code-flow-analyzer-copilot"
-  mode: "sync"
-  prompt: "Deep-dive investigate <specific-area>"
-  Input: Area path, existing overview doc for context
-  Output: ./docs/ArchOverview/.tmp/<area-slug>.md
+Step 1: Parallel investigation
+  Task A:
+    agent_type: "code-flow-analyzer-copilot"
+    mode: "sync"
+    prompt: "Deep-dive investigate <specific-area>"
+    Input: Area path, existing overview doc for context
+    Output: ./docs/ArchOverview/.tmp/<area-slug>.md
+
+  Task B:
+    agent_type: "ux-design-reviewer-copilot"
+    mode: "sync"
+    prompt: "Review UX for <specific-area>"
+    Input: Area path, relevant screens/specs, existing overview doc for context
+    Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
 Step 2: Two Investigation-Documenters (parallel, after Step 1)
   Task A (background): Create new deep-dive document
@@ -128,6 +165,7 @@ Step 2: Two Investigation-Documenters (parallel, after Step 1)
     - Add new area section
     - Update cross-references
     - Update high-level diagram if needed
+    - Add UX notes/layout maps if relevant
 
   Wait for both tasks to complete.
 
@@ -135,7 +173,11 @@ Step 3: Code-Flow-Analyzer (sync, after Step 2)
   Verify new/updated content only
   Output: ./docs/ArchOverview/.tmp/verification-<area>.md
 
-Step 4: Investigation-Documenter (sync, after Step 3)
-  Apply corrections
+Step 4: Architecture-Reviewer (sync, after Step 3)
+  Critique the new/updated area and produce future considerations
+  Output: ./docs/ArchOverview/.tmp/architecture-review.md
+
+Step 5: Investigation-Documenter (sync, after Step 4)
+  Apply corrections and fold in architecture review
   Cleanup: Remove .tmp/ directory
 ```

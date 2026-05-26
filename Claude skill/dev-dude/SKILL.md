@@ -13,7 +13,8 @@ description: >
   ./docs/<feature-slug>/.
   Prerequisites: At least one code-indexing MCP server (e.g., Serena, aider, sourcegraph),
   Team tools (TeamCreate), and the bundled agent crew (code-flow-analyzer,
-  investigation-documenter, feature-implementer, test-implementer).
+  ux-design-reviewer, architecture-reviewer, investigation-documenter,
+  feature-implementer, test-implementer).
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
@@ -40,6 +41,8 @@ Target: .claude/agents/
 
 Files to install:
   code-flow-analyzer.md    → .claude/agents/code-flow-analyzer.md
+  ux-design-reviewer.md    → .claude/agents/ux-design-reviewer.md
+  architecture-reviewer.md → .claude/agents/architecture-reviewer.md
   investigation-documenter.md → .claude/agents/investigation-documenter.md
   feature-implementer.md   → .claude/agents/feature-implementer.md
   test-implementer.md      → .claude/agents/test-implementer.md
@@ -104,8 +107,10 @@ Ensure your Claude Code configuration supports TeamCreate.
 
 ### Verify Agent Crew
 
-After installing agents, confirm all 4 subagent types are available via the Task tool:
+After installing agents, confirm all 6 subagent types are available via the Task tool:
 - `code-flow-analyzer`
+- `ux-design-reviewer`
+- `architecture-reviewer`
 - `investigation-documenter`
 - `feature-implementer`
 - `test-implementer`
@@ -185,10 +190,11 @@ prompt so agents know which code indexer tools are available.
 
 See [references/arch-investigation-workflow.md](references/arch-investigation-workflow.md) for
 detailed phase-by-phase workflow including:
-- Phase 1: Parallel investigation (one Code-Flow-Analyzer per area)
-- Phase 2: Documentation (Investigation-Documenter creates overview + deep-dives)
+- Phase 1: Parallel investigation (Code-Flow-Analyzer + UX-Design-Reviewer per area)
+- Phase 2: Documentation (Investigation-Documenter creates overview + deep-dives + UX collateral)
 - Phase 3: Verification (Code-Flow-Analyzer validates docs against code)
-- Phase 4: Fix application (Investigation-Documenter applies corrections)
+- Phase 4: Critical review (Architecture-Reviewer critiques the mapped architecture)
+- Phase 5: Fix application (Investigation-Documenter applies corrections and future considerations)
 
 ### Output
 
@@ -230,8 +236,9 @@ Derive a feature slug from the description (lowercase, hyphenated, max 40 chars)
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
-1. **Investigation**: Code-Flow-Analyzer investigates relevant existing flows
-2. **Design Options**: Investigation-Documenter creates 2-3 design options with diagrams
+1. **Investigation**: Code-Flow-Analyzer and UX-Design-Reviewer investigate relevant existing flows and UX constraints
+2. **Design Options**: Investigation-Documenter creates 2-3 design options with diagrams and text-only UX collateral
+3. **Design Critique**: Architecture-Reviewer critiques the design for reuse, performance, scalability, and operational cost
 
 **USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
 design option before proceeding to Phase 2. If user gives feedback, iterate on design.
@@ -240,17 +247,17 @@ design option before proceeding to Phase 2. If user gives feedback, iterate on d
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
-3. **Implementation Plan**: Create ordered task list with dependencies
-4. **Implementation**: Launch Feature-Implementer tasks (per component, respecting dependencies).
+4. **Implementation Plan**: Create ordered task list with dependencies
+5. **Implementation**: Launch Feature-Implementer tasks (per component, respecting dependencies).
    Each Feature-Implementer outputs an **implementation summary with test specifications**.
-5. **Testing (REQUIRED)**: After each Feature-Implementer task completes, you MUST launch a
+6. **Testing (REQUIRED)**: After each Feature-Implementer task completes, you MUST launch a
    corresponding Test-Implementer task. Pass it:
    - The implementation summary and test specifications from the completed Feature-Implementer
    - The design document for behavioral expectations
    - The file paths of newly created/modified code
    Create each Test-Implementer task with `blockedBy` set to its corresponding Feature-Implementer task.
    Do NOT skip this step or proceed to validation without running tests.
-6. **Validation**: Run project build/test/lint + Code-Flow-Analyzer verifies against spec
+7. **Validation**: Run project build/test/lint + Code-Flow-Analyzer verifies against spec
 
 ### Output
 
