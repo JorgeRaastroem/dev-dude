@@ -55,6 +55,11 @@ graph TD
 | Term | Definition |
 |------|-----------|
 | <Term> | <Definition> |
+
+## Future Considerations
+
+- <Architecture or UX concern to revisit later>
+- <Scalability, performance, or operational cost watch item>
 ```
 
 ## Deep-Dive Area Document
@@ -172,6 +177,17 @@ sequenceDiagram
 **Affected Modules**:
 - `<path>` — <what changes>
 
+**UX Guidance**:
+- <Key UX principle or interaction rule>
+
+**Layout Map (text only)**:
+```text
+Screen: <name>
+- Header: ...
+- Main content: ...
+- Secondary actions: ...
+```
+
 **Complexity**: Low / Medium / High
 
 ```mermaid
@@ -196,8 +212,18 @@ graph LR
 | Complexity | Low | Medium |
 | Risk | Low | Medium |
 | Extensibility | Medium | High |
+| UX Clarity | High | Medium |
+| Reusability | High | Medium |
+| Operational Cost | Low | Medium |
 
 ## Recommendation
 
 <If there's a clear winner, state it and why>
+
+## Architecture Review Notes
+
+- **Summary**: <Key critique from architecture-reviewer>
+- **Future Considerations**:
+  - <Item>
+  - <Item>
 ```

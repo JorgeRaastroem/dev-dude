@@ -12,8 +12,9 @@ description: >
   descriptions, spec file paths, or image paths. Produces design docs and implementation in
   ./docs/<feature-slug>/.
   Prerequisites: At least one code-indexing MCP server (e.g., Serena) and the bundled fleet
-  agents (code-flow-analyzer-copilot, investigation-documenter-copilot, feature-implementer-copilot,
-  test-implementer-copilot).
+  agents (code-flow-analyzer-copilot, ux-design-reviewer-copilot,
+  architecture-reviewer-copilot, investigation-documenter-copilot,
+  feature-implementer-copilot, test-implementer-copilot).
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
@@ -40,6 +41,8 @@ Target: ~/.copilot/agents/
 
 Files to install:
   code-flow-analyzer-copilot.md    → ~/.copilot/agents/code-flow-analyzer-copilot.md
+  ux-design-reviewer-copilot.md    → ~/.copilot/agents/ux-design-reviewer-copilot.md
+  architecture-reviewer-copilot.md → ~/.copilot/agents/architecture-reviewer-copilot.md
   investigation-documenter-copilot.md → ~/.copilot/agents/investigation-documenter-copilot.md
   feature-implementer-copilot.md   → ~/.copilot/agents/feature-implementer-copilot.md
   test-implementer-copilot.md      → ~/.copilot/agents/test-implementer-copilot.md
@@ -100,8 +103,10 @@ user choose which ones to use. At least one indexer is recommended but not requi
 
 ### Verify Agent Crew
 
-Confirm all 4 custom agent types are available via the Task tool:
+Confirm all 6 custom agent types are available via the Task tool:
 - `code-flow-analyzer-copilot`
+- `ux-design-reviewer-copilot`
+- `architecture-reviewer-copilot`
 - `investigation-documenter-copilot`
 - `feature-implementer-copilot`
 - `test-implementer-copilot`
@@ -180,6 +185,8 @@ Use the selected code indexer(s) or standard tools to dynamically discover the p
 
 For architecture work, run a fleet using the bundled agents:
 - `code-flow-analyzer-copilot`
+- `ux-design-reviewer-copilot`
+- `architecture-reviewer-copilot`
 - `investigation-documenter-copilot`
 
 **IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
@@ -191,10 +198,11 @@ phase. For sequential execution within a phase, use `mode: "sync"`.
 
 See [references/arch-investigation-workflow.md](references/arch-investigation-workflow.md) for
 detailed phase-by-phase workflow including:
-- Phase 1: Parallel investigation (one code-flow-analyzer-copilot per area, background mode)
-- Phase 2: Documentation (investigation-documenter-copilot creates overview + deep-dives)
+- Phase 1: Parallel investigation (code-flow-analyzer-copilot + ux-design-reviewer-copilot per area, background mode)
+- Phase 2: Documentation (investigation-documenter-copilot creates overview + deep-dives + UX collateral)
 - Phase 3: Verification (code-flow-analyzer-copilot validates docs against code)
-- Phase 4: Fix application (investigation-documenter-copilot applies corrections)
+- Phase 4: Critical review (architecture-reviewer-copilot critiques the mapped architecture)
+- Phase 5: Fix application (investigation-documenter-copilot applies corrections and future considerations)
 
 ### Output
 
@@ -212,6 +220,8 @@ Designs and implements features using agent fleets with a user review gate.
 
 For feature work, run a fleet using all bundled agents:
 - `code-flow-analyzer-copilot`
+- `ux-design-reviewer-copilot`
+- `architecture-reviewer-copilot`
 - `investigation-documenter-copilot`
 - `feature-implementer-copilot`
 - `test-implementer-copilot`
@@ -242,8 +252,9 @@ Derive a feature slug from the description (lowercase, hyphenated, max 40 chars)
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
-1. **Investigation**: code-flow-analyzer-copilot investigates relevant existing flows (sync)
-2. **Design Options**: investigation-documenter-copilot creates 2-3 design options with diagrams (sync)
+1. **Investigation**: code-flow-analyzer-copilot and ux-design-reviewer-copilot investigate relevant existing flows and UX constraints (sync)
+2. **Design Options**: investigation-documenter-copilot creates 2-3 design options with diagrams and text-only UX collateral (sync)
+3. **Design Critique**: architecture-reviewer-copilot critiques the design for reuse, performance, scalability, and operational cost (sync)
 
 **USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
 design option before proceeding to Phase 2. If user gives feedback, iterate on design.
@@ -252,18 +263,18 @@ design option before proceeding to Phase 2. If user gives feedback, iterate on d
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
-3. **Implementation Plan**: Create ordered task list with dependencies
-4. **Implementation**: Launch feature-implementer-copilot tasks (per component, respecting dependencies).
+4. **Implementation Plan**: Create ordered task list with dependencies
+5. **Implementation**: Launch feature-implementer-copilot tasks (per component, respecting dependencies).
    - Independent components: `mode: "background"` (max 3 concurrent)
    - Dependent components: `mode: "sync"` or wait for background tasks first
    Each feature-implementer-copilot outputs an **implementation summary with test specifications**.
-5. **Testing (REQUIRED)**: After each feature-implementer-copilot task completes, you MUST launch a
+6. **Testing (REQUIRED)**: After each feature-implementer-copilot task completes, you MUST launch a
    corresponding test-implementer-copilot task. Pass it:
    - The implementation summary and test specifications from the completed feature-implementer
    - The design document for behavioral expectations
    - The file paths of newly created/modified code
    Do NOT skip this step or proceed to validation without running tests.
-6. **Validation**: Run project build/test/lint + code-flow-analyzer-copilot verifies against spec
+7. **Validation**: Run project build/test/lint + code-flow-analyzer-copilot verifies against spec
 
 ### Output
 

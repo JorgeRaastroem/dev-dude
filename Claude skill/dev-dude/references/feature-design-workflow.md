@@ -23,7 +23,7 @@ Before starting the feature workflow:
 ```
 TeamCreate → "feature-<slug>"
 
-Code-Flow-Analyzer task:
+Task A: Code-Flow-Analyzer
   Task: "Investigate existing flows for <feature>"
   Input:
     - Feature description/spec
@@ -35,6 +35,18 @@ Code-Flow-Analyzer task:
     - Identify integration points, extension points, patterns
     - Document constraints, conventions, and anti-patterns to avoid
   Output: ./docs/<feature-slug>/investigation.md
+
+Task B: UX-Design-Reviewer
+  Task: "Review UX constraints for <feature>"
+  Input:
+    - Feature description/spec
+    - Relevant screenshots, mockups, or image inputs
+    - Relevant architecture docs (if available)
+  Process:
+    - Inspect current user journeys and affected screens
+    - Create or confirm project UX principles
+    - Produce UX guidance, accessibility notes, and text-only layout maps
+  Output: ./docs/<feature-slug>/ux-review.md
 ```
 
 ### Step 2: Design Options (blocked by Step 1)
@@ -45,12 +57,45 @@ Investigation-Documenter task:
   Input:
     - Feature description/spec
     - Investigation results
+    - UX review results
     - Architecture docs (if available)
   Process:
     - Analyze investigation findings
     - Generate 2-3 design options
     - For each option: approach, affected modules, complexity, pros/cons
+    - Include UX guidance and text-only layout maps for UX-impacting changes
     - Include mermaid diagrams showing how each option integrates
+  Output: ./docs/<feature-slug>/design-options.md
+```
+
+### Step 3: Architecture Critique (blocked by Step 2)
+
+```
+Architecture-Reviewer task:
+  Task: "Critique design options for <feature>"
+  Input:
+    - Feature description/spec
+    - Design options document
+    - Investigation results
+  Process:
+    - Critique options for reusability, performance, scalability, and operational cost
+    - If criteria are missing, interview the user and define them before final scoring
+  Output: ./docs/<feature-slug>/.tmp/architecture-review.md
+```
+
+### Step 4: Documentation Refinement (blocked by Step 3)
+
+```
+Investigation-Documenter task:
+  Task: "Refine design options for <feature>"
+  Input:
+    - Design options document
+    - UX review results
+    - Architecture review report
+  Process:
+    - Fold UX guidance into the design document
+    - Summarize architecture critique and future considerations
+    - Keep design options ready for user review
   Output: ./docs/<feature-slug>/design-options.md
 ```
 
@@ -64,7 +109,7 @@ Present design options to the user:
 
 ## Phase 2: Implementation (after user approval)
 
-### Step 3: Implementation Plan
+### Step 5: Implementation Plan
 
 ```
 Create implementation plan based on selected design:
@@ -77,7 +122,7 @@ Create implementation plan based on selected design:
     - Validation criteria
 ```
 
-### Step 4: Implementation (tasks may have dependencies)
+### Step 6: Implementation (tasks may have dependencies)
 
 ```
 Feature-Implementer tasks (per component/module):
@@ -97,11 +142,11 @@ Feature-Implementer tasks (per component/module):
 
 Task dependencies follow the implementation plan ordering. Independent components run in parallel; dependent ones are sequenced with `blockedBy`.
 
-### Step 5: Test Implementation (REQUIRED — blocked by corresponding Step 4 tasks)
+### Step 7: Test Implementation (REQUIRED — blocked by corresponding Step 6 tasks)
 
 **You MUST create Test-Implementer tasks. Do NOT skip this step.**
 
-As each Feature-Implementer task from Step 4 completes, it produces an implementation summary
+As each Feature-Implementer task from Step 6 completes, it produces an implementation summary
 containing test specifications (Phase 4 of the feature-implementer workflow). For each completed
 Feature-Implementer task:
 
@@ -133,17 +178,17 @@ Task tool call:
 3. Set `blockedBy` to the corresponding Feature-Implementer's task ID
 
 Independent test tasks can run in parallel. Wait for ALL Test-Implementer tasks to complete
-before proceeding to Step 6.
+before proceeding to Step 8.
 
-### Step 6: Validation (blocked by Steps 4 and 5)
+### Step 8: Validation (blocked by Steps 6 and 7)
 
 ```
-Step 6a: Run project validation
+Step 8a: Run project validation
   - Discover build/test/lint commands from project config
   - Run full validation suite
   - Report results
 
-Step 6b: Code-Flow-Analyzer task
+Step 8b: Code-Flow-Analyzer task
   Task: "Verify implementation matches spec"
   Input:
     - Original feature spec
@@ -161,9 +206,10 @@ Step 6b: Code-Flow-Analyzer task
 ```
 ./docs/<feature-slug>/
 ├── investigation.md          # Phase 1 Step 1
-├── design-options.md         # Phase 1 Step 2
-├── implementation-plan.md    # Phase 2 Step 3
-└── verification.md           # Phase 2 Step 6
+├── ux-review.md              # Phase 1 Step 1
+├── design-options.md         # Phase 1 Steps 2-4
+├── implementation-plan.md    # Phase 2 Step 5
+└── verification.md           # Phase 2 Step 8
 ```
 
 ## Team Lifecycle
@@ -171,5 +217,5 @@ Step 6b: Code-Flow-Analyzer task
 - Create team at start of Phase 1
 - Pause team between Phase 1 and Phase 2 (user review gate)
 - Resume team for Phase 2 after user approval
-- Shut down all agents after Phase 2 Step 6 completes
+- Shut down all agents after Phase 2 Step 8 completes
 - Delete team after shutdown

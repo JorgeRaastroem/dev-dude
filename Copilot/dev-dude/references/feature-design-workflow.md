@@ -20,22 +20,37 @@ Before starting the feature workflow:
 
 ### Step 1: Investigation
 
-Launch a Code-Flow-Analyzer to investigate existing code relevant to the feature:
+Launch a Code-Flow-Analyzer and UX-Design-Reviewer to investigate the feature:
 
 ```
-agent_type: "code-flow-analyzer-copilot"
-mode: "sync"
-prompt:
-  - Feature description/spec
-  - Relevant architecture docs (if available)
-  - Keywords and area hints from the feature description
-  - $INDEXER_CONTEXT block
-  Process:
-    - Search codebase for related components using the active code indexer tools
-    - Trace existing flows that the feature will interact with
-    - Identify integration points, extension points, patterns
-    - Document constraints, conventions, and anti-patterns to avoid
-  Output: ./docs/<feature-slug>/investigation.md
+Task A:
+  agent_type: "code-flow-analyzer-copilot"
+  mode: "sync"
+  prompt:
+    - Feature description/spec
+    - Relevant architecture docs (if available)
+    - Keywords and area hints from the feature description
+    - $INDEXER_CONTEXT block
+    Process:
+      - Search codebase for related components using the active code indexer tools
+      - Trace existing flows that the feature will interact with
+      - Identify integration points, extension points, patterns
+      - Document constraints, conventions, and anti-patterns to avoid
+    Output: ./docs/<feature-slug>/investigation.md
+
+Task B:
+  agent_type: "ux-design-reviewer-copilot"
+  mode: "sync"
+  prompt:
+    - Feature description/spec
+    - Relevant screenshots, mockups, or image inputs
+    - Relevant architecture docs (if available)
+    - $INDEXER_CONTEXT block
+    Process:
+      - Inspect current user journeys and affected screens
+      - Create or confirm project UX principles
+      - Produce UX guidance, accessibility notes, and text-only layout maps
+    Output: ./docs/<feature-slug>/ux-review.md
 ```
 
 ### Step 2: Design Options (after Step 1 completes)
@@ -48,13 +63,52 @@ mode: "sync"
 prompt:
   - Feature description/spec
   - Investigation results from Step 1
+  - UX review results from Step 1
   - Architecture docs (if available)
   - $INDEXER_CONTEXT block
   Process:
     - Analyze investigation findings
     - Generate 2-3 design options
     - For each option: approach, affected modules, complexity, pros/cons
+    - Include UX guidance and text-only layout maps for UX-impacting changes
     - Include mermaid diagrams showing how each option integrates
+  Output: ./docs/<feature-slug>/design-options.md
+```
+
+### Step 3: Architecture Critique (after Step 2 completes)
+
+Launch an Architecture-Reviewer to critique the design options:
+
+```
+agent_type: "architecture-reviewer-copilot"
+mode: "sync"
+prompt:
+  - Feature description/spec
+  - Design options document
+  - Investigation results
+  - $INDEXER_CONTEXT block
+  Process:
+    - Critique options for reusability, performance, scalability, and operational cost
+    - If criteria are missing, interview the user and define them before scoring
+  Output: ./docs/<feature-slug>/.tmp/architecture-review.md
+```
+
+### Step 4: Documentation Refinement (after Step 3 completes)
+
+Launch an Investigation-Documenter to refine the design package:
+
+```
+agent_type: "investigation-documenter-copilot"
+mode: "sync"
+prompt:
+  - Design options document
+  - UX review results
+  - Architecture review report
+  - $INDEXER_CONTEXT block
+  Process:
+    - Fold UX guidance into the design document
+    - Summarize architecture critique and future considerations
+    - Keep the design options ready for user review
   Output: ./docs/<feature-slug>/design-options.md
 ```
 
@@ -68,7 +122,7 @@ Present design options to the user:
 
 ## Phase 2: Implementation (after user approval)
 
-### Step 3: Implementation Plan
+### Step 5: Implementation Plan
 
 Create implementation plan based on selected design:
 ```
@@ -81,7 +135,7 @@ Contents:
   - Validation criteria
 ```
 
-### Step 4: Implementation (tasks may have dependencies)
+### Step 6: Implementation (tasks may have dependencies)
 
 Launch Feature-Implementer agents per component/module:
 
@@ -110,11 +164,11 @@ Max 3 concurrent Feature-Implementer agents.
 Independent components run in parallel (background mode); dependent ones run
 sequentially (sync mode or wait for background task to complete first).
 
-### Step 5: Test Implementation (REQUIRED — after corresponding Step 4 tasks)
+### Step 7: Test Implementation (REQUIRED — after corresponding Step 6 tasks)
 
 **You MUST create Test-Implementer tasks. Do NOT skip this step.**
 
-As each Feature-Implementer task from Step 4 completes, it produces an implementation
+As each Feature-Implementer task from Step 6 completes, it produces an implementation
 summary containing test specifications. For each completed Feature-Implementer task:
 
 1. Extract the test specifications from the Feature-Implementer's output
@@ -142,17 +196,17 @@ prompt: |
 ```
 
 Independent test tasks can run in parallel. Wait for ALL Test-Implementer tasks to
-complete before proceeding to Step 6.
+complete before proceeding to Step 8.
 
-### Step 6: Validation (after Steps 4 and 5 complete)
+### Step 8: Validation (after Steps 6 and 7 complete)
 
 ```
-Step 6a: Run project validation
+Step 8a: Run project validation
   - Discover build/test/lint commands from project config
   - Run full validation suite via powershell tool
   - Report results
 
-Step 6b: Code-Flow-Analyzer verification
+Step 8b: Code-Flow-Analyzer verification
   agent_type: "code-flow-analyzer-copilot"
   mode: "sync"
   prompt:
@@ -171,7 +225,8 @@ Step 6b: Code-Flow-Analyzer verification
 ```
 ./docs/<feature-slug>/
 ├── investigation.md          # Phase 1 Step 1
-├── design-options.md         # Phase 1 Step 2
-├── implementation-plan.md    # Phase 2 Step 3
-└── verification.md           # Phase 2 Step 6
+├── ux-review.md              # Phase 1 Step 1
+├── design-options.md         # Phase 1 Steps 2-4
+├── implementation-plan.md    # Phase 2 Step 5
+└── verification.md           # Phase 2 Step 8
 ```
