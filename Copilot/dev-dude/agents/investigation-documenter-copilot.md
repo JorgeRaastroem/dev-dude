@@ -119,7 +119,7 @@ If no indexer context is provided, use the standard tools (grep, glob, view) for
      - Acceptable fallback: Mermaid parser/library if CLI rendering is unavailable
      - Do not rely on visual inspection only
    - Fix common syntax hazards:
-     - When labels contain `/`, `*`, `:`, parentheses, brackets, or route patterns, wrap the label text in quotes inside node syntax (good: `Node["/api/smoke/* test-only"]`, risky: `Node[/api/smoke/* test-only]`)
+     - When labels contain `/`, `*`, `:`, parentheses, brackets, or route patterns, wrap the label text in quotes inside node syntax (good: `apiRoute["/api/smoke/* test-only"]`, risky: `apiRoute[/api/smoke/* test-only]`)
      - Avoid parentheses in edge labels after `<br/>`; simplify or quote/split labels
      - Prefer simple labels in edges; put detailed text inside quoted node labels
      - Keep Mermaid IDs alphanumeric/underscore only
