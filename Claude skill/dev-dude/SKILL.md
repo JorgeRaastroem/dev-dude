@@ -12,7 +12,8 @@ description: >
   descriptions, spec file paths, or image paths. Produces design docs and implementation in
   ./docs/<feature-slug>/.
   Prerequisites: At least one code-indexing MCP server (e.g., Serena, aider, sourcegraph),
-  Team tools (TeamCreate), and the bundled agent crew (code-flow-analyzer,
+  Mermaid tooling (`@mermaid-js/mermaid-cli` preferred), Team tools (TeamCreate), and the
+  bundled agent crew (code-flow-analyzer,
   ux-design-reviewer, architecture-reviewer, investigation-documenter,
   feature-implementer, test-implementer).
 ---
@@ -50,6 +51,16 @@ Files to install:
 
 For each file: check if `.claude/agents/<name>.md` already exists (check both project local claude folder and global). If not, copy it. If it exists,
 skip (do not overwrite — user may have customized it).
+
+### Install Mermaid Validation Tooling
+
+Install Mermaid CLI so investigation-documenter can validate Mermaid diagrams with parser/render checks:
+
+```bash
+npm install --no-save @mermaid-js/mermaid-cli
+```
+
+If CLI installation is not possible in the environment, ensure a Mermaid parser/library fallback is available and require explicit reporting that CLI validation was unavailable.
 
 ### Detect & Select Code Indexers
 
