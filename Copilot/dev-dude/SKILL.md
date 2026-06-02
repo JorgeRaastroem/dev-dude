@@ -2,20 +2,12 @@
 name: dev-dude
 description: >
   Architecture investigation and feature implementation using agent fleets.
-  Works on any codebase — dynamically discovers project structure, areas, and conventions.
-  Two sub-commands:
-  (1) DudeWhereIsMyArch (aliases: arch, where) — Investigate and document codebase architecture
-  using parallel agent fleets. Produces structured architecture docs with mermaid diagrams
-  in ./docs/ArchOverview/. Use for full codebase investigation or targeted area deep-dives.
-  (2) DudeWriteMyFeature (aliases: feature, write) — Design and implement features using agent
-  fleets with a user review gate between design and implementation phases. Accepts feature
-  descriptions, spec file paths, or image paths. Produces design docs and implementation in
-  ./docs/<feature-slug>/.
-  Prerequisites: At least one code-indexing MCP server (e.g., Serena), Mermaid tooling
-  (`@mermaid-js/mermaid-cli` preferred), and the bundled fleet agents
-  (code-flow-analyzer-copilot, ux-design-reviewer-copilot,
-  architecture-reviewer-copilot, investigation-documenter-copilot,
-  feature-implementer-copilot, test-implementer-copilot).
+  Works on any codebase by dynamically discovering project structure, areas, and conventions.
+  Commands: DudeWhereIsMyArch (arch/where) performs parallel architecture investigation and writes
+  docs to ./docs/ArchOverview/. DudeWriteMyFeature (feature/write) designs and implements features
+  with a user review gate, accepting text prompts, spec files, or image inputs and writing outputs
+  to ./docs/<feature-slug>/. Requires at least one code-indexing MCP server, Mermaid tooling, and
+  the bundled fleet agents.
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
