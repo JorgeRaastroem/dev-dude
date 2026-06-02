@@ -57,7 +57,7 @@ skip (do not overwrite — user may have customized it).
 Install Mermaid CLI so investigation-documenter can validate Mermaid diagrams with parser/render checks:
 
 ```bash
-npm install --no-save @mermaid-js/mermaid-cli
+npm install --global @mermaid-js/mermaid-cli
 ```
 
 If CLI installation is not possible in the environment, ensure a Mermaid parser/library fallback is available and require explicit reporting that CLI validation was unavailable.
