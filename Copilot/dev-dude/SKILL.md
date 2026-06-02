@@ -11,8 +11,9 @@ description: >
   fleets with a user review gate between design and implementation phases. Accepts feature
   descriptions, spec file paths, or image paths. Produces design docs and implementation in
   ./docs/<feature-slug>/.
-  Prerequisites: At least one code-indexing MCP server (e.g., Serena) and the bundled fleet
-  agents (code-flow-analyzer-copilot, ux-design-reviewer-copilot,
+  Prerequisites: At least one code-indexing MCP server (e.g., Serena), Mermaid tooling
+  (`@mermaid-js/mermaid-cli` preferred), and the bundled fleet agents
+  (code-flow-analyzer-copilot, ux-design-reviewer-copilot,
   architecture-reviewer-copilot, investigation-documenter-copilot,
   feature-implementer-copilot, test-implementer-copilot).
 ---
@@ -50,6 +51,16 @@ Files to install:
 
 For each file: check if `~/.copilot/agents/<name>.md` already exists. If not, copy it.
 If it exists, skip (do not overwrite — user may have customized it).
+
+### Install Mermaid Validation Tooling
+
+Install Mermaid CLI so investigation-documenter-copilot can validate Mermaid diagrams with parser and render checks:
+
+```bash
+npm install --global @mermaid-js/mermaid-cli
+```
+
+If CLI installation is not possible in the environment, ensure a Mermaid parser/library fallback is available and require explicit reporting that CLI validation was unavailable.
 
 ### Detect & Select Code Indexers
 

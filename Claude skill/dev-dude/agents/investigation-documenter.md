@@ -109,7 +109,37 @@ the capability.
    - Offer to add sections: "Would you like me to add sections on error handling, performance considerations, security implications, or UX collateral?"
    - If information seems incomplete, proactively request clarification
 
-9. **Output Format Template**:
+9. **Mermaid Diagram Verification**:
+   - Before reporting completion, validate every Mermaid block you create or edit.
+   - Extract all fenced Mermaid blocks:
+     - Match blocks starting with ```mermaid and ending with ```
+     - Record source file, block number, and starting line
+   - Render or parse every block with Mermaid tooling:
+     - Preferred: `@mermaid-js/mermaid-cli` (`mmdc`) because it catches parse errors users see in Markdown renderers
+     - Acceptable fallback: Mermaid parser/library if CLI rendering is unavailable
+     - Do not rely on visual inspection only
+   - Fix common syntax hazards:
+     - When labels contain `/`, `*`, `:`, parentheses, brackets, or route patterns, wrap the label text in quotes inside node syntax (good: `apiRoute["/api/smoke/* test-only"]`, risky: `apiRoute[/api/smoke/* test-only]`)
+     - Avoid parentheses in edge labels after `<br/>`; simplify or quote/split labels
+     - Prefer simple labels in edges; put detailed text inside quoted node labels
+     - Keep Mermaid IDs alphanumeric/underscore only
+     - Ensure every `subgraph` has a matching `end`
+     - Ensure all code fences are balanced
+   - Report validation results:
+     - Number of Mermaid blocks checked
+     - Tool used
+     - Any diagrams fixed
+     - Any diagrams not validated and why
+   - Example validation command pattern:
+     ```powershell
+     # Extract Mermaid blocks from docs, then render each with mmdc.
+     npm install --no-save @mermaid-js/mermaid-cli
+     npx mmdc -i diagram.mmd -o diagram.svg
+     ```
+   - Completion is not done until all Mermaid blocks parse/render successfully.
+   - **If you cannot run Mermaid tooling, say so explicitly, run the syntax checklist manually, and do not claim diagrams are valid.**
+
+10. **Output Format Template**:
    ```markdown
    # [Investigation Title]
    
@@ -160,7 +190,7 @@ the capability.
    [If applicable]
    ```
 
-10. **Self-Verification Checklist** (internal):
+11. **Self-Verification Checklist** (internal):
     - [ ] All code snippets are from actual investigation sources
     - [ ] At least one sequence diagram per major flow
     - [ ] Added text-only layout maps when UX findings require them
@@ -169,6 +199,7 @@ the capability.
     - [ ] Document follows engineering design doc structure
     - [ ] Technical terms are clearly defined
     - [ ] Cross-references are accurate
+    - [ ] Mermaid validation status is reported with tool/manual details
 
 ## Operational Guidelines
 
