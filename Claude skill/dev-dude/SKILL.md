@@ -36,6 +36,8 @@ Architecture investigation and feature implementation powered by agent swarms.
 Copy agent definitions from this skill's `agents/` directory to `.claude/agents/` so they become
 available as `subagent_type` values for the Task tool.
 
+Bundled agent crew version: `1.0.0` (all agents must always use the same version).
+
 ```
 Skill path: <skill-path>/agents/
 Target: .claude/agents/
@@ -49,8 +51,17 @@ Files to install:
   test-implementer.md      → .claude/agents/test-implementer.md
 ```
 
-For each file: check if `.claude/agents/<name>.md` already exists (check both project local claude folder and global). If not, copy it. If it exists,
-skip (do not overwrite — user may have customized it).
+For each file: compare the bundled version with the installed version in
+`.claude/agents/<name>.md` frontmatter (`version:`) (check both project-local and global install).
+
+Rules:
+- If installed file is missing, copy bundled file.
+- If installed file has no `version`, treat it as `0`.
+- If installed version is lower than bundled version, overwrite with bundled file (update).
+- If installed version is equal or higher, keep installed file (do not overwrite).
+
+Always update all agent files as one atomic set when any installed version is lower so the crew
+remains on one shared version.
 
 ### Install Mermaid Validation Tooling
 
