@@ -1,0 +1,109 @@
+name: Bump agent versions
+
+on:
+  push:
+    paths:
+      - 'Copilot/dev-dude/agents/*.md'
+      - 'Claude skill/dev-dude/agents/*.md'
+
+permissions:
+  contents: write
+
+jobs:
+  bump-agent-versions:
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip agent-version-bump]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump shared agent version
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          python <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          def sh(cmd: list[str]) -> str:
+            return subprocess.check_output(cmd, text=True).strip()
+
+          before = os.environ.get('BEFORE_SHA')
+          after = os.environ.get('AFTER_SHA')
+
+          changed = set()
+          if before and before != '0000000000000000000000000000000000000000':
+            diff = sh(['git', 'diff', '--name-only', before, after])
+            changed = {line for line in diff.splitlines() if line}
+          else:
+            diff = sh(['git', 'diff-tree', '--no-commit-id', '--name-only', '-r', after])
+            changed = {line for line in diff.splitlines() if line}
+
+          tracked_prefixes = (
+            'Copilot/dev-dude/agents/',
+            'Claude skill/dev-dude/agents/',
+          )
+          touched_agents = [p for p in changed if p.startswith(tracked_prefixes)]
+          if not touched_agents:
+            print('No bundled agent files changed; skipping bump.')
+            raise SystemExit(0)
+
+          repo = Path('.')
+          agent_files = sorted((repo / 'Copilot/dev-dude/agents').glob('*.md')) + sorted((repo / 'Claude skill/dev-dude/agents').glob('*.md'))
+          skill_files = [repo / 'Copilot/dev-dude/SKILL.md', repo / 'Claude skill/dev-dude/SKILL.md']
+
+          def parse_version(value: str) -> tuple[int, int, int]:
+            m = re.match(r'^(\d+)\.(\d+)\.(\d+)$', value.strip())
+            if not m:
+              return (0, 0, 0)
+            return tuple(int(x) for x in m.groups())
+
+          current = (0, 0, 0)
+          for path in agent_files:
+            text = path.read_text()
+            m = re.search(r'^version:\s*(.+)$', text, flags=re.M)
+            if m:
+              v = parse_version(m.group(1))
+              if v > current:
+                current = v
+
+          new_version = f"{current[0]}.{current[1]}.{current[2] + 1}"
+
+          for path in agent_files:
+            text = path.read_text()
+            if re.search(r'^version:\s*.+$', text, flags=re.M):
+              text = re.sub(r'^version:\s*.+$', f'version: {new_version}', text, flags=re.M)
+            else:
+              frontmatter_end = text.find('\n---\n', 4)
+              if frontmatter_end == -1:
+                raise RuntimeError(f'Missing frontmatter terminator in {path}')
+              text = text[:frontmatter_end] + f'\nversion: {new_version}' + text[frontmatter_end:]
+            path.write_text(text)
+
+          for path in skill_files:
+            text = path.read_text()
+            text = re.sub(
+              r"Bundled agent crew version:\s*`[^`]+`",
+              f"Bundled agent crew version: `{new_version}`",
+              text,
+            )
+            path.write_text(text)
+
+          sh(['git', 'add', *[str(p) for p in agent_files], *[str(p) for p in skill_files]])
+          diff_cached = sh(['git', 'diff', '--cached', '--name-only'])
+          if not diff_cached:
+            print('No version updates were necessary.')
+            raise SystemExit(0)
+
+          sh(['git', 'config', 'user.name', 'github-actions[bot]'])
+          sh(['git', 'config', 'user.email', 'github-actions[bot]@users.noreply.github.com'])
+          message = f"chore: bump agent crew version to {new_version} [skip agent-version-bump]"
+          sh(['git', 'commit', '-m', message])
+          sh(['git', 'push'])
+
+          print(f'Bumped all agents to version {new_version}.')
+          PY

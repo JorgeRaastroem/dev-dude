@@ -98,7 +98,7 @@ Copy the `Claude skill/dev-dude/` directory from this repository into your Claud
 
 #### Agent auto-install
 
-On first run, the skill automatically copies its bundled agent definitions from `agents/` into `.claude/agents/`, making them available as Task tool subagent types. Existing agent files are not overwritten.
+On first run, the skill checks bundled agent versions against installed agent versions (`version:` in frontmatter). Missing version is treated as `0`. If any installed agent is lower than the bundled version, the whole crew is updated atomically so all agents stay on the same version.
 
 ### GitHub Copilot coding agent
 
@@ -108,7 +108,7 @@ Copy the `Copilot/dev-dude/` directory from this repository into your project:
 <project>/dev-dude/
 ```
 
-On first run, the skill automatically copies its bundled agent definitions from `agents/` into `~/.copilot/agents/`, making them available to Copilot. Existing agent files are not overwritten.
+On first run, the skill checks bundled agent versions against installed agent versions (`version:` in frontmatter). Missing version is treated as `0`. If any installed agent is lower than the bundled version, the whole crew is updated atomically so all agents stay on the same version.
 
 ## Skill Structure
 
