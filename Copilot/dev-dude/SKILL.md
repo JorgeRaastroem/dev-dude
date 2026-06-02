@@ -148,36 +148,13 @@ If no prerequisite fails critically, print the error with remediation steps and 
 
 ## 2. Argument Parsing
 
-Parse `$ARGUMENTS` — the first token determines the command:
+Parse `$ARGUMENTS` using the command routing rules in
+[references/argument-parsing.md](references/argument-parsing.md).
 
-| Token | Command |
-|-------|---------|
-| `DudeWhereIsMyArch`, `arch`, `where` | Architecture Investigation |
-| `DudeWriteMyFeature`, `feature`, `write` | Feature Design & Implementation |
-
-Remaining tokens after the command = the argument:
-- For `arch`: area name or "all" for full investigation
-- For `feature`: feature description text, path to a spec file, or path to images
-
-If no recognized command, print usage:
-```
-DevDude - Architecture Investigation & Feature Implementation
-
-Usage:
-  /dev-dude DudeWhereIsMyArch [area|all]
-  /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>
-
-Aliases:
-  arch, where  → DudeWhereIsMyArch
-  feature, write → DudeWriteMyFeature
-
-Examples:
-  /dev-dude arch all                    # Full codebase architecture investigation
-  /dev-dude arch authentication         # Deep-dive into auth area
-  /dev-dude where src/services/         # Investigate a specific directory
-  /dev-dude feature Add user caching    # Implement a feature from description
-  /dev-dude write ./specs/my-feature.md # Implement from a spec document
-```
+In short:
+- `DudeWhereIsMyArch`, `arch`, `where` → Architecture Investigation
+- `DudeWriteMyFeature`, `feature`, `write` → Feature Design & Implementation
+- Remaining tokens after the command are passed through as that command's argument.
 
 ## 3. DudeWhereIsMyArch
 
@@ -310,15 +287,9 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
 
 ## 5. Output Format
 
-All documents follow templates in [references/doc-format-templates.md](references/doc-format-templates.md).
-
-Key format requirements:
-- **Metadata header**: Date, scope, tech stack
-- **Table of contents**: For documents with 3+ sections
-- **Mermaid diagrams**: For architecture views and data flows
-- **File path references**: Every code reference includes relative file path
-- **Cross-references**: Links between related documents
-- **Glossary**: Domain-specific terms in overview documents
+All documents must follow
+[references/doc-format-templates.md](references/doc-format-templates.md), including metadata
+headers, mermaid diagrams, file path references, cross-references, and overview glossaries.
 
 ## 6. Guard Rails
 
