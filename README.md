@@ -144,6 +144,7 @@ Copilot/dev-dude/
 │   ├── feature-implementer-copilot.md        #   Implements features from design specs
 │   └── test-implementer-copilot.md           #   Writes and runs tests
 └── references/                               # Detailed workflow guides (loaded on demand)
+    ├── argument-parsing.md                   #   Command routing, aliases, and usage text
     ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
     ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
     ├── doc-format-templates.md               #   Output document templates
