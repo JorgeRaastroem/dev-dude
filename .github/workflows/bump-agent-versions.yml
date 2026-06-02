@@ -30,7 +30,18 @@ jobs:
           from pathlib import Path
 
           def sh(cmd: list[str]) -> str:
-            return subprocess.check_output(cmd, text=True).strip()
+            try:
+              completed = subprocess.run(
+                cmd,
+                text=True,
+                capture_output=True,
+                check=True,
+              )
+            except subprocess.CalledProcessError as exc:
+              raise RuntimeError(
+                f"Command failed: {' '.join(cmd)}\nstdout: {exc.stdout}\nstderr: {exc.stderr}"
+              ) from exc
+            return completed.stdout.strip()
 
           before = os.environ.get('BEFORE_SHA')
           after = os.environ.get('AFTER_SHA')
@@ -83,7 +94,9 @@ jobs:
             else:
               frontmatter_end = text.find('\n---\n', 4)
               if frontmatter_end == -1:
-                raise RuntimeError(f'Missing frontmatter terminator in {path}')
+                raise RuntimeError(
+                  f'Missing closing frontmatter delimiter (---) in {path}'
+                )
               text = text[:frontmatter_end] + f'\nversion: {new_version}' + text[frontmatter_end:]
             path.write_text(text)
 
