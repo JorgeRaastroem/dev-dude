@@ -54,7 +54,7 @@ skip (do not overwrite — user may have customized it).
 
 ### Install Mermaid Validation Tooling
 
-Install Mermaid CLI so investigation-documenter can validate Mermaid diagrams with parser/render checks:
+Install Mermaid CLI so investigation-documenter can validate Mermaid diagrams with parser and render checks:
 
 ```bash
 npm install --global @mermaid-js/mermaid-cli
