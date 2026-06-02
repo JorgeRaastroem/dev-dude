@@ -53,14 +53,17 @@ jobs:
             raise SystemExit(0)
 
           repo = Path('.')
-          agent_files = sorted((repo / 'Copilot/dev-dude/agents').glob('*.md')) + sorted((repo / 'Claude skill/dev-dude/agents').glob('*.md'))
+          agent_files = (
+            sorted((repo / 'Copilot/dev-dude/agents').glob('*.md'))
+            + sorted((repo / 'Claude skill/dev-dude/agents').glob('*.md'))
+          )
           skill_files = [repo / 'Copilot/dev-dude/SKILL.md', repo / 'Claude skill/dev-dude/SKILL.md']
 
           def parse_version(value: str) -> tuple[int, int, int]:
             m = re.match(r'^(\d+)\.(\d+)\.(\d+)$', value.strip())
             if not m:
               return (0, 0, 0)
-            return tuple(int(x) for x in m.groups())
+            return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
 
           current = (0, 0, 0)
           for path in agent_files:
