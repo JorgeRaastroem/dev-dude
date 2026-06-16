@@ -41,6 +41,7 @@ Files to install:
   investigation-documenter-copilot.md → ~/.copilot/agents/investigation-documenter-copilot.md
   feature-implementer-copilot.md   → ~/.copilot/agents/feature-implementer-copilot.md
   test-implementer-copilot.md      → ~/.copilot/agents/test-implementer-copilot.md
+  feature-validator-copilot.md     → ~/.copilot/agents/feature-validator-copilot.md
 ```
 
 For each file: compare the bundled version with the installed version in
@@ -117,13 +118,14 @@ user choose which ones to use. At least one indexer is recommended but not requi
 
 ### Verify Agent Crew
 
-Confirm all 6 custom agent types are available via the Task tool:
+Confirm all 7 custom agent types are available via the Task tool:
 - `code-flow-analyzer-copilot`
 - `ux-design-reviewer-copilot`
 - `architecture-reviewer-copilot`
 - `investigation-documenter-copilot`
 - `feature-implementer-copilot`
 - `test-implementer-copilot`
+- `feature-validator-copilot`
 
 If any are missing, attempt to install them from this skill's `agents/` directory.
 
@@ -216,6 +218,7 @@ For feature work, run a fleet using all bundled agents:
 - `investigation-documenter-copilot`
 - `feature-implementer-copilot`
 - `test-implementer-copilot`
+- `feature-validator-copilot`
 
 ### Prerequisites Check
 
@@ -250,7 +253,7 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
 **USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
 design option before proceeding to Phase 2. If user gives feedback, iterate on design.
 
-### Phase 2: Implementation (after user approval)
+### Phase 2: Implementation (after user approval or direct Phase 2 resume)
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
@@ -265,7 +268,10 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
    - The design document for behavioral expectations
    - The file paths of newly created/modified code
    Do NOT skip this step or proceed to validation without running tests.
-7. **Validation**: Run project build/test/lint + code-flow-analyzer-copilot verifies against spec
+7. **Validation Loop (REQUIRED)**: Run project build/test/lint, use code-flow-analyzer-copilot for semantic verification, and use feature-validator-copilot as the final read-only gate.
+   - Phase 2 cannot complete until validation runs and writes `./docs/<feature-slug>/verification.md`.
+   - If validation returns `UNSATISFIED`, route targeted remediation to the correct agent and repeat implementation, testing, and validation.
+   - Stop only when feature-validator-copilot returns `SATISFIED`, or after the bounded remediation limit is reached with unresolved findings reported.
 
 ### Output
 
@@ -299,6 +305,8 @@ After implementation, discover and run appropriate project validation:
 - Look for test commands (test, test:unit, pytest, cargo test, go test, etc.)
 - Look for lint commands (lint, eslint, clippy, golint, etc.)
 - Run discovered commands and report results
+- Always run this validation step before completing Phase 2, even when resuming directly into Phase 2 from an existing design or implementation plan.
+- Treat validation as a completion contract: Phase 2 exits only on `SATISFIED` from feature-validator-copilot, or on a bounded unresolved state that clearly lists remaining failures and owner agents.
 
 ### Cleanup
 - Remove `.tmp/` investigation artifacts from output directories
