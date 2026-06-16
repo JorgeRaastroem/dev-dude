@@ -28,7 +28,7 @@ Architecture investigation and feature implementation powered by agent swarms.
 Copy agent definitions from this skill's `agents/` directory to `.claude/agents/` so they become
 available as `subagent_type` values for the Task tool.
 
-Bundled agent crew version: `1.0.0` (all agents must always use the same version).
+Bundled agent crew version: `1.0.1` (all agents must always use the same version).
 
 ```
 Skill path: <skill-path>/agents/
@@ -41,6 +41,7 @@ Files to install:
   investigation-documenter.md → .claude/agents/investigation-documenter.md
   feature-implementer.md   → .claude/agents/feature-implementer.md
   test-implementer.md      → .claude/agents/test-implementer.md
+  feature-validator.md     → .claude/agents/feature-validator.md
 ```
 
 For each file: compare the bundled version with the installed version in
@@ -121,13 +122,14 @@ Ensure your Claude Code configuration supports TeamCreate.
 
 ### Verify Agent Crew
 
-After installing agents, confirm all 6 subagent types are available via the Task tool:
+After installing agents, confirm all 7 subagent types are available via the Task tool:
 - `code-flow-analyzer`
 - `ux-design-reviewer`
 - `architecture-reviewer`
 - `investigation-documenter`
 - `feature-implementer`
 - `test-implementer`
+- `feature-validator`
 
 ### Load Project Context
 
@@ -257,7 +259,7 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
 **USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
 design option before proceeding to Phase 2. If user gives feedback, iterate on design.
 
-### Phase 2: Implementation (after user approval)
+### Phase 2: Implementation (after user approval or direct Phase 2 resume)
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
@@ -271,7 +273,10 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
    - The file paths of newly created/modified code
    Create each Test-Implementer task with `blockedBy` set to its corresponding Feature-Implementer task.
    Do NOT skip this step or proceed to validation without running tests.
-7. **Validation**: Run project build/test/lint + Code-Flow-Analyzer verifies against spec
+7. **Validation Loop (REQUIRED)**: Run project build/test/lint, use Code-Flow-Analyzer for semantic verification, and use Feature-Validator as the final read-only gate.
+   - Phase 2 cannot complete until validation runs and writes `./docs/<feature-slug>/verification.md`.
+   - If validation returns `UNSATISFIED`, route targeted remediation to the correct agent and repeat implementation, testing, and validation.
+   - Stop only when Feature-Validator returns `SATISFIED`, or after the bounded remediation limit is reached with unresolved findings reported.
 
 ### Output
 
@@ -311,6 +316,8 @@ After implementation, discover and run appropriate project validation:
 - Look for test commands (test, test:unit, pytest, cargo test, go test, etc.)
 - Look for lint commands (lint, eslint, clippy, golint, etc.)
 - Run discovered commands and report results
+- Always run this validation step before completing Phase 2, even when resuming directly into Phase 2 from an existing design or implementation plan.
+- Treat validation as a completion contract: Phase 2 exits only on `SATISFIED` from Feature-Validator, or on a bounded unresolved state that clearly lists remaining failures and owner agents.
 
 ### Cleanup
 - Shut down all team agents after workflow completes

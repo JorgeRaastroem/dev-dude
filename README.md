@@ -51,7 +51,7 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 | **User Review** | **You pick a design option before implementation begins** | — |
 | Implementation | Build the feature per the approved design | Feature-Implementer(s) |
 | Testing | Write and run tests based on implementation output | Test-Implementer(s) |
-| Validation | Run build/test/lint + verify implementation matches spec | Code-Flow-Analyzer |
+| Validation Loop | Run build/test/lint, verify implementation flow, gate on SATISFIED, and route targeted remediation until satisfied or bounded unresolved | Code-Flow-Analyzer, Feature-Validator |
 
 **Output:** `./docs/<feature-slug>/` containing investigation notes, design options, implementation plan, and verification report.
 
@@ -123,7 +123,8 @@ Claude skill/dev-dude/
 │   ├── architecture-reviewer.md              #   Critiques architecture and future fitness
 │   ├── investigation-documenter.md           #   Creates structured docs from findings
 │   ├── feature-implementer.md                #   Implements features from design specs
-│   └── test-implementer.md                   #   Writes and runs tests
+│   ├── test-implementer.md                   #   Writes and runs tests
+│   └── feature-validator.md                  #   Gates feature completion with SATISFIED/UNSATISFIED
 └── references/                               # Detailed workflow guides (loaded on demand)
     ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
     ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
@@ -142,7 +143,8 @@ Copilot/dev-dude/
 │   ├── architecture-reviewer-copilot.md      #   Critiques architecture and future fitness
 │   ├── investigation-documenter-copilot.md   #   Creates structured docs from findings
 │   ├── feature-implementer-copilot.md        #   Implements features from design specs
-│   └── test-implementer-copilot.md           #   Writes and runs tests
+│   ├── test-implementer-copilot.md           #   Writes and runs tests
+│   └── feature-validator-copilot.md          #   Gates feature completion with SATISFIED/UNSATISFIED
 └── references/                               # Detailed workflow guides (loaded on demand)
     ├── argument-parsing.md                   #   Command routing, aliases, and usage text
     ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
@@ -160,7 +162,7 @@ After installation the agent definitions are placed in the runtime-specific agen
 
 ## Agent Swarm Architecture
 
-DevDude orchestrates six specialized agent types:
+DevDude orchestrates seven specialized agent types:
 
 | Agent | Role | Used In |
 |-------|------|---------|
@@ -170,8 +172,9 @@ DevDude orchestrates six specialized agent types:
 | **Investigation-Documenter** | Creates structured architecture/design documents with mermaid diagrams | Both commands |
 | **Feature-Implementer** | Implements code changes following existing patterns and conventions | Feature command |
 | **Test-Implementer** | Writes and runs tests based on implementation output | Feature command |
+| **Feature-Validator** | Read-only final gate that returns SATISFIED/UNSATISFIED and targeted remediation owners | Feature command |
 
-Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., tests blocked by implementation).
+Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., tests blocked by implementation). Feature implementation uses a bounded implementation -> testing -> validation loop, and Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
 
 ```
 DudeWhereIsMyArch "all"
