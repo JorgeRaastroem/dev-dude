@@ -28,7 +28,7 @@ Architecture investigation and feature implementation powered by agent fleets.
 Copy agent definitions from this skill's `agents/` directory to `~/.copilot/agents/` so they
 become available as custom agent types for the Task tool.
 
-Bundled agent crew version: `1.0.2` (all agents must always use the same version).
+Bundled agent crew version: `1.0.3` (all agents must always use the same version).
 
 ```
 Skill path: <skill-path>/agents/
