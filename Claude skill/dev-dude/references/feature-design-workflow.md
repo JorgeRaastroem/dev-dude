@@ -49,6 +49,66 @@ Task B: UX-Design-Reviewer
   Output: ./docs/<feature-slug>/ux-review.md
 ```
 
+### Step 1.5: Resource Investigation (blocked by Step 1)
+
+Launch a Technical-Resource-Investigator in `discovery` mode to identify resources that should
+inform design — reusable internal components plus authoritative external packages/services/APIs.
+This step **consumes `investigation.md`** and does **not** re-trace internal flows.
+
+```
+Technical-Resource-Investigator task (discovery):
+  subagent_type: "technical-resource-investigator"
+  model: <fast discovery default from the agent frontmatter>
+  Task: "Investigate technical resources for <feature> (discovery)"
+  Input:
+    - Feature description/spec
+    - Investigation results from Step 1 (./docs/<feature-slug>/investigation.md)
+    - UX review results from Step 1 (when resource choice is UX-affected)
+    - Architecture docs (if available)
+    - $INDEXER_CONTEXT block
+    - $RESOURCE_RESEARCH_CONTEXT block
+  Process:
+    - Validate reuse candidates surfaced by investigation.md (do not re-trace flows)
+    - Identify external candidates ONLY from authoritative/allowlisted sources
+    - Separate facts from recommendations; cite every external fact with an allowlisted URL or
+      MCP document reference
+    - Prefer in-repo reuse unless an external resource is clearly justified
+    - Record unavailable sources / research gaps explicitly
+  Guardrail: Use only sources permitted by references/trusted-source-policy.md. Every external
+  recommendation must carry an allowlisted citation (citation-host invariant). Unverified
+  candidates cannot be recommended. Read-only: never fetch/execute third-party code or change
+  dependencies.
+  Output: ./docs/<feature-slug>/resources-investigation.md
+```
+
+### Step 1.6: Resource Critique (conditional, blocked by Step 1.5)
+
+Run a **second** Technical-Resource-Investigator pass in `critique-and-amend` mode using a
+**different/stronger model override** to pressure-test the draft. This step is **conditional**: run
+it only when external candidates exist **or** the resource choice is material to the architecture. If
+neither holds, skip it and record the reason directly in `resources-investigation.md`.
+
+```
+Technical-Resource-Investigator task (critique-and-amend):
+  subagent_type: "technical-resource-investigator"
+  model: <stronger model override, e.g. a stronger model than the discovery default>
+  Task: "Critique technical resources for <feature> (critique-and-amend)"
+  Input:
+    - Feature description/spec
+    - Draft ./docs/<feature-slug>/resources-investigation.md from Step 1.5
+    - $INDEXER_CONTEXT block
+    - $RESOURCE_RESEARCH_CONTEXT block
+  Process:
+    - Critique candidates for security, reliability, maintenance, license, ecosystem health,
+      supply-chain risk, operational cost, citation quality, and uncertainty
+    - Demote any candidate that fails the citation-host invariant to `unverified`
+  Guardrail: Use only sources permitted by references/trusted-source-policy.md. APPEND critique and
+  amendments — do NOT delete or overwrite first-pass evidence or citations. Prefer read-only
+  advisory sources (GitHub Security Advisories, OSV); do not rely on npm audit.
+  Output (append-only): ./docs/<feature-slug>/resources-investigation.md
+          (Critique & Amendments + Revised Recommendations sections)
+```
+
 ### Step 2: Design Options (blocked by Step 1)
 
 ```
@@ -57,10 +117,13 @@ Investigation-Documenter task:
   Input:
     - Feature description/spec
     - Investigation results
+    - Resource investigation results (./docs/<feature-slug>/resources-investigation.md)
     - UX review results
     - Architecture docs (if available)
   Process:
     - Analyze investigation findings
+    - Incorporate recommended/validated resources from resources-investigation.md as
+      architecture-facing inputs (not implementation tasks)
     - Generate 2-3 design options
     - For each option: approach, affected modules, complexity, pros/cons
     - Include UX guidance and text-only layout maps for UX-impacting changes
@@ -77,8 +140,11 @@ Architecture-Reviewer task:
     - Feature description/spec
     - Design options document
     - Investigation results
+    - Resource investigation results (./docs/<feature-slug>/resources-investigation.md)
   Process:
     - Critique options for reusability, performance, scalability, and operational cost
+    - Factor in resource recommendations, advisories, license, and supply-chain risk from
+      resources-investigation.md
     - If criteria are missing, interview the user and define them before final scoring
   Output: ./docs/<feature-slug>/.tmp/architecture-review.md
 ```
@@ -107,6 +173,43 @@ Present design options to the user:
 - If feedback given, iterate on design options
 - Continue only after explicit user approval of a design
 
+## Implementation Clarification Gate (Phase 2 Entry Precondition)
+
+This gate runs after a design is approved and before Phase 2 implementation planning begins. It is a Phase 2 **entry precondition**, not an end-of-Phase-2 completion check, and it must be reachable on both paths into Phase 2:
+
+- **Fresh path**: immediately after the USER REVIEW GATE approves a design option.
+- **Direct Phase 2 resume**: before Step 5, check whether a completed clarification gate already exists for the latest approved design. If `./docs/<feature-slug>/implementation-interview.md` is missing or predates the latest approved design, run the gate now; otherwise treat the gate as satisfied and continue.
+
+Avoid unconditional interrogation. The gate only surfaces questions that are genuinely unresolved and implementation-critical — do not re-ask anything already settled by the approved design.
+
+### Step 4.5: Derive and resolve clarifications
+
+```
+Orchestrator task (run on the resumed team before Step 5):
+  Task: "Resolve implementation clarifications for <feature>"
+  Process:
+    1. Derive unresolved, implementation-critical questions from existing artifacts
+       (do not invent questions the design already answers):
+         - ./docs/<feature-slug>/design-options.md
+           (open questions, recommendation caveats, "Architecture Review Notes" / future considerations)
+         - ./docs/<feature-slug>/ux-review.md
+           (unresolved UX decisions, accessibility tradeoffs)
+         - ./docs/<feature-slug>/.tmp/architecture-review.md
+           (future considerations, open questions, flagged risks)
+         - The feature spec itself (ambiguous or missing requirements)
+       If none remain unresolved, record "gate completed with no open questions" and proceed to Step 5.
+    2. Ask the questions as a single batched set, each with a proposed default, so the user can
+       answer, adjust, or explicitly waive in one pass. For each question include the source
+       artifact, why it is implementation-critical, and the proposed default used if waived.
+    3. Record answers or waivers (transcript/decision evidence).
+    4. Re-approval check: if any answer materially changes the scope or approach of the approved
+       design, return to the USER REVIEW GATE to update design-options.md and obtain fresh approval
+       before continuing. Minor clarifications proceed directly to Step 5.
+  Output: ./docs/<feature-slug>/implementation-interview.md
+```
+
+The gate is complete when `implementation-interview.md` exists and every derived implementation-critical question has an answer or an explicit waiver. Its decisions are folded into `implementation-plan.md` in Step 5, which remains the single source of truth for downstream agents — they rely on the plan and do not separately consume the interview transcript.
+
 ## Phase 2: Implementation (after user approval or direct Phase 2 resume)
 
 Phase 2 is a resumable state machine. Whether the flow arrives from the Phase 1 user review gate or starts directly from an existing approved design/implementation plan, it must reconstruct the current feature state and finish through the validation gate.
@@ -129,21 +232,22 @@ Track the feature through these states:
 
 | State | Required evidence | Next state |
 |-------|-------------------|------------|
-| `planned` | Approved design plus implementation plan | `implemented` |
+| `planned` | Approved design, completed clarification gate (`implementation-interview.md`), and implementation plan | `implemented` |
 | `implemented` | Feature-Implementer summaries for all ready tasks | `tested` |
 | `tested` | Test-Implementer summaries/results for each implementation summary | `validated` |
 | `validated` | Project command results plus semantic verification where required | `satisfied` or remediation |
 | `satisfied` | Feature-Validator returns `SATISFIED` | complete |
 
-When resuming directly into Phase 2, read existing docs, task outputs, changed files, and command results to determine the current state. Do not assume validation has already run unless `verification.md` contains a current Feature-Validator decision for the latest changed files.
+When resuming directly into Phase 2, read existing docs, task outputs, changed files, and command results to determine the current state. First confirm the Implementation Clarification Gate has been completed for the latest approved design (see the gate's direct-resume check); run it before Step 5 if `implementation-interview.md` is missing or predates the latest approved design. Do not assume validation has already run unless `verification.md` contains a current Feature-Validator decision for the latest changed files.
 
 ### Step 5: Implementation Plan
 
-Create or refresh the implementation plan based on the selected design:
+Create or refresh the implementation plan based on the selected design. Fold the resolved decisions and waivers from `implementation-interview.md` into this plan so it remains the single source of truth for downstream agents:
 ```
 Output: ./docs/<feature-slug>/implementation-plan.md
 Contents:
   - Selected design option summary
+  - Clarification decisions and waivers folded in from implementation-interview.md
   - Ordered list of implementation tasks
   - File-level change plan (new files, modified files)
   - Dependencies between tasks
@@ -285,7 +389,9 @@ Do not skip directly from remediation implementation to validation. Every Featur
 ./docs/<feature-slug>/
 ├── investigation.md          # Phase 1 Step 1
 ├── ux-review.md              # Phase 1 Step 1
+├── resources-investigation.md # Phase 1 Steps 1.5-1.6
 ├── design-options.md         # Phase 1 Steps 2-4
+├── implementation-interview.md  # Implementation Clarification Gate (Step 4.5)
 ├── implementation-plan.md    # Phase 2 Step 5
 └── verification.md           # Phase 2 Step 8
 ```
