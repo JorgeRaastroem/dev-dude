@@ -31,7 +31,8 @@ If architecture docs already exist, requesting a specific area runs an **additiv
 
 ### `DudeWriteMyFeature` — Feature Design & Implementation
 
-Designs and implements features with a user review gate between design and implementation.
+Designs and implements features through codebase investigation, authoritative resource research,
+design review, implementation clarification, and a bounded validation loop.
 
 ```
 /dev-dude feature Add user profile caching
@@ -46,14 +47,20 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 | Phase | What Happens | Agents Used |
 |-------|-------------|-------------|
 | Investigation | Analyze existing code flows and relevant UX patterns for the feature | Code-Flow-Analyzer, UX-Design-Reviewer |
+| Resource Investigation | Validate internal reuse candidates and research external packages, services, platforms, and APIs from authoritative sources | Technical-Resource-Investigator |
+| Resource Critique (conditional) | Pressure-test material candidates for security, reliability, maintenance, licensing, supply-chain risk, and operational cost | Technical-Resource-Investigator (stronger-model pass) |
 | Design Options | Generate 2-3 design options with diagrams, UX guidance, and trade-offs | Investigation-Documenter |
 | Architecture Critique | Critique the design for reuse, performance, scalability, and operational cost | Architecture-Reviewer |
 | **User Review** | **You pick a design option before implementation begins** | — |
+| **Implementation Clarification** | **Resolve or explicitly waive implementation-critical questions before planning; material changes return to User Review** | — |
+| Implementation Planning | Fold the approved design and clarification decisions into the implementation plan | — |
 | Implementation | Build the feature per the approved design | Feature-Implementer(s) |
 | Testing | Write and run tests based on implementation output | Test-Implementer(s) |
 | Validation Loop | Run build/test/lint, verify implementation flow, gate on SATISFIED, and route targeted remediation until satisfied or bounded unresolved | Code-Flow-Analyzer, Feature-Validator |
 
-**Output:** `./docs/<feature-slug>/` containing investigation notes, design options, implementation plan, and verification report.
+**Output:** `./docs/<feature-slug>/` containing `investigation.md`,
+`resources-investigation.md`, `design-options.md`, `implementation-interview.md`,
+`implementation-plan.md`, and `verification.md`.
 
 ## Prerequisites
 
@@ -73,6 +80,18 @@ DevDude auto-detects available code-indexing MCP servers at startup. At least on
 | *More indexers* | *Extend the detection table in `SKILL.md`* | — |
 
 On first run, DevDude probes for known indexers, presents the detected ones to you, and lets you choose which to use. If only one is available it is auto-selected. After selection, indexer-specific onboarding is performed automatically.
+
+### Research Sources
+
+For feature design, DevDude separately detects available documentation MCP servers, GitHub and
+package-registry lookup options, and web research tools. External claims and recommendations must
+cite authoritative sources permitted by the bundled `trusted-source-policy.md`; unverified
+candidates cannot be recommended. Advisory checks prefer read-only sources such as GitHub Security
+Advisories and OSV.
+
+Research tools are optional. If no reliable external source is available, the resource
+investigation continues with repository-local discovery and validation and records the external
+research gap explicitly.
 
 ## Installation
 
@@ -122,6 +141,7 @@ Claude skill/dev-dude/
 │   ├── ux-design-reviewer.md                 #   Reviews UX, existing screens, and layout guidance
 │   ├── architecture-reviewer.md              #   Critiques architecture and future fitness
 │   ├── investigation-documenter.md           #   Creates structured docs from findings
+│   ├── technical-resource-investigator.md    #   Researches and critiques reusable resources
 │   ├── feature-implementer.md                #   Implements features from design specs
 │   ├── test-implementer.md                   #   Writes and runs tests
 │   └── feature-validator.md                  #   Gates feature completion with SATISFIED/UNSATISFIED
@@ -129,6 +149,7 @@ Claude skill/dev-dude/
     ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
     ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
     ├── doc-format-templates.md               #   Output document templates
+    ├── trusted-source-policy.md              #   Authoritative research and citation policy
     └── verification-workflow.md              #   How docs are verified against code
 ```
 
@@ -142,6 +163,7 @@ Copilot/dev-dude/
 │   ├── ux-design-reviewer-copilot.md         #   Reviews UX, existing screens, and layout guidance
 │   ├── architecture-reviewer-copilot.md      #   Critiques architecture and future fitness
 │   ├── investigation-documenter-copilot.md   #   Creates structured docs from findings
+│   ├── technical-resource-investigator-copilot.md # Researches and critiques reusable resources
 │   ├── feature-implementer-copilot.md        #   Implements features from design specs
 │   ├── test-implementer-copilot.md           #   Writes and runs tests
 │   └── feature-validator-copilot.md          #   Gates feature completion with SATISFIED/UNSATISFIED
@@ -150,6 +172,7 @@ Copilot/dev-dude/
     ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
     ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
     ├── doc-format-templates.md               #   Output document templates
+    ├── trusted-source-policy.md              #   Authoritative research and citation policy
     └── verification-workflow.md              #   How docs are verified against code
 ```
 
@@ -162,7 +185,7 @@ After installation the agent definitions are placed in the runtime-specific agen
 
 ## Agent Swarm Architecture
 
-DevDude orchestrates seven specialized agent types:
+DevDude orchestrates eight specialized agent types:
 
 | Agent | Role | Used In |
 |-------|------|---------|
@@ -170,11 +193,12 @@ DevDude orchestrates seven specialized agent types:
 | **UX-Design-Reviewer** | Inspects existing UX, raw specs, and interaction flows; creates text-first UX guidance and layout maps | Both commands |
 | **Architecture-Reviewer** | Critiques architecture and designs for reuse, performance, scalability, and operational cost | Both commands |
 | **Investigation-Documenter** | Creates structured architecture/design documents with mermaid diagrams | Both commands |
+| **Technical-Resource-Investigator** | Read-only discovery and conditional critique of reusable internal and authoritative external resources | Feature command |
 | **Feature-Implementer** | Implements code changes following existing patterns and conventions | Feature command |
 | **Test-Implementer** | Writes and runs tests based on implementation output | Feature command |
 | **Feature-Validator** | Read-only final gate that returns SATISFIED/UNSATISFIED and targeted remediation owners | Feature command |
 
-Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., tests blocked by implementation). Feature implementation uses a bounded implementation -> testing -> validation loop, and Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
+Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., resource research consumes code-flow findings and tests are blocked by implementation). External or architecturally material resource choices receive a conditional, append-only critique pass using a stronger model. Feature implementation starts only after design approval and the Implementation Clarification Gate, then uses a bounded implementation -> testing -> validation loop. Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
 
 ```
 DudeWhereIsMyArch "all"
@@ -201,6 +225,21 @@ DudeWhereIsMyArch "all"
    └─ Investigation-Documenter → apply corrections
 ```
 
+```
+DudeWriteMyFeature "<feature>"
+│
+├─ Investigation → Code-Flow-Analyzer + UX-Design-Reviewer
+├─ Resource investigation → Technical-Resource-Investigator
+├─ Resource critique (conditional) → stronger-model Technical-Resource-Investigator
+├─ Design options → Investigation-Documenter
+├─ Architecture critique → Architecture-Reviewer
+├─ User review gate → approve a design
+├─ Implementation clarification gate → answer or waive unresolved decisions
+├─ Implementation planning → approved design + clarification decisions
+├─ Implementation + testing → Feature-Implementer + Test-Implementer
+└─ Validation loop → Code-Flow-Analyzer + Feature-Validator
+```
+
 ## Output Format
 
 All documents use consistent templates with:
@@ -211,6 +250,8 @@ All documents use consistent templates with:
 - File path references for every code mention
 - Cross-references between related documents
 - Glossary of domain-specific terms
+- Allowlisted citations for external resource facts and recommendations
+- Append-only critique sections that preserve first-pass evidence and provenance
 
 ## Customization
 
@@ -231,9 +272,13 @@ Output templates are defined in `references/doc-format-templates.md` and can be 
 | **Dynamic area discovery** | No hardcoded module lists; reads project manifests and directory structure |
 | **Build/test command discovery** | Reads `package.json`, `Makefile`, `Cargo.toml` etc. to find the right commands |
 | **User review gate** | Prevents wasted implementation effort by getting design approval first |
+| **Implementation clarification gate** | Resolves or explicitly waives implementation-critical ambiguity before planning; material changes require renewed design approval |
+| **Trusted-source enforcement** | External resource recommendations require allowlisted authoritative citations; unsupported candidates remain unverified |
+| **Provenance-preserving critique** | Conditional resource critique appends amendments without deleting the discovery pass's evidence or citations |
 | **One-pass verification** | Verifies docs once and applies fixes — no infinite re-verification loops |
 | **Progressive disclosure** | SKILL.md stays lean; detailed workflows live in reference files loaded on demand |
 | **`$INDEXER_CONTEXT` injection** | Agents receive a structured description of active indexer tools via task prompts so they can adapt to any indexer without hardcoded tool names |
+| **`$RESOURCE_RESEARCH_CONTEXT` injection** | Resource investigation receives a separate inventory of available research tools and degrades explicitly to repository-local work when needed |
 
 ## License
 
