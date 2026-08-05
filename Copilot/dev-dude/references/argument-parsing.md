@@ -8,7 +8,7 @@ Parse `$ARGUMENTS` — the first token determines the command:
 | `DudeWriteMyFeature`, `feature`, `write` | Feature Design & Implementation |
 
 Remaining tokens after the command = the argument:
-- For `arch`: area name or "all" for full investigation
+- For `arch`: area name, "all" for full investigation, or "allrefresh" for a delta refresh
 - For `feature`: feature description text, path to a spec file, or path to images
 
 If no recognized command, print usage:
@@ -16,7 +16,7 @@ If no recognized command, print usage:
 DevDude - Architecture Investigation & Feature Implementation
 
 Usage:
-  /dev-dude DudeWhereIsMyArch [area|all]
+  /dev-dude DudeWhereIsMyArch [area|all|allrefresh]
   /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>
 
 Aliases:
@@ -25,6 +25,7 @@ Aliases:
 
 Examples:
   /dev-dude arch all                    # Full codebase architecture investigation
+  /dev-dude arch allrefresh             # Refresh affected docs on main/master
   /dev-dude arch authentication         # Deep-dive into auth area
   /dev-dude where src/services/         # Investigate a specific directory
   /dev-dude feature Add user caching    # Implement from a feature description

@@ -11,6 +11,7 @@ description: >
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
+  - "DudeWhereIsMyArch allrefresh" — Delta refresh on the current main/master branch
   - "DudeWhereIsMyArch authentication" — Deep-dive into authentication area
   - "DudeWhereIsMyArch src/services/" — Investigate specific directory
   - "DudeWriteMyFeature Add user caching" — Implement feature from description
@@ -209,6 +210,10 @@ Use the selected code indexer(s) or standard tools to dynamically discover the p
 - **Base Investigation**: area argument is "all" or broad, OR `./docs/ArchOverview/` doesn't exist
   - Full codebase investigation across all discovered areas
   - Creates complete documentation set
+- **Delta Refresh**: area argument is "allrefresh" AND `./docs/ArchOverview/` exists
+  - Compares each document's source baseline with the current `main` or `master` commit
+  - Re-investigates and updates only affected documented areas
+  - Discovers and documents new architecture areas introduced by the delta
 - **Additive Investigation**: specific area AND `./docs/ArchOverview/` already exists
   - Targeted deep-dive into the specified area
   - Updates existing overview document with new cross-references
@@ -235,6 +240,7 @@ detailed phase-by-phase workflow including:
 - Phase 3: Verification (code-flow-analyzer-copilot validates docs against code)
 - Phase 4: Critical review (architecture-reviewer-copilot critiques the mapped architecture)
 - Phase 5: Fix application (investigation-documenter-copilot applies corrections and future considerations)
+- Delta refresh: baseline resolution, impact mapping, and scoped document updates for `allrefresh`
 
 ### Output
 

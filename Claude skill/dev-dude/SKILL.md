@@ -11,6 +11,7 @@ description: >
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
+  - "DudeWhereIsMyArch allrefresh" — Delta refresh on the current main/master branch
   - "DudeWhereIsMyArch authentication" — Deep-dive into authentication area
   - "DudeWhereIsMyArch src/services/" — Investigate specific directory
   - "DudeWriteMyFeature Add user caching" — Implement feature from description
@@ -191,7 +192,7 @@ Parse `$ARGUMENTS` — the first token determines the command:
 | `DudeWriteMyFeature`, `feature`, `write` | Feature Design & Implementation |
 
 Remaining tokens after the command = the argument:
-- For `arch`: area name or "all" for full investigation
+- For `arch`: area name, "all" for full investigation, or "allrefresh" for a delta refresh
 - For `feature`: feature description text, path to a spec file, or path to images
 
 If no recognized command, print usage:
@@ -199,7 +200,7 @@ If no recognized command, print usage:
 DevDude - Architecture Investigation & Feature Implementation
 
 Usage:
-  /dev-dude DudeWhereIsMyArch [area|all]
+  /dev-dude DudeWhereIsMyArch [area|all|allrefresh]
   /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>
 
 Aliases:
@@ -208,6 +209,7 @@ Aliases:
 
 Examples:
   /dev-dude arch all                    # Full codebase architecture investigation
+  /dev-dude arch allrefresh             # Refresh affected docs on main/master
   /dev-dude arch authentication         # Deep-dive into auth area
   /dev-dude where src/services/         # Investigate a specific directory
   /dev-dude feature Add user caching    # Implement a feature from description
@@ -234,6 +236,10 @@ Use the selected code indexer(s) to dynamically discover the project structure �
 - **Base Investigation**: area argument is "all" or broad, OR `./docs/ArchOverview/` doesn't exist
   - Full codebase investigation across all discovered areas
   - Creates complete documentation set
+- **Delta Refresh**: area argument is "allrefresh" AND `./docs/ArchOverview/` exists
+  - Compares each document's source baseline with the current `main` or `master` commit
+  - Re-investigates and updates only affected documented areas
+  - Discovers and documents new architecture areas introduced by the delta
 - **Additive Investigation**: specific area AND `./docs/ArchOverview/` already exists
   - Targeted deep-dive into the specified area
   - Updates existing overview document with new cross-references
@@ -250,6 +256,7 @@ detailed phase-by-phase workflow including:
 - Phase 3: Verification (Code-Flow-Analyzer validates docs against code)
 - Phase 4: Critical review (Architecture-Reviewer critiques the mapped architecture)
 - Phase 5: Fix application (Investigation-Documenter applies corrections and future considerations)
+- Delta refresh: baseline resolution, impact mapping, and scoped document updates for `allrefresh`
 
 ### Output
 
