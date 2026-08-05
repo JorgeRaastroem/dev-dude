@@ -168,6 +168,25 @@ Confirm all 8 custom agent types are available via the Task tool:
 
 If any are missing, attempt to install them from this skill's `agents/` directory.
 
+### Normalize Task Model Selection
+
+Every `task` tool call MUST pass the selected agent's frontmatter `model` alias in the runtime's
+separate `model` and `reasoning_effort` fields:
+
+- If the alias ends in a reasoning-effort suffix (`minimal`, `low`, `medium`, `high`, `xhigh`, or
+  `max`), remove that suffix from `model` and pass it as `reasoning_effort`.
+- If the alias has no reasoning-effort suffix, pass the full alias as `model` and omit
+  `reasoning_effort`.
+- Apply the same normalization to explicit model overrides. Never pass a combined alias as the
+  task's `model` value.
+
+For example, frontmatter `model: gpt-5.6-luna-high` becomes:
+
+```
+model: "gpt-5.6-luna"
+reasoning_effort: "high"
+```
+
 ### Load Project Context
 
 If a code indexer is available, use it to load project context. For example, with Serena:
