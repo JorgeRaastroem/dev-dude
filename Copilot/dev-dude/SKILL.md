@@ -174,7 +174,8 @@ Every `task` tool call MUST pass the selected agent's frontmatter `model` alias 
 separate `model` and `reasoning_effort` fields:
 
 - If the alias ends in a reasoning-effort suffix (`minimal`, `low`, `medium`, `high`, `xhigh`, or
-  `max`), remove that suffix from `model` and pass it as `reasoning_effort`.
+  `max`), remove the trailing hyphen and suffix from `model`, then pass the suffix as
+  `reasoning_effort`.
 - If the alias has no reasoning-effort suffix, pass the full alias as `model` and omit
   `reasoning_effort`.
 - Apply the same normalization to explicit model overrides. Never pass a combined alias as the
