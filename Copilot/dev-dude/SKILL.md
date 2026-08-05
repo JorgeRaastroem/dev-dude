@@ -11,7 +11,8 @@ description: >
 ---
 argument-hint:
   - "DudeWhereIsMyArch all" — Full codebase architecture investigation
-  - "DudeWhereIsMyArch allrefresh" — Delta refresh on the current main/master branch
+  - "all refresh" — Refresh all affected architecture docs on the current main/master branch
+  - "authentication refresh" — Refresh one architecture vertical
   - "DudeWhereIsMyArch authentication" — Deep-dive into authentication area
   - "DudeWhereIsMyArch src/services/" — Investigate specific directory
   - "DudeWriteMyFeature Add user caching" — Implement feature from description
@@ -186,6 +187,7 @@ Parse `$ARGUMENTS` using the command routing rules in
 [references/argument-parsing.md](references/argument-parsing.md).
 
 In short:
+- `<all|vertical> refresh` → Architecture Delta Refresh
 - `DudeWhereIsMyArch`, `arch`, `where` → Architecture Investigation
 - `DudeWriteMyFeature`, `feature`, `write` → Feature Design & Implementation
 - Remaining tokens after the command are passed through as that command's argument.
@@ -210,10 +212,10 @@ Use the selected code indexer(s) or standard tools to dynamically discover the p
 - **Base Investigation**: area argument is "all" or broad, OR `./docs/ArchOverview/` doesn't exist
   - Full codebase investigation across all discovered areas
   - Creates complete documentation set
-- **Delta Refresh**: area argument is "allrefresh" AND `./docs/ArchOverview/` exists
+- **Delta Refresh**: request matches `<all|vertical> refresh` AND `./docs/ArchOverview/` exists
   - Compares each document's source baseline with the current `main` or `master` commit
-  - Re-investigates and updates only affected documented areas
-  - Discovers and documents new architecture areas introduced by the delta
+  - With `all`, re-investigates affected documented areas and discovers new architecture verticals
+  - With a named vertical, re-investigates only that vertical and its overview references
 - **Additive Investigation**: specific area AND `./docs/ArchOverview/` already exists
   - Targeted deep-dive into the specified area
   - Updates existing overview document with new cross-references
@@ -240,7 +242,7 @@ detailed phase-by-phase workflow including:
 - Phase 3: Verification (code-flow-analyzer-copilot validates docs against code)
 - Phase 4: Critical review (architecture-reviewer-copilot critiques the mapped architecture)
 - Phase 5: Fix application (investigation-documenter-copilot applies corrections and future considerations)
-- Delta refresh: baseline resolution, impact mapping, and scoped document updates for `allrefresh`
+- Delta refresh: baseline resolution, impact mapping, and scoped updates for `<all|vertical> refresh`
 
 ### Output
 

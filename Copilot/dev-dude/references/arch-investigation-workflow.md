@@ -185,16 +185,20 @@ Step 5: Investigation-Documenter (sync, after Step 4)
   Cleanup: Remove .tmp/ directory
 ```
 
-## Delta Refresh (`allrefresh`)
+## Delta Refresh (`<scope> refresh`)
 
-Triggered when the area argument is `allrefresh` and `./docs/ArchOverview/` exists. If the directory
-does not exist, explain that there is nothing to refresh and run the Base Investigation instead.
+Triggered when the request matches `<all|vertical> refresh` and `./docs/ArchOverview/` exists. `all`
+is a repository-wide scope; any other value names one architecture vertical. If the directory does
+not exist, explain that there is nothing to refresh and run the Base Investigation for `all`, or an
+Additive Investigation for the named vertical.
 
 ### Step 1: Resolve the Delta
 
 1. Require a clean worktree checked out on `main` or `master`; do not switch branches or include
    uncommitted changes. Set the target commit to `git rev-parse HEAD`.
-2. For every current architecture document, read its `**Source Commit**` value. Use it only when it
+2. Select the current architecture documents in scope: every document for `all`, or the named
+   vertical's deep-dive plus the overview for a vertical refresh. Read each selected document's
+   `**Source Commit**` value. Use it only when it
    is a commit and an ancestor of the target. If it is absent, invalid, or from divergent history,
    use the oldest commit that added the file
    (`git log --diff-filter=A --follow --format=%H -- <document> | tail -1`).
@@ -204,17 +208,18 @@ does not exist, explain that there is nothing to refresh and run the Base Invest
 4. Use `git diff --name-status <document-baseline>..<target>` to collect additions, modifications,
    renames, and deletions relevant to each document. Use the earliest resolved baseline for the
    repository-wide new-area check.
-5. Repeat Phase 0 discovery at the target commit. Compare discovered module, package, service, and
-   domain boundaries with the areas covered by the overview and deep-dives. Treat a new boundary as a
-   candidate vertical even when its files are not under an existing area's path.
-6. Map changed files to every affected documented area using paths, symbols, dependencies, entry
-   points, and cross-area flows; a shared change may affect multiple documents. Produce:
+5. For `all`, repeat Phase 0 discovery at the target commit. Compare discovered module, package,
+   service, and domain boundaries with the areas covered by the overview and deep-dives. Treat a new
+   boundary as a candidate vertical even when its files are not under an existing area's path. For a
+   named vertical not yet documented, discover that vertical's boundaries and treat it as new.
+6. Map changed files to affected documented areas within the requested scope using paths, symbols,
+   dependencies, entry points, and cross-area flows. Produce:
    - affected existing documents and the changes that affect each one;
    - candidate new verticals and supporting paths/entry points;
    - changed files that are documentation-neutral, with the reason they need no refresh.
 
-If there are no affected documents and no new verticals, report that the architecture documentation
-is current and stop without rewriting files.
+If there are no affected in-scope documents and no in-scope new verticals, report that the requested
+architecture documentation is current and stop without rewriting files.
 
 ### Step 2: Investigate Affected and New Areas
 
