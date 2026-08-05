@@ -2,9 +2,10 @@
 
 Parse `$ARGUMENTS` in this order:
 
-1. If the final token is `refresh` and at least one token precedes it, route to Architecture
-   Investigation in Delta Refresh mode. The preceding tokens are the refresh scope: `all` refreshes
-   every affected vertical and discovers new verticals; any other value refreshes only that vertical.
+1. If there are exactly two tokens and the second is `refresh`, route to Architecture Investigation
+   in Delta Refresh mode. The first token is the refresh scope: `all` refreshes every affected
+   vertical and discovers new verticals; any other value refreshes only that vertical. Reject
+   multi-token refresh scopes with the usage text below.
 2. Otherwise, the first token determines the command:
 
 | Token | Command |
