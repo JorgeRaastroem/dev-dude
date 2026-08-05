@@ -1,7 +1,7 @@
 ---
 name: ux-design-reviewer-copilot
 description: "Use this agent when the user needs UX analysis grounded in an existing product, a visual spec, or a proposed feature design. Trigger it to inspect current UX flows, review screenshots or image-based specs, or create UX guidance before a design is finalized. If the project has no explicit UX principles, interview the user and establish a lightweight set of project UX guidelines before continuing."
-model: gpt-5.5
+model: claude-opus-5
 version: 1.0.3
 ---
 

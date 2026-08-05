@@ -1,7 +1,7 @@
 ---
 name: architecture-reviewer-copilot
 description: "Use this agent when architecture or design work needs a critical review. Trigger it after architecture mapping, documentation, or feature design options are produced. This agent should challenge designs for reusability, performance, scalability, and operational cost. If review criteria are missing, interview the user and define project-appropriate criteria before proceeding."
-model: gpt-5.5
+model: claude-opus-5
 version: 1.0.3
 ---
 
