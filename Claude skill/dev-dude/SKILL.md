@@ -28,7 +28,7 @@ Architecture investigation and feature implementation powered by agent swarms.
 Copy agent definitions from this skill's `agents/` directory to `.claude/agents/` so they become
 available as `subagent_type` values for the Task tool.
 
-Bundled agent crew version: `1.0.1` (all agents must always use the same version).
+Bundled agent crew version: `1.0.3` (all agents must always use the same version).
 
 ```
 Skill path: <skill-path>/agents/
@@ -38,6 +38,7 @@ Files to install:
   code-flow-analyzer.md    → .claude/agents/code-flow-analyzer.md
   ux-design-reviewer.md    → .claude/agents/ux-design-reviewer.md
   architecture-reviewer.md → .claude/agents/architecture-reviewer.md
+  technical-resource-investigator.md → .claude/agents/technical-resource-investigator.md
   investigation-documenter.md → .claude/agents/investigation-documenter.md
   feature-implementer.md   → .claude/agents/feature-implementer.md
   test-implementer.md      → .claude/agents/test-implementer.md
@@ -112,6 +113,43 @@ ERROR: No code-indexing MCP servers found. DevDude requires at least one
 code indexer (e.g., Serena). Install and configure an indexer, then retry.
 ```
 
+### Detect Research Sources
+
+Discover which **research** tools are available for technical-resource investigation and build a
+context block separate from `$INDEXER_CONTEXT`. This drives the resource investigator's ability to
+cite authoritative external sources.
+
+1. **Probe for research tools**:
+   - **Documentation MCP servers** (e.g., a docs/context MCP server) — preferred for authoritative,
+     citable docs.
+   - **GitHub / package registry lookup options** — for repository, release, advisory, and registry
+     pages (GitHub, npmjs.com, pypi.org, etc.).
+   - **WebFetch / WebSearch availability**.
+
+2. **Build the research context block** — store as `$RESOURCE_RESEARCH_CONTEXT`:
+   ```
+   ## Research Sources
+   The following research tools are available for technical-resource investigation.
+   All external research is governed by references/trusted-source-policy.md.
+
+   - **Documentation MCP**: <available servers, or "none">
+   - **GitHub / registry lookup**: <available options, or "none">
+   - **WebFetch / WebSearch**: <available / unavailable>
+
+   NOTE: WebFetch/WebSearch are policy-bound by the trusted-source policy, NOT technically
+   domain-restricted. Only allowlisted authoritative sources may be cited.
+   ```
+
+3. **Fallback (no reliable research tools)** — if no documentation MCP and no reliable GitHub/registry
+   or web lookup is available, set `$RESOURCE_RESEARCH_CONTEXT` to mark external research
+   **unavailable**, and the resource investigator uses repository-local discovery and validation only:
+   ```
+   ## Research Sources
+   No documentation MCP or reliable lookup tool is available. External research is UNAVAILABLE.
+   The technical-resource-investigator must use repository-local discovery/validation only and
+   record external research as unavailable per references/trusted-source-policy.md.
+   ```
+
 ### Verify Team Tools
 
 Confirm `TeamCreate` tool is available. If not, print:
@@ -122,10 +160,11 @@ Ensure your Claude Code configuration supports TeamCreate.
 
 ### Verify Agent Crew
 
-After installing agents, confirm all 7 subagent types are available via the Task tool:
+After installing agents, confirm all 8 subagent types are available via the Task tool:
 - `code-flow-analyzer`
 - `ux-design-reviewer`
 - `architecture-reviewer`
+- `technical-resource-investigator`
 - `investigation-documenter`
 - `feature-implementer`
 - `test-implementer`
@@ -248,16 +287,30 @@ Derive a feature slug from the description (lowercase, hyphenated, max 40 chars)
 
 ### Phase 1: Design
 
-**IMPORTANT**: Include `$INDEXER_CONTEXT` in all agent task prompts.
+**IMPORTANT**: Include `$INDEXER_CONTEXT` in all agent task prompts. Additionally, pass both
+`$INDEXER_CONTEXT` and `$RESOURCE_RESEARCH_CONTEXT` to the Technical-Resource-Investigator tasks
+(Steps 1.5 and 1.6).
 
 See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
 
 1. **Investigation**: Code-Flow-Analyzer and UX-Design-Reviewer investigate relevant existing flows and UX constraints
-2. **Design Options**: Investigation-Documenter creates 2-3 design options with diagrams and text-only UX collateral
-3. **Design Critique**: Architecture-Reviewer critiques the design for reuse, performance, scalability, and operational cost
+2. **Resource Investigation (Step 1.5)**: Technical-Resource-Investigator (mode `discovery`) consumes `investigation.md`, validates reuse candidates, and identifies authoritative external resources with allowlisted citations → `resources-investigation.md`
+3. **Resource Critique (Step 1.6, conditional)**: a second Technical-Resource-Investigator pass (mode `critique-and-amend`, stronger model override) critiques external/material candidates for security, reliability, maintenance, licensing, supply-chain risk, and operational cost, appending amendments without overwriting evidence. Skipped (with reason recorded) when no external or material candidates exist
+4. **Design Options**: Investigation-Documenter creates 2-3 design options with diagrams and text-only UX collateral, consuming `resources-investigation.md`
+5. **Design Critique**: Architecture-Reviewer critiques the design for reuse, performance, scalability, and operational cost, consuming `resources-investigation.md`
 
 **USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
 design option before proceeding to Phase 2. If user gives feedback, iterate on design.
+
+**IMPLEMENTATION CLARIFICATION GATE** (Phase 2 entry precondition): After a design is approved
+and before implementation planning, derive any unresolved, implementation-critical questions from
+`design-options.md`, `ux-review.md`, and the Architecture-Reviewer output (future considerations /
+open questions). Ask them as a single batched set with proposed defaults, letting the user answer,
+adjust, or explicitly waive. Record the outcomes in `./docs/<feature-slug>/implementation-interview.md`,
+then fold the decisions into `implementation-plan.md`. If clarification materially changes scope or
+approach, return to the USER REVIEW GATE for re-approval. This gate is reachable on both the fresh
+Phase 1 → Phase 2 path and direct Phase 2 resume (skip it only if a current clarification record
+already exists for the latest approved design).
 
 ### Phase 2: Implementation (after user approval or direct Phase 2 resume)
 
@@ -283,7 +336,9 @@ See [references/feature-design-workflow.md](references/feature-design-workflow.m
 ```
 ./docs/<feature-slug>/
 ├── investigation.md
+├── resources-investigation.md
 ├── design-options.md
+├── implementation-interview.md
 ├── implementation-plan.md
 └── verification.md
 ```
