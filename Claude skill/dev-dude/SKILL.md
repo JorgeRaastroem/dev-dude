@@ -28,7 +28,7 @@ Architecture investigation and feature implementation powered by agent swarms.
 Copy agent definitions from this skill's `agents/` directory to `.claude/agents/` so they become
 available as `subagent_type` values for the Task tool.
 
-Bundled agent crew version: `1.0.3` (all agents must always use the same version).
+Bundled agent crew version: `1.0.4` (all agents must always use the same version).
 
 ```
 Skill path: <skill-path>/agents/
