@@ -12,6 +12,8 @@ Spawns a parallel swarm of agents to investigate your codebase and produce struc
 
 ```
 /dev-dude arch all                      # Full codebase investigation
+/dev-dude all refresh                   # Refresh all affected docs and discover new verticals
+/dev-dude authentication refresh        # Refresh one architecture vertical
 /dev-dude arch authentication           # Deep-dive into a specific area
 /dev-dude where src/services/           # Investigate a directory
 ```
@@ -27,7 +29,7 @@ Spawns a parallel swarm of agents to investigate your codebase and produce struc
 
 **Output:** `./docs/ArchOverview/` containing a high-level overview and per-area deep-dive documents.
 
-If architecture docs already exist, requesting a specific area runs an **additive investigation** that creates a new deep-dive and updates the existing overview.
+If architecture docs already exist, requesting a specific area runs an **additive investigation** that creates a new deep-dive and updates the existing overview. Use `all refresh` on the current `main` or `master` branch to compare it with the source commits of the existing documents, refresh only affected deep-dives, and create documentation for newly introduced architecture areas. Use `<vertical> refresh` to limit that refresh to one architecture vertical and its overview references.
 
 ### `DudeWriteMyFeature` — Feature Design & Implementation
 

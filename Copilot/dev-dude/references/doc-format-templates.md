@@ -8,6 +8,7 @@ Generic templates for architecture and design documents. These are codebase-agno
 # <Project Name> Architecture Overview
 
 **Date**: YYYY-MM-DD
+**Source Commit**: <full Git commit SHA documented by this version>
 **Scope**: <What areas/modules this document covers>
 **Tech Stack**: <Discovered languages, frameworks, key libraries>
 
@@ -67,8 +68,10 @@ graph TD
 ```markdown
 # <Area Name> Architecture
 
+**Date**: YYYY-MM-DD
 **Area**: <Specific domain/module>
 **Path**: `<relative/path/>`
+**Source Commit**: <full Git commit SHA documented by this version>
 **See also**: [Overview](./overview.md) | [Related Area](./related.md)
 
 ## Overview

@@ -1,6 +1,12 @@
 # Argument Parsing
 
-Parse `$ARGUMENTS` — the first token determines the command:
+Parse `$ARGUMENTS` in this order:
+
+1. If there are exactly two tokens and the second is `refresh`, route to Architecture Investigation
+   in Delta Refresh mode. The first token is the refresh scope: `all` refreshes every affected
+   vertical and discovers new verticals; any other value refreshes only that vertical. Reject
+   multi-token refresh scopes with the usage text below.
+2. Otherwise, the first token determines the command:
 
 | Token | Command |
 |-------|---------|
@@ -17,6 +23,7 @@ DevDude - Architecture Investigation & Feature Implementation
 
 Usage:
   /dev-dude DudeWhereIsMyArch [area|all]
+  /dev-dude <all|vertical> refresh
   /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>
 
 Aliases:
@@ -25,6 +32,8 @@ Aliases:
 
 Examples:
   /dev-dude arch all                    # Full codebase architecture investigation
+  /dev-dude all refresh                 # Refresh all affected docs and discover new verticals
+  /dev-dude authentication refresh      # Refresh one architecture vertical
   /dev-dude arch authentication         # Deep-dive into auth area
   /dev-dude where src/services/         # Investigate a specific directory
   /dev-dude feature Add user caching    # Implement from a feature description
