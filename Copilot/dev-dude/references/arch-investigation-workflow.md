@@ -235,8 +235,10 @@ Run investigation-documenter-copilot tasks to:
 - create one deep-dive for each confirmed new vertical;
 - update the overview only where affected summaries, relationships, diagrams, cross-references, or
   the set of verticals changed;
-- set `**Date**` to the refresh date and `**Source Commit**` to the full target commit SHA in every
-  document changed or created by this run.
+- preserve existing revision-history rows and prepend one refresh-dated row with a concise summary of
+  the changes made to each updated document; initialize new documents with an `Initial document.` row;
+- set the header `**Date**` to the newest revision-history date and `**Source Commit**` to the full
+  target commit SHA in every document changed or created by this run.
 
 Do not regenerate or touch unaffected deep-dives.
 
@@ -244,4 +246,5 @@ Do not regenerate or touch unaffected deep-dives.
 
 Verify only changed/new documents and changed overview sections against the target commit. Then run
 architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
-corrections and future considerations. Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
+corrections and future considerations. Ensure each refresh row summarizes the finalized changes.
+Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
