@@ -82,11 +82,24 @@ Tasks 2-N: Deep-dive documents (each blocked by its own Phase 1 task)
   - Dependencies
 ```
 
-### Phase 3: Verification (blocked by Phase 2)
+### Vertical Review Gate (blocked by Phase 2; blocks Phase 3)
+
+Present the generated deep-dives to the operator as an editable vertical list. For each vertical,
+include its name, brief description, and deep-dive document path. Ask the operator to confirm the
+list, exclude named verticals, or add verticals (request a path or brief description when needed).
+Wait for explicit confirmation before continuing.
+
+- For exclusions, remove the vertical from the active list and update the overview's summaries,
+  cross-references, and diagrams. Keep its generated deep-dive, but do not include it in Phases 3-5.
+- For additions, run Phases 1 and 2 for each new vertical and update the overview to include it.
+- After any change, present the revised list, including newly generated deep-dives, and request
+  confirmation again.
+
+### Phase 3: Verification (blocked by the Vertical Review Gate)
 
 ```
 Code-Flow-Analyzer tasks (one per document, parallel):
-  Input: The generated document
+  Input: The overview or an active vertical's generated document
   Process:
     - Verify every file path exists
     - Verify every symbol/class/interface exists
@@ -100,7 +113,7 @@ Code-Flow-Analyzer tasks (one per document, parallel):
 ```
 Architecture-Reviewer task:
   Input:
-    - Final architecture overview + deep-dive documents
+    - Final architecture overview + active vertical deep-dive documents
     - All verification reports
   Process:
     - Critique the mapped architecture for reusability, performance, scalability, and operational cost
