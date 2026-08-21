@@ -93,16 +93,29 @@ Tasks 2-N: Deep-dive documents (one per area)
 
 **Wait for all Phase 2 tasks** before proceeding.
 
-### Phase 3: Verification (after all Phase 2 tasks complete)
+### Vertical Review Gate (after Phase 2; before Phase 3)
+
+Present the generated deep-dives to the operator as an editable vertical list. For each vertical,
+include its name, brief description, and deep-dive document path. Ask the operator to confirm the
+list, exclude named verticals, or add verticals (request a path or brief description when needed).
+Wait for explicit confirmation before continuing.
+
+- For exclusions, remove the vertical from the active list and update the overview's summaries,
+  cross-references, and diagrams. Keep its generated deep-dive, but do not include it in Phases 3-5.
+- For additions, run Phases 1 and 2 for each new vertical and update the overview to include it.
+- After any change, present the revised list, including newly generated deep-dives, and request
+  confirmation again.
+
+### Phase 3: Verification (after the Vertical Review Gate)
 
 Launch Code-Flow-Analyzer agents to verify each document:
 
 ```
-One task per generated document, all in parallel:
+One task for the overview and one per active vertical document, all in parallel:
   agent_type: "code-flow-analyzer-copilot"
   mode: "background"
   prompt:
-    - Input: The generated document
+    - Input: The overview or an active vertical's generated document
     - Process: Verify every file path, symbol/class/interface,
       code snippet, and dependency claim against actual code
     - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
@@ -118,7 +131,7 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
   agent_type: "architecture-reviewer-copilot"
   mode: "sync"
   prompt:
-    - Input: Final architecture overview + deep-dive documents
+    - Input: Final architecture overview + active vertical deep-dive documents
     - Include: All verification reports
     - Process: Critique reusability, performance, scalability, and operational cost
     - Output: ./docs/ArchOverview/.tmp/architecture-review.md

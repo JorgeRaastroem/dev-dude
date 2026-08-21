@@ -262,6 +262,7 @@ See [references/arch-investigation-workflow.md](references/arch-investigation-wo
 detailed phase-by-phase workflow including:
 - Phase 1: Parallel investigation (Code-Flow-Analyzer + UX-Design-Reviewer per area)
 - Phase 2: Documentation (Investigation-Documenter creates overview + deep-dives + UX collateral)
+- Vertical review gate: operator confirms, excludes, or adds deep-dive verticals before verification
 - Phase 3: Verification (Code-Flow-Analyzer validates docs against code)
 - Phase 4: Critical review (Architecture-Reviewer critiques the mapped architecture)
 - Phase 5: Fix application (Investigation-Documenter applies corrections and future considerations)
