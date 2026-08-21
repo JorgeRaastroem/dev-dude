@@ -117,6 +117,7 @@ Launch an Investigation-Documenter to create design options:
 
 ```
 agent_type: "investigation-documenter-copilot"
+permissions: "write"
 mode: "sync"
 prompt:
   - Feature description/spec
@@ -163,6 +164,7 @@ Launch an Investigation-Documenter to refine the design package:
 
 ```
 agent_type: "investigation-documenter-copilot"
+permissions: "write"
 mode: "sync"
 prompt:
   - Design options document

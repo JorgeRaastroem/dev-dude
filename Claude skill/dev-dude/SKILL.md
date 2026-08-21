@@ -257,6 +257,7 @@ Use the selected code indexer(s) to dynamically discover the project structure â
 
 **IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
 prompt so agents know which code indexer tools are available.
+For every `investigation-documenter` task, explicitly grant write permissions.
 
 See [references/arch-investigation-workflow.md](references/arch-investigation-workflow.md) for
 detailed phase-by-phase workflow including:

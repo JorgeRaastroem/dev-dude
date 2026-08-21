@@ -68,12 +68,15 @@ Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONT
 
 Launch Investigation-Documenter agents:
 
+Every `investigation-documenter-copilot` task must be launched with write permissions.
+
 Capture `git rev-parse HEAD` before writing documents and set that full SHA as `**Source Commit**`
 in the overview and every deep-dive.
 
 ```
 Task 1: Overview document (needs ALL Phase 1 outputs)
   agent_type: "investigation-documenter-copilot"
+  permissions: "write"
   mode: "background"
   prompt:
     - Input: All .tmp/<area>.md and .tmp/ux-<area>.md files
@@ -83,6 +86,7 @@ Task 1: Overview document (needs ALL Phase 1 outputs)
 
 Tasks 2-N: Deep-dive documents (one per area)
   agent_type: "investigation-documenter-copilot"
+  permissions: "write"
   mode: "background"
   prompt:
     - Input: .tmp/<area>.md and .tmp/ux-<area>.md for the specific area
@@ -144,6 +148,7 @@ Launch a single Investigation-Documenter to apply corrections:
 
 ```
   agent_type: "investigation-documenter-copilot"
+  permissions: "write"
   mode: "sync"
   prompt:
     - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
@@ -175,6 +180,7 @@ Step 1: Parallel investigation
     Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
 Step 2: Two Investigation-Documenters (parallel, after Step 1)
+  Permissions: write (both tasks)
   Task A (background): Create new deep-dive document
     Output: ./docs/ArchOverview/<project>-<area-slug>.md
   Task B (background): Update overview document
@@ -244,6 +250,7 @@ transitive effects; new-vertical tasks perform a complete investigation of that 
 ### Step 3: Update Documents
 
 Run investigation-documenter-copilot tasks to:
+- launch each task with write permissions;
 - update each affected deep-dive in place without rewriting unaffected sections;
 - create one deep-dive for each confirmed new vertical;
 - update the overview only where affected summaries, relationships, diagrams, cross-references, or
@@ -259,5 +266,6 @@ Do not regenerate or touch unaffected deep-dives.
 
 Verify only changed/new documents and changed overview sections against the target commit. Then run
 architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
-corrections and future considerations. Ensure each refresh row summarizes the finalized changes.
+corrections and future considerations (with write permissions). Ensure each refresh row summarizes
+the finalized changes.
 Remove `./docs/ArchOverview/.tmp/` after fixes are applied.

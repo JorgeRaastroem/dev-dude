@@ -61,10 +61,13 @@ Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONT
 ```
 Investigation-Documenter tasks:
 
+Every `investigation-documenter` task must be launched with write permissions.
+
 Capture `git rev-parse HEAD` before writing documents and set that full SHA as `**Source Commit**`
 in the overview and every deep-dive.
 
 Task 1: Overview document (blocked by ALL Phase 1 tasks)
+  Permissions: write
   Input: All .tmp/<area>.md and .tmp/ux-<area>.md files
   Output: ./docs/ArchOverview/<project>-architecture-overview.md
   - Executive summary
@@ -74,6 +77,7 @@ Task 1: Overview document (blocked by ALL Phase 1 tasks)
   - Glossary
 
 Tasks 2-N: Deep-dive documents (each blocked by its own Phase 1 task)
+  Permissions: write
   Input: .tmp/<area>.md and .tmp/ux-<area>.md for the specific area
   Output: ./docs/ArchOverview/<project>-<area-slug>.md
   - Detailed component breakdown
@@ -126,6 +130,7 @@ Architecture-Reviewer task:
 
 ```
 Investigation-Documenter task:
+  Permissions: write
   Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
   Process:
     - Apply corrections to documents
@@ -153,6 +158,7 @@ Step 1: Parallel investigation
     Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
 Step 2: Investigation-Documenters (2 tasks, blocked by Step 1)
+  Permissions: write (both tasks)
   Task A: Create new deep-dive document
     Output: ./docs/ArchOverview/<project>-<area-slug>.md
   Task B: Update overview document
@@ -220,6 +226,7 @@ new-vertical tasks perform a complete investigation of that vertical.
 ### Step 3: Update Documents
 
 Run Investigation-Documenter tasks to:
+- launch each task with write permissions;
 - update each affected deep-dive in place without rewriting unaffected sections;
 - create one deep-dive for each confirmed new vertical;
 - update the overview only where affected summaries, relationships, diagrams, cross-references, or
@@ -234,8 +241,9 @@ Do not regenerate or touch unaffected deep-dives.
 ### Step 4: Verify, Review, and Apply Fixes
 
 Verify only changed/new documents and changed overview sections against the target commit. Then run
-Architecture-Reviewer on the refreshed scope and Investigation-Documenter to apply corrections and
-future considerations. Ensure each refresh row summarizes the finalized changes. Remove
+Architecture-Reviewer on the refreshed scope and Investigation-Documenter (with write permissions)
+to apply corrections and future considerations. Ensure each refresh row summarizes the finalized
+changes. Remove
 `./docs/ArchOverview/.tmp/` after fixes are applied.
 
 ## Team Lifecycle
