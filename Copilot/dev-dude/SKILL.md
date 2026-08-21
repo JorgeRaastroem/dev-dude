@@ -250,6 +250,7 @@ For architecture work, run a fleet using the bundled agents:
 
 **IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
 prompt so agents know which code indexer tools are available.
+For every `investigation-documenter-copilot` task, explicitly grant write permissions.
 
 Use the `task` tool to launch agents. For parallel execution, use `mode: "background"` and
 then `read_agent(wait: true)` for each agent to wait for completion before starting the next
