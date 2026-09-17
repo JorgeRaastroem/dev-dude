@@ -1,164 +1,34 @@
 ---
 name: dev-dude
 description: >
-  Architecture investigation and feature implementation using agent fleets.
-  Works on any codebase by dynamically discovering project structure, areas, and conventions.
-  Commands: DudeWhereIsMyArch (arch/where) performs parallel architecture investigation and writes
-  docs to ./docs/ArchOverview/. DudeWriteMyFeature (feature/write) designs and implements features
-  with a user review gate, accepting text prompts, spec files, or image inputs and writing outputs
-  to ./docs/<feature-slug>/. Requires at least one code-indexing MCP server, Mermaid tooling, and
-  the bundled fleet agents.
+  Resumable architecture investigation and feature implementation using agent fleets.
+  DudeWhereIsMyArch (arch/where) writes architecture docs to ./docs/ArchOverview/.
+  DudeWriteMyFeature (feature/write) accepts descriptions, specs, or images and writes design,
+  implementation, and verification outputs to ./docs/<feature-slug>/.
 ---
 argument-hint:
-  - "DudeWhereIsMyArch all" — Full codebase architecture investigation
-  - "all refresh" — Refresh all affected architecture docs on the current main/master branch
+  - "DudeWhereIsMyArch all" — Full architecture investigation
+  - "all refresh" — Refresh affected architecture docs
   - "authentication refresh" — Refresh one architecture vertical
-  - "DudeWhereIsMyArch authentication" — Deep-dive into authentication area
-  - "DudeWhereIsMyArch src/services/" — Investigate specific directory
-  - "DudeWriteMyFeature Add user caching" — Implement feature from description
-  - "DudeWriteMyFeature ./specs/my-feature.md" — Implement from spec document
-  - "DudeWriteMyFeature ./images/feature-spec.png" — Implement from visual spec
+  - "DudeWhereIsMyArch authentication" — Investigate one area
+  - "DudeWriteMyFeature Add user caching" — Design and implement a feature
 
-# DevDude
+# DevDude Root Orchestrator
 
-Architecture investigation and feature implementation powered by agent fleets.
+This root skill coordinates setup, routing, durable state, user gates, and functional workflow
+transitions. It does not execute investigation, design, implementation, testing, or validation
+itself. Load only the reference for the current workflow block.
 
-## 1. Prerequisites
+## 1. Prepare the Runtime
 
-### Install Agents
+### Install and Verify the Agent Crew
 
-Copy agent definitions from this skill's `agents/` directory to `~/.copilot/agents/` so they
-become available as custom agent types for the Task tool.
+Bundled crew version: `1.0.5`. Compare the `version:` frontmatter of all bundled agents with
+`~/.copilot/agents/`. Missing version is `0`. If any agent is missing or older, update the complete
+crew atomically; preserve an equal or newer installed crew.
 
-Bundled agent crew version: `1.0.5` (all agents must always use the same version).
+Required custom agent types:
 
-```
-Skill path: <skill-path>/agents/
-Target: ~/.copilot/agents/
-
-Files to install:
-  code-flow-analyzer-copilot.md    → ~/.copilot/agents/code-flow-analyzer-copilot.md
-  ux-design-reviewer-copilot.md    → ~/.copilot/agents/ux-design-reviewer-copilot.md
-  architecture-reviewer-copilot.md → ~/.copilot/agents/architecture-reviewer-copilot.md
-  technical-resource-investigator-copilot.md → ~/.copilot/agents/technical-resource-investigator-copilot.md
-  investigation-documenter-copilot.md → ~/.copilot/agents/investigation-documenter-copilot.md
-  feature-implementer-copilot.md   → ~/.copilot/agents/feature-implementer-copilot.md
-  test-implementer-copilot.md      → ~/.copilot/agents/test-implementer-copilot.md
-  feature-validator-copilot.md     → ~/.copilot/agents/feature-validator-copilot.md
-```
-
-For each file: compare the bundled version with the installed version in
-`~/.copilot/agents/<name>.md` frontmatter (`version:`).
-
-Rules:
-- If installed file is missing, copy bundled file.
-- If installed file has no `version`, treat it as `0`.
-- If installed version is lower than bundled version, overwrite with bundled file (update).
-- If installed version is equal or higher, keep installed file (do not overwrite).
-
-Always update all agent files as one atomic set when any installed version is lower so the crew
-remains on one shared version.
-
-### Install Mermaid Validation Tooling
-
-Install Mermaid CLI so investigation-documenter-copilot can validate Mermaid diagrams with parser and render checks:
-
-```bash
-npm install --global @mermaid-js/mermaid-cli
-```
-
-If CLI installation is not possible in the environment, ensure a Mermaid parser/library fallback is available and require explicit reporting that CLI validation was unavailable.
-
-### Detect & Select Code Indexers
-
-Discover which code-indexing MCP servers are available in the current environment and let the
-user choose which ones to use. At least one indexer is recommended but not required.
-
-1. **Auto-detect available indexers** — probe for known MCP tool prefixes:
-   | Indexer | Detection probe | Capabilities |
-   |---------|----------------|--------------|
-   | Serena | Check for Serena MCP tools (list_dir, find_file, etc.) | list_dir, find_file, search_for_pattern, get_symbols_overview, find_symbol, find_referencing_symbols, replace_symbol_body, insert_after_symbol, insert_before_symbol, rename_symbol, memories (write/read/list/delete/edit), activate_project, onboarding |
-   | *Add new indexers here by extending this table* | | |
-
-2. **Present detected indexers** to the user:
-   ```
-   Detected code indexers:
-     [1] Serena  ✓ available
-     [2] ...
-
-   Select indexers to use (comma-separated, or 'all'): ___
-   ```
-   If only one indexer is detected, auto-select it and inform the user.
-   If no indexers are detected, proceed with standard tools (grep, glob, view) and inform the user.
-
-3. **Run indexer-specific onboarding** for each selected indexer:
-   - Serena: check if onboarded; if not, run onboarding
-   - Other indexers: follow their specific onboarding steps
-
-4. **Build the indexer context block** — a structured summary to pass to agents:
-   ```
-   ## Active Code Indexers
-   The following code-indexing MCP servers are available for this session.
-   Use these tools for code search, symbol lookup, and codebase navigation.
-
-   ### <Indexer Name>
-   - **Tool prefix**: <prefix>
-   - **Capabilities**: <comma-separated list>
-   - **Key tools for code search**: <list of search/symbol tools>
-   - **Key tools for code modification**: <list of edit tools>
-   - **Memory/context tools**: <list, if any>
-   ```
-   Store this block as `$INDEXER_CONTEXT` for inclusion in agent task prompts.
-
-   If no indexers are available, set `$INDEXER_CONTEXT` to:
-   ```
-   ## Code Search Tools
-   No MCP code indexers are available. Use the standard tools:
-   - grep: Search file contents with regex patterns
-   - glob: Find files by name patterns
-   - view: Read file contents
-   ```
-
-### Detect Research Sources
-
-Discover which **research** tools are available for technical-resource investigation and build a
-context block separate from `$INDEXER_CONTEXT`. This drives the resource investigator's ability to
-cite authoritative external sources.
-
-1. **Probe for research tools**:
-   - **Documentation MCP servers** (e.g., a docs/context MCP server) — preferred for authoritative,
-     citable docs.
-   - **GitHub / package registry lookup options** — for repository, release, advisory, and registry
-     pages (GitHub, npmjs.com, pypi.org, etc.).
-   - **WebFetch / WebSearch availability**.
-
-2. **Build the research context block** — store as `$RESOURCE_RESEARCH_CONTEXT`:
-   ```
-   ## Research Sources
-   The following research tools are available for technical-resource investigation.
-   All external research is governed by references/trusted-source-policy.md.
-
-   - **Documentation MCP**: <available servers, or "none">
-   - **GitHub / registry lookup**: <available options, or "none">
-   - **WebFetch / WebSearch**: <available / unavailable>
-
-   NOTE: WebFetch/WebSearch are policy-bound by the trusted-source policy, NOT technically
-   domain-restricted. Only allowlisted authoritative sources may be cited.
-   ```
-
-3. **Fallback (no reliable research tools)** — if no documentation MCP and no reliable GitHub/registry
-   or web lookup is available, set `$RESOURCE_RESEARCH_CONTEXT` to mark external research
-   **unavailable**, and the resource investigator uses repository-local discovery and validation only:
-   ```
-   ## Research Sources
-   No documentation MCP or reliable lookup tool is available. External research is UNAVAILABLE.
-   The technical-resource-investigator must use repository-local discovery/validation only and
-   record external research as unavailable per references/trusted-source-policy.md.
-   ```
-
-### Verify Agent Crew
-
-Confirm all 8 custom agent types are available via the Task tool:
 - `code-flow-analyzer-copilot`
 - `ux-design-reviewer-copilot`
 - `architecture-reviewer-copilot`
@@ -168,217 +38,84 @@ Confirm all 8 custom agent types are available via the Task tool:
 - `test-implementer-copilot`
 - `feature-validator-copilot`
 
-If any are missing, attempt to install them from this skill's `agents/` directory.
+Every `task` call must pass the selected agent's reasoning-agnostic frontmatter `model` alias.
+Install Mermaid CLI (`npm install --global @mermaid-js/mermaid-cli`) or require the documenter to
+report use of an available parser fallback.
 
-### Task Model Selection
+### Build Session Context
 
-Every `task` tool call MUST pass the selected agent's frontmatter `model` alias as the task's
-`model` value.
+1. Detect available code-indexing MCP servers. If several are available, ask the user to select;
+   auto-select a sole indexer and run onboarding when needed. If none is available, inform the user
+   and use standard `grep`, `glob`, and `view` tools.
+2. Build `$INDEXER_CONTEXT` with selected indexer capabilities, or the standard-tool fallback. Load
+   relevant project memories where supported.
+3. Separately detect documentation MCP, GitHub/registry lookup, and WebFetch/WebSearch tools. Build
+   `$RESOURCE_RESEARCH_CONTEXT` and bind it to
+   [trusted-source-policy.md](references/trusted-source-policy.md). If reliable external research is
+   unavailable, record that and require repository-local investigation only.
 
-### Load Project Context
+If a critical prerequisite fails, report remediation and stop.
 
-If a code indexer is available, use it to load project context. For example, with Serena:
-```
-list_memories()
-→ Read any relevant memories (project_overview, style_and_conventions, etc.)
-```
-Other indexers: use their equivalent context/memory retrieval tools.
+## 2. Route the Command
 
-If no prerequisite fails critically, print the error with remediation steps and stop.
+Parse arguments using [argument-parsing.md](references/argument-parsing.md):
 
-## 2. Argument Parsing
+- `<all|vertical> refresh` routes to Architecture Delta Refresh.
+- `DudeWhereIsMyArch`, `arch`, or `where` route to Architecture Investigation.
+- `DudeWriteMyFeature`, `feature`, or `write` route to Feature Design & Implementation.
 
-Parse `$ARGUMENTS` using the command routing rules in
-[references/argument-parsing.md](references/argument-parsing.md).
+Derive a lowercase, hyphenated feature slug of at most 40 characters for feature state and outputs.
+Feature input may be text, `.md`, `.txt`, `.docx`, `.pdf`, image paths, or multiple paths.
 
-In short:
-- `<all|vertical> refresh` → Architecture Delta Refresh
-- `DudeWhereIsMyArch`, `arch`, `where` → Architecture Investigation
-- `DudeWriteMyFeature`, `feature`, `write` → Feature Design & Implementation
-- Remaining tokens after the command are passed through as that command's argument.
+## 3. Recover or Initialize State
 
-## 3. DudeWhereIsMyArch
+Read [orchestration-state.md](references/orchestration-state.md) on every command entry, phase entry,
+direct resume, or suspected compaction.
 
-Investigates and documents codebase architecture using parallel agent fleets.
+- Architecture state: `./docs/ArchOverview/.dev-dude-run-state.md`
+- Feature state: `./docs/<feature-slug>/.dev-dude-run-state.md`
 
-### Codebase Discovery (Phase 0)
+Create state before the first delegated task. If state exists, reconcile it with actual outputs,
+task results, repository changes, and gate evidence before choosing a transition. Update it before
+and after every task, gate, workflow-block transition, and validation attempt.
 
-Use the selected code indexer(s) or standard tools to dynamically discover the project structure — never hardcode areas:
+## 4. Dispatch Functional Workflows
 
-1. Scan project root using `list_dir` capability or `glob` to see top-level structure
-2. Search for manifest files using `find_file` capability or `glob` patterns
-3. Scan key directories to identify module/package boundaries
-4. Identify tech stack from config files
-5. Build investigation area list from what's actually in the codebase
-6. Identify entry points (main files, app bootstrap, route definitions)
+| Reconciled condition | Load and execute |
+|---|---|
+| Architecture run is incomplete | [arch-investigation-workflow.md](references/arch-investigation-workflow.md), first incomplete step |
+| Feature design is not explicitly approved | [feature-design-workflow.md](references/feature-design-workflow.md), first incomplete step |
+| Feature design is approved | [feature-implementation-workflow.md](references/feature-implementation-workflow.md), first incomplete step |
+| Feature clarification changes the design materially | Return to feature design and renewed approval |
+| Workflow exit contract is met | Record final status and report |
 
-### Mode Selection
+At each dispatch:
 
-- **Base Investigation**: area argument is "all" or broad, OR `./docs/ArchOverview/` doesn't exist
-  - Full codebase investigation across all discovered areas
-  - Creates complete documentation set
-- **Delta Refresh**: request matches `<all|vertical> refresh` AND `./docs/ArchOverview/` exists
-  - Compares each document's source baseline with the current `main` or `master` commit
-  - With `all`, re-investigates affected documented areas and discovers new architecture verticals
-  - With a named vertical, re-investigates only that vertical and its overview references
-- **Additive Investigation**: specific area AND `./docs/ArchOverview/` already exists
-  - Targeted deep-dive into the specified area
-  - Updates existing overview document with new cross-references
+1. Record the current block, step, and one permitted next transition.
+2. Load only that functional reference and relevant durable outputs.
+3. Add the orchestration envelope from `orchestration-state.md` and `$INDEXER_CONTEXT` to every
+   delegated task. Add `$RESOURCE_RESEARCH_CONTEXT` only where the functional workflow requires it.
+4. Pass the agent's frontmatter `model` alias and use background mode only for independent work.
+5. Require each block to return evidence and control to this root orchestrator.
+6. Reconcile and checkpoint before dispatching the next block.
 
-### Fleet Execution
+## 5. Global Invariants
 
-For architecture work, run a fleet using the bundled agents:
-- `code-flow-analyzer-copilot`
-- `ux-design-reviewer-copilot`
-- `architecture-reviewer-copilot`
-- `investigation-documenter-copilot`
+- Root orchestration owns all phase transitions and gate status.
+- Never infer user approval. Pause at every gate until an explicit decision is recorded.
+- Maximum concurrent Code-Flow-Analyzers: 6.
+- Maximum concurrent Feature-Implementers: 3.
+- Every investigation-documenter task that changes files has explicit write permission.
+- Every Feature-Implementer result has a corresponding Test-Implementer result before validation.
+- Feature work finishes only on validator `SATISFIED` or a recorded bounded-unresolved state.
+- Discover and run available project build, test, lint, and type-check commands before feature
+  completion.
+- Remove `.tmp/` artifacts after their consuming block finishes. Preserve normal outputs and
+  `.dev-dude-run-state.md`.
 
-**IMPORTANT**: When creating any agent task, always include `$INDEXER_CONTEXT` in the task
-prompt so agents know which code indexer tools are available.
-For every `investigation-documenter-copilot` task, explicitly grant write permissions.
+## 6. Stable Outputs
 
-Use the `task` tool to launch agents. For parallel execution, use `mode: "background"` and
-then `read_agent(wait: true)` for each agent to wait for completion before starting the next
-phase. For sequential execution within a phase, use `mode: "sync"`.
-
-See [references/arch-investigation-workflow.md](references/arch-investigation-workflow.md) for
-detailed phase-by-phase workflow including:
-- Phase 1: Parallel investigation (code-flow-analyzer-copilot + ux-design-reviewer-copilot per area, background mode)
-- Phase 2: Documentation (investigation-documenter-copilot creates overview + deep-dives + UX collateral)
-- Vertical review gate: operator confirms, excludes, or adds deep-dive verticals before verification
-- Phase 3: Verification (code-flow-analyzer-copilot validates docs against code)
-- Phase 4: Critical review (architecture-reviewer-copilot critiques the mapped architecture)
-- Phase 5: Fix application (investigation-documenter-copilot applies corrections and future considerations)
-- Delta refresh: baseline resolution, impact mapping, and scoped updates for `<all|vertical> refresh`
-
-### Output
-
-```
-./docs/ArchOverview/
-├── <project>-architecture-overview.md    # High-level overview
-├── <project>-<area-1>.md                 # Deep-dive per area
-├── <project>-<area-2>.md
-└── ...
-```
-
-## 4. DudeWriteMyFeature
-
-Designs and implements features using agent fleets with a user review gate.
-
-For feature work, run a fleet using all bundled agents:
-- `code-flow-analyzer-copilot`
-- `ux-design-reviewer-copilot`
-- `architecture-reviewer-copilot`
-- `technical-resource-investigator-copilot`
-- `investigation-documenter-copilot`
-- `feature-implementer-copilot`
-- `test-implementer-copilot`
-- `feature-validator-copilot`
-
-### Prerequisites Check
-
-Check if `./docs/ArchOverview/` exists. If not, print a warning:
-```
-WARNING: No architecture docs found at ./docs/ArchOverview/.
-Consider running '/dev-dude arch all' first for better design context.
-Proceeding without architecture context...
-```
-This is a warning, not a blocker.
-
-### Input Handling
-
-Parse the feature argument:
-- **Plain text**: Use directly as feature description
-- **File path** (`.md`, `.txt`, `.docx`, `.pdf`): Read file content as feature spec
-- **Image paths** (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`): Read images as visual spec
-- **Multiple paths**: Combine all inputs
-
-Derive a feature slug from the description (lowercase, hyphenated, max 40 chars).
-
-### Phase 1: Design
-
-**IMPORTANT**: Include `$INDEXER_CONTEXT` in all agent task prompts. Additionally, pass both
-`$INDEXER_CONTEXT` and `$RESOURCE_RESEARCH_CONTEXT` to the technical-resource-investigator-copilot
-tasks (Steps 1.5 and 1.6).
-
-See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
-
-1. **Investigation**: code-flow-analyzer-copilot and ux-design-reviewer-copilot investigate relevant existing flows and UX constraints (sync)
-2. **Resource Investigation (Step 1.5)**: technical-resource-investigator-copilot (mode `discovery`) consumes `investigation.md`, validates reuse candidates, and identifies authoritative external resources with allowlisted citations → `resources-investigation.md` (sync)
-3. **Resource Critique (Step 1.6, conditional)**: a second technical-resource-investigator-copilot pass (mode `critique-and-amend`, stronger model override) critiques external/material candidates for security, reliability, maintenance, licensing, supply-chain risk, and operational cost, appending amendments without overwriting evidence. Skipped (with reason recorded) when no external or material candidates exist (sync)
-4. **Design Options**: investigation-documenter-copilot creates 2-3 design options with diagrams and text-only UX collateral, consuming `resources-investigation.md` (sync)
-5. **Design Critique**: architecture-reviewer-copilot critiques the design for reuse, performance, scalability, and operational cost, consuming `resources-investigation.md` (sync)
-
-**USER REVIEW GATE**: Present design options to the user. Wait for explicit approval of a
-design option before proceeding to Phase 2. If user gives feedback, iterate on design.
-
-**IMPLEMENTATION CLARIFICATION GATE** (Phase 2 entry precondition): After a design is approved
-and before implementation planning, derive any unresolved, implementation-critical questions from
-`design-options.md`, `ux-review.md`, and the architecture review (future considerations / open
-questions). Ask them as a single batched set with proposed defaults, letting the user answer,
-adjust, or explicitly waive. Record the outcomes in `./docs/<feature-slug>/implementation-interview.md`,
-then fold the decisions into `implementation-plan.md`. If clarification materially changes scope or
-approach, return to the USER REVIEW GATE for re-approval. This gate is reachable on both the fresh
-Phase 1 → Phase 2 path and direct Phase 2 resume (skip it only if a current clarification record
-already exists for the latest approved design).
-
-### Phase 2: Implementation (after user approval or direct Phase 2 resume)
-
-See [references/feature-design-workflow.md](references/feature-design-workflow.md) for details.
-
-4. **Implementation Plan**: Create ordered task list with dependencies
-5. **Implementation**: Launch feature-implementer-copilot tasks (per component, respecting dependencies).
-   - Independent components: `mode: "background"` (max 3 concurrent)
-   - Dependent components: `mode: "sync"` or wait for background tasks first
-   Each feature-implementer-copilot outputs an **implementation summary with test specifications**.
-6. **Testing (REQUIRED)**: After each feature-implementer-copilot task completes, you MUST launch a
-   corresponding test-implementer-copilot task. Pass it:
-   - The implementation summary and test specifications from the completed feature-implementer
-   - The design document for behavioral expectations
-   - The file paths of newly created/modified code
-   Do NOT skip this step or proceed to validation without running tests.
-7. **Validation Loop (REQUIRED)**: Run project build/test/lint, use code-flow-analyzer-copilot for semantic verification, and use feature-validator-copilot as the final read-only gate.
-   - Phase 2 cannot complete until validation runs and writes `./docs/<feature-slug>/verification.md`.
-   - If validation returns `UNSATISFIED`, route targeted remediation to the correct agent and repeat implementation, testing, and validation.
-   - Stop only when feature-validator-copilot returns `SATISFIED`, or after the bounded remediation limit is reached with unresolved findings reported.
-
-### Output
-
-```
-./docs/<feature-slug>/
-├── investigation.md
-├── resources-investigation.md
-├── design-options.md
-├── implementation-interview.md
-├── implementation-plan.md
-└── verification.md
-```
-
-## 5. Output Format
-
-All documents must follow
-[references/doc-format-templates.md](references/doc-format-templates.md), including metadata
-headers, mermaid diagrams, file path references, cross-references, and overview glossaries.
-
-## 6. Guard Rails
-
-### Concurrency Limits
-- Max 4-6 concurrent code-flow-analyzer-copilot agents per investigation phase
-- Max 3 concurrent feature-implementer-copilot agents per implementation phase
-
-### User Confirmation
-- Always pause for user approval between design and implementation phases
-- Present design options clearly with pros/cons before asking for selection
-
-### Validation
-After implementation, discover and run appropriate project validation:
-- Look for build commands in `package.json` scripts, `Makefile`, `Cargo.toml`, etc.
-- Look for test commands (test, test:unit, pytest, cargo test, go test, etc.)
-- Look for lint commands (lint, eslint, clippy, golint, etc.)
-- Run discovered commands and report results
-- Always run this validation step before completing Phase 2, even when resuming directly into Phase 2 from an existing design or implementation plan.
-- Treat validation as a completion contract: Phase 2 exits only on `SATISFIED` from feature-validator-copilot, or on a bounded unresolved state that clearly lists remaining failures and owner agents.
-
-### Cleanup
-- Remove `.tmp/` investigation artifacts from output directories
-- Report final status to user
+Architecture documents remain in `./docs/ArchOverview/`. Feature documents remain in
+`./docs/<feature-slug>/` and follow
+[doc-format-templates.md](references/doc-format-templates.md). Durable state is additive and does not
+replace investigation, design, implementation, or verification documents.

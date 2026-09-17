@@ -2,6 +2,16 @@
 
 Detailed steps for the `DudeWhereIsMyArch` command.
 
+The root orchestrator owns transitions and checkpoints per
+[orchestration-state.md](orchestration-state.md). Reconcile
+`./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
+return control when the exit contract is met.
+
+Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, then checkpoint
+the task before launch and after its result. Expected `.tmp/` or final documents are completion
+evidence, not substitutes for the task result. Record the Vertical Review Gate before asking and
+after every operator decision.
+
 ## Phase 0: Codebase Discovery
 
 Before any investigation, dynamically discover the project structure:
@@ -251,5 +261,13 @@ changes. Remove
 - Create team at start of Phase 1
 - Assign tasks with proper `blockedBy` dependencies
 - Monitor progress via TaskList
+- Reconcile and checkpoint at every phase boundary and after every task result
 - Shut down all agents after Phase 5 completes
 - Delete team after shutdown
+
+## Exit Contract
+
+Return control to the root orchestrator after all active documents are verified and corrected, the
+architecture review is incorporated, and `.tmp/` is removed. Set run status to `complete`, preserve
+`.dev-dude-run-state.md`, and record the final document paths and source commit. A no-change delta
+refresh may also complete after its no-op evidence is recorded.

@@ -137,7 +137,7 @@ On first run, the skill checks bundled agent versions against installed agent ve
 
 ```
 Claude skill/dev-dude/
-├── SKILL.md                                  # Main skill (loaded when triggered)
+├── SKILL.md                                  # Thin root orchestrator (loaded when triggered)
 ├── agents/                                   # Bundled agent definitions
 │   ├── code-flow-analyzer.md                 #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer.md                 #   Reviews UX, existing screens, and layout guidance
@@ -148,8 +148,10 @@ Claude skill/dev-dude/
 │   ├── test-implementer.md                   #   Writes and runs tests
 │   └── feature-validator.md                  #   Gates feature completion with SATISFIED/UNSATISFIED
 └── references/                               # Detailed workflow guides (loaded on demand)
-    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
-    ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
+    ├── orchestration-state.md                 #   Durable checkpoints, recovery, task envelope
+    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch functional block
+    ├── feature-design-workflow.md             #   Feature investigation through design approval
+    ├── feature-implementation-workflow.md     #   Clarification through bounded validation
     ├── doc-format-templates.md               #   Output document templates
     ├── trusted-source-policy.md              #   Authoritative research and citation policy
     └── verification-workflow.md              #   How docs are verified against code
@@ -159,7 +161,7 @@ Claude skill/dev-dude/
 
 ```
 Copilot/dev-dude/
-├── SKILL.md                                  # Main skill (loaded when triggered)
+├── SKILL.md                                  # Thin root orchestrator (loaded when triggered)
 ├── agents/                                   # Bundled agent definitions
 │   ├── code-flow-analyzer-copilot.md         #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer-copilot.md         #   Reviews UX, existing screens, and layout guidance
@@ -171,8 +173,10 @@ Copilot/dev-dude/
 │   └── feature-validator-copilot.md          #   Gates feature completion with SATISFIED/UNSATISFIED
 └── references/                               # Detailed workflow guides (loaded on demand)
     ├── argument-parsing.md                   #   Command routing, aliases, and usage text
-    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch phases
-    ├── feature-design-workflow.md             #   DudeWriteMyFeature phases
+    ├── orchestration-state.md                 #   Durable checkpoints, recovery, task envelope
+    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch functional block
+    ├── feature-design-workflow.md             #   Feature investigation through design approval
+    ├── feature-implementation-workflow.md     #   Clarification through bounded validation
     ├── doc-format-templates.md               #   Output document templates
     ├── trusted-source-policy.md              #   Authoritative research and citation policy
     └── verification-workflow.md              #   How docs are verified against code
@@ -201,6 +205,13 @@ DevDude orchestrates eight specialized agent types:
 | **Feature-Validator** | Read-only final gate that returns SATISFIED/UNSATISFIED and targeted remediation owners | Feature command |
 
 Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., resource research consumes code-flow findings and tests are blocked by implementation). External or architecturally material resource choices receive a conditional, append-only critique pass using a stronger model. Feature implementation starts only after design approval and the Implementation Clarification Gate, then uses a bounded implementation -> testing -> validation loop. Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
+
+The root skill is intentionally limited to runtime setup, routing, global invariants, user gates,
+recovery, and dispatch. Functional workflow references return control at explicit boundaries. Every
+run maintains `.dev-dude-run-state.md` beside its normal outputs; the root reconciles that checkpoint
+with actual documents, task results, and repository changes at command and phase entry. Delegated
+tasks receive a compact orchestration envelope so their lane and completion evidence survive long
+sessions and context compaction.
 
 ```
 DudeWhereIsMyArch "all"
@@ -279,6 +290,8 @@ Output templates are defined in `references/doc-format-templates.md` and can be 
 | **Provenance-preserving critique** | Conditional resource critique appends amendments without deleting the discovery pass's evidence or citations |
 | **One-pass verification** | Verifies docs once and applies fixes — no infinite re-verification loops |
 | **Progressive disclosure** | SKILL.md stays lean; detailed workflows live in reference files loaded on demand |
+| **Durable orchestration state** | Phase, task, gate, and transition checkpoints are reconciled with real outputs before a compacted or resumed run continues |
+| **Orchestration envelope** | Every delegated task receives its run state, workflow block, lane, expected output, completion evidence, and next owner |
 | **`$INDEXER_CONTEXT` injection** | Agents receive a structured description of active indexer tools via task prompts so they can adapt to any indexer without hardcoded tool names |
 | **`$RESOURCE_RESEARCH_CONTEXT` injection** | Resource investigation receives a separate inventory of available research tools and degrades explicitly to repository-local work when needed |
 
