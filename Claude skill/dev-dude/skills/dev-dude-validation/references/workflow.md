@@ -2,6 +2,10 @@
 
 Generic process for verifying documentation accuracy and feature implementation accuracy against actual code.
 
+The root orchestrator supplies the reconciled run state, orchestration envelope, current evidence,
+and permitted transition. This skill owns validation decisions and remediation routing; it does not
+implement production or test remediations itself.
+
 Use the code indexer tools provided in `$INDEXER_CONTEXT`. The examples below use Serena tool names; substitute the equivalent tool from your active indexer(s).
 
 ## Documentation Verification Steps
@@ -118,6 +122,16 @@ SATISFIED | UNSATISFIED
 3. **Full loop after remediation**: Production-code remediation must be followed by Test-Implementer before validation reruns.
 4. **Current evidence only**: Do not reuse stale command results or stale verification reports after files change.
 5. **Exit conditions**: Phase 2 exits only on `SATISFIED`, or on a bounded unresolved state that lists failed criteria, evidence, owner agents, and remaining questions.
+
+### Remediation Dispatch Boundary
+
+This skill owns each validation attempt and emits the decision plus targeted remediation route. It
+does not launch Feature-Implementer or Test-Implementer, change production/tests, increment the
+attempt counter, or rerun itself. Return `UNSATISFIED` evidence to the root orchestrator. Root
+checkpoints the decision, dispatches `dev-dude-feature-implementation` for production or test work,
+increments the attempt only after current remediation evidence exists, and invokes
+`dev-dude-validation` again. On the limit, return bounded-unresolved evidence instead of another
+route.
 
 ## Documentation Verification Report Format
 

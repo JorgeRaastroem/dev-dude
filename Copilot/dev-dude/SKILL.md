@@ -17,7 +17,7 @@ argument-hint:
 
 This root skill coordinates setup, routing, durable state, user gates, and functional workflow
 transitions. It does not execute investigation, design, implementation, testing, or validation
-itself. Load only the reference for the current workflow block.
+itself. Invoke only the installed skill for the current workflow block.
 
 ## 1. Prepare the Runtime
 
@@ -37,6 +37,33 @@ Required custom agent types:
 - `feature-implementer-copilot`
 - `test-implementer-copilot`
 - `feature-validator-copilot`
+
+### Install and Verify the Functional Skill Crew
+
+Bundled skill crew version: `1.0.0`. Bundled directories under `skills/`:
+
+- `dev-dude-architecture`
+- `dev-dude-feature-design`
+- `dev-dude-feature-implementation`
+- `dev-dude-validation`
+
+Install them as sibling user skills under `~/.copilot/skills/<skill-name>/`. For each installed
+`SKILL.md`, compare its top-level `version:` with the bundled version. Missing skill or version is
+`0`.
+
+- If every installed version equals the bundle, keep the crew.
+- If none is newer and any is missing or older, copy all four bundled directories to a staging
+  directory under `~/.copilot/skills/`, verify every staged name/version, then replace all four
+  installed directories only after staging succeeds. Remove staging on failure and leave the
+  installed crew unchanged.
+- If any installed version is newer while another is missing or older, stop at a version-conflict
+  gate rather than mixing versions or silently downgrading.
+- If every installed version is equal to or newer than the bundle, preserve the installed crew and
+  report newer versions.
+
+Verify all four names are discoverable through the Skill capability before dispatch. If copying or
+discovery fails because of permissions, stop at a **FUNCTIONAL SKILL INSTALL GATE**, report the exact
+target and failure, and ask the user before trying any alternative location or method.
 
 Every `task` call must pass the selected agent's reasoning-agnostic frontmatter `model` alias.
 Install Mermaid CLI (`npm install --global @mermaid-js/mermaid-cli`) or require the documenter to
@@ -83,21 +110,24 @@ and after every task, gate, workflow-block transition, and validation attempt.
 
 | Reconciled condition | Load and execute |
 |---|---|
-| Architecture run is incomplete | [arch-investigation-workflow.md](references/arch-investigation-workflow.md), first incomplete step |
-| Feature design is not explicitly approved | [feature-design-workflow.md](references/feature-design-workflow.md), first incomplete step |
-| Feature design is approved | [feature-implementation-workflow.md](references/feature-implementation-workflow.md), first incomplete step |
-| Feature clarification changes the design materially | Return to feature design and renewed approval |
+| Architecture run is incomplete | Invoke `dev-dude-architecture` at its first incomplete step |
+| Feature design is not explicitly approved | Invoke `dev-dude-feature-design` at its first incomplete step |
+| Feature design is approved but implementation/test evidence is incomplete | Invoke `dev-dude-feature-implementation` |
+| Implementation and paired-test evidence is complete | Invoke `dev-dude-validation` |
+| Validation requests production/test remediation | Invoke the named implementation skill, then `dev-dude-validation` |
+| Feature clarification changes the design materially | Invoke `dev-dude-feature-design` for renewed approval |
 | Workflow exit contract is met | Record final status and report |
 
 At each dispatch:
 
 1. Record the current block, step, and one permitted next transition.
-2. Load only that functional reference and relevant durable outputs.
-3. Add the orchestration envelope from `orchestration-state.md` and `$INDEXER_CONTEXT` to every
-   delegated task. Add `$RESOURCE_RESEARCH_CONTEXT` only where the functional workflow requires it.
-4. Pass the agent's frontmatter `model` alias and use background mode only for independent work.
-5. Require each block to return evidence and control to this root orchestrator.
-6. Reconcile and checkpoint before dispatching the next block.
+2. Invoke the installed functional skill by name through the Skill capability.
+3. Pass relevant durable outputs, state path, current step, global invariants, trusted-source and
+   document-template paths when relevant, `$INDEXER_CONTEXT`, and the orchestration envelope.
+4. Pass `$RESOURCE_RESEARCH_CONTEXT` only to `dev-dude-feature-design`.
+5. Require each skill to pass agent frontmatter model aliases, use background mode only for
+   independent work, and return evidence and control to this root orchestrator.
+6. Reconcile and checkpoint before invoking the next skill.
 
 ## 5. Global Invariants
 
@@ -107,6 +137,7 @@ At each dispatch:
 - Maximum concurrent Feature-Implementers: 3.
 - Every investigation-documenter task that changes files has explicit write permission.
 - Every Feature-Implementer result has a corresponding Test-Implementer result before validation.
+- Root owns the bounded validation attempt counter and all remediation re-dispatch.
 - Feature work finishes only on validator `SATISFIED` or a recorded bounded-unresolved state.
 - Discover and run available project build, test, lint, and type-check commands before feature
   completion.

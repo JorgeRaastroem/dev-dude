@@ -2,15 +2,15 @@
 
 Detailed steps for the `DudeWhereIsMyArch` command.
 
-The root orchestrator owns transitions and checkpoints per
-[orchestration-state.md](orchestration-state.md). Reconcile
+The root orchestrator owns transitions and checkpoints using the orchestration contract supplied at
+invocation. Reconcile
 `./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
 return control when the exit contract is met.
 
-Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
-agent's frontmatter `model` alias, then checkpoint the task before launch and after its result.
-Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
-Record the Vertical Review Gate before asking and after every operator decision.
+Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, then checkpoint
+the task before launch and after its result. Expected `.tmp/` or final documents are completion
+evidence, not substitutes for the task result. Record the Vertical Review Gate before asking and
+after every operator decision.
 
 ## Phase 0: Codebase Discovery
 
@@ -34,35 +34,29 @@ Triggered when area is "all"/broad OR `./docs/ArchOverview/` doesn't exist.
 
 ### Phase 1: Parallel Investigation
 
-Launch a Code-Flow-Analyzer and UX-Design-Reviewer agent per discovered area, all in parallel:
-
 ```
-For each discovered area, launch two task tool calls:
-  Task A:
-    agent_type: "code-flow-analyzer-copilot"
-    mode: "background"
-    prompt: "Investigate <area-name>"
-    Include in prompt:
+TeamCreate → "arch-investigation"
+
+For each discovered area, create two parallel tasks:
+  Task A: "Investigate <area-name>"
+    Agent: Code-Flow-Analyzer
+    Input:
       - Area path (e.g., "packages/core/auth/")
       - Area description from discovery
       - Key entry points identified
-      - $INDEXER_CONTEXT block
-    Expected output:
+    Output:
       - ./docs/ArchOverview/.tmp/<area-slug>.md
 
-  Task B:
-    agent_type: "ux-design-reviewer-copilot"
-    mode: "background"
-    prompt: "Review UX for <area-name>"
-    Include in prompt:
+  Task B: "Review UX for <area-name>"
+    Agent: UX-Design-Reviewer
+    Input:
       - Area path or user-facing scope
       - Existing screens/specs relevant to the area
       - Any project UX guidelines (or instruction to interview user and create them)
-      - $INDEXER_CONTEXT block
-    Expected output:
+    Output:
       - ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
-Max 4-6 concurrent agents. If more areas, batch them.
+All area task pairs run in parallel (max 4-6 concurrent agents total).
 ```
 
 Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONTEXT`):
@@ -72,42 +66,37 @@ Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONT
 4. Document patterns, conventions, and design decisions
 5. Create mermaid diagrams for major flows
 
-**Wait for all Phase 1 tasks**: Use `read_agent(wait: true)` for each background agent before proceeding to Phase 2.
+### Phase 2: Documentation (blocked by Phase 1)
 
-### Phase 2: Documentation (after all Phase 1 tasks complete)
+```
+Investigation-Documenter tasks:
 
-Launch Investigation-Documenter agents:
-
-Every `investigation-documenter-copilot` task must be launched with write permissions.
+Every `investigation-documenter` task must be launched with write permissions.
 
 Capture `git rev-parse HEAD` before writing documents and set that full SHA as `**Source Commit**`
 in the overview and every deep-dive.
 
-```
-Task 1: Overview document (needs ALL Phase 1 outputs)
-  agent_type: "investigation-documenter-copilot"
-  permissions: "write"
-  mode: "background"
-  prompt:
-    - Input: All .tmp/<area>.md and .tmp/ux-<area>.md files
-    - Output: ./docs/ArchOverview/<project>-architecture-overview.md
-    - Include: Executive summary, high-level architecture diagram (mermaid),
-      area summaries with cross-references, glossary, and text-only UX collateral when relevant
+Task 1: Overview document (blocked by ALL Phase 1 tasks)
+  Permissions: write
+  Input: All .tmp/<area>.md and .tmp/ux-<area>.md files
+  Output: ./docs/ArchOverview/<project>-architecture-overview.md
+  - Executive summary
+  - High-level architecture diagram (mermaid)
+  - Area summaries with cross-references
+  - UX collateral where relevant (simple text-only layout maps)
+  - Glossary
 
-Tasks 2-N: Deep-dive documents (one per area)
-  agent_type: "investigation-documenter-copilot"
-  permissions: "write"
-  mode: "background"
-  prompt:
-    - Input: .tmp/<area>.md and .tmp/ux-<area>.md for the specific area
-    - Output: ./docs/ArchOverview/<project>-<area-slug>.md
-    - Include: Detailed component breakdown, data flow diagrams,
-      key interfaces, dependencies, and text-only layout maps when relevant
+Tasks 2-N: Deep-dive documents (each blocked by its own Phase 1 task)
+  Permissions: write
+  Input: .tmp/<area>.md and .tmp/ux-<area>.md for the specific area
+  Output: ./docs/ArchOverview/<project>-<area-slug>.md
+  - Detailed component breakdown
+  - Data flow diagrams
+  - Key interfaces
+  - Dependencies
 ```
 
-**Wait for all Phase 2 tasks** before proceeding.
-
-### Vertical Review Gate (after Phase 2; before Phase 3)
+### Vertical Review Gate (blocked by Phase 2; blocks Phase 3)
 
 Present the generated deep-dives to the operator as an editable vertical list. For each vertical,
 include its name, brief description, and deep-dive document path. Ask the operator to confirm the
@@ -120,53 +109,46 @@ Wait for explicit confirmation before continuing.
 - After any change, present the revised list, including newly generated deep-dives, and request
   confirmation again.
 
-### Phase 3: Verification (after the Vertical Review Gate)
-
-Launch Code-Flow-Analyzer agents to verify each document:
+### Phase 3: Verification (blocked by the Vertical Review Gate)
 
 ```
-One task for the overview and one per active vertical document, all in parallel:
-  agent_type: "code-flow-analyzer-copilot"
-  mode: "background"
-  prompt:
-    - Input: The overview or an active vertical's generated document
-    - Process: Verify every file path, symbol/class/interface,
-      code snippet, and dependency claim against actual code
-    - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
+Code-Flow-Analyzer tasks (one per document, parallel):
+  Input: The overview or an active vertical's generated document
+  Process:
+    - Verify every file path exists
+    - Verify every symbol/class/interface exists
+    - Verify code snippets match actual code
+    - Verify dependency claims
+  Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
 ```
 
-**Wait for all Phase 3 tasks** before proceeding.
-
-### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
-
-Launch a single Architecture-Reviewer to critique the mapped architecture:
+### Phase 4: Architecture Review (blocked by Phase 3)
 
 ```
-  agent_type: "architecture-reviewer-copilot"
-  mode: "sync"
-  prompt:
-    - Input: Final architecture overview + active vertical deep-dive documents
-    - Include: All verification reports
-    - Process: Critique reusability, performance, scalability, and operational cost
-    - Output: ./docs/ArchOverview/.tmp/architecture-review.md
-    - Require: "Future Considerations" list for the project
+Architecture-Reviewer task:
+  Input:
+    - Final architecture overview + active vertical deep-dive documents
+    - All verification reports
+  Process:
+    - Critique the mapped architecture for reusability, performance, scalability, and operational cost
+    - If criteria are missing, interview the user and create a lightweight review rubric
+    - Create a "Future Considerations" list for the project
+  Output: ./docs/ArchOverview/.tmp/architecture-review.md
 ```
 
-### Phase 5: Fix Application (after Phase 4 completes)
-
-Launch a single Investigation-Documenter to apply corrections:
+### Phase 5: Fix Application (blocked by Phase 4)
 
 ```
-  agent_type: "investigation-documenter-copilot"
-  permissions: "write"
-  mode: "sync"
-  prompt:
-    - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
-    - Process: Apply corrections to documents, update inaccurate
-      file paths/symbol names/descriptions, fold in architecture critique,
-      add future considerations, note unverifiable items
-    - Output: Updated documents in ./docs/ArchOverview/
-    - Cleanup: Remove .tmp/ directory
+Investigation-Documenter task:
+  Permissions: write
+  Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
+  Process:
+    - Apply corrections to documents
+    - Update inaccurate file paths, symbol names, descriptions
+    - Fold in architecture review findings and future considerations
+    - Note any items that couldn't be verified
+  Output: Updated documents in ./docs/ArchOverview/
+  Cleanup: Remove .tmp/ directory
 ```
 
 ## Additive Investigation (Specific Area)
@@ -175,42 +157,36 @@ Triggered when a specific area is requested AND `./docs/ArchOverview/` already e
 
 ```
 Step 1: Parallel investigation
-  Task A:
-    agent_type: "code-flow-analyzer-copilot"
-    mode: "sync"
-    prompt: "Deep-dive investigate <specific-area>"
+  Task A: Code-Flow-Analyzer
+    Task: "Deep-dive investigate <specific-area>"
     Input: Area path, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/<area-slug>.md
 
-  Task B:
-    agent_type: "ux-design-reviewer-copilot"
-    mode: "sync"
-    prompt: "Review UX for <specific-area>"
+  Task B: UX-Design-Reviewer
+    Task: "Review UX for <specific-area>"
     Input: Area path, relevant screens/specs, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
-Step 2: Two Investigation-Documenters (parallel, after Step 1)
+Step 2: Investigation-Documenters (2 tasks, blocked by Step 1)
   Permissions: write (both tasks)
-  Task A (background): Create new deep-dive document
+  Task A: Create new deep-dive document
     Output: ./docs/ArchOverview/<project>-<area-slug>.md
-  Task B (background): Update overview document
+  Task B: Update overview document
     - Add new area section
     - Update cross-references
     - Update high-level diagram if needed
     - Add UX notes/layout maps if relevant
 
-  Wait for both tasks to complete.
-
-Step 3: Code-Flow-Analyzer (sync, after Step 2)
-  Verify new/updated content only
+Step 3: Code-Flow-Analyzer (blocked by Step 2)
+  Task: Verify new/updated content only
   Output: ./docs/ArchOverview/.tmp/verification-<area>.md
 
-Step 4: Architecture-Reviewer (sync, after Step 3)
-  Critique the new/updated area and produce future considerations
+Step 4: Architecture-Reviewer (blocked by Step 3)
+  Task: Critique the new/updated area and produce future considerations
   Output: ./docs/ArchOverview/.tmp/architecture-review.md
 
-Step 5: Investigation-Documenter (sync, after Step 4)
-  Apply corrections and fold in architecture review
+Step 5: Investigation-Documenter (blocked by Step 4)
+  Task: Apply corrections and fold in architecture review
   Cleanup: Remove .tmp/ directory
 ```
 
@@ -252,14 +228,14 @@ architecture documentation is current and stop without rewriting files.
 
 ### Step 2: Investigate Affected and New Areas
 
-Run code-flow-analyzer-copilot and ux-design-reviewer-copilot tasks in parallel only for affected
-existing areas and confirmed new verticals. Give each task the relevant diff, target commit, existing
-document context, and `$INDEXER_CONTEXT`. Existing-area tasks must focus on changed flows and their
-transitive effects; new-vertical tasks perform a complete investigation of that vertical.
+Run Code-Flow-Analyzer and UX-Design-Reviewer tasks in parallel only for affected existing areas and
+confirmed new verticals. Give each task the relevant diff, target commit, existing document context,
+and `$INDEXER_CONTEXT`. Existing-area tasks must focus on changed flows and their transitive effects;
+new-vertical tasks perform a complete investigation of that vertical.
 
 ### Step 3: Update Documents
 
-Run investigation-documenter-copilot tasks to:
+Run Investigation-Documenter tasks to:
 - launch each task with write permissions;
 - update each affected deep-dive in place without rewriting unaffected sections;
 - create one deep-dive for each confirmed new vertical;
@@ -275,10 +251,19 @@ Do not regenerate or touch unaffected deep-dives.
 ### Step 4: Verify, Review, and Apply Fixes
 
 Verify only changed/new documents and changed overview sections against the target commit. Then run
-architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
-corrections and future considerations (with write permissions). Ensure each refresh row summarizes
-the finalized changes.
-Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
+Architecture-Reviewer on the refreshed scope and Investigation-Documenter (with write permissions)
+to apply corrections and future considerations. Ensure each refresh row summarizes the finalized
+changes. Remove
+`./docs/ArchOverview/.tmp/` after fixes are applied.
+
+## Team Lifecycle
+
+- Create team at start of Phase 1
+- Assign tasks with proper `blockedBy` dependencies
+- Monitor progress via TaskList
+- Reconcile and checkpoint at every phase boundary and after every task result
+- Shut down all agents after Phase 5 completes
+- Delete team after shutdown
 
 ## Exit Contract
 

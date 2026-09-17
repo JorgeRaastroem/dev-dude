@@ -117,19 +117,26 @@ Copy the `Claude skill/dev-dude/` directory from this repository into your Claud
 <project>/.claude/skills/dev-dude/
 ```
 
-#### Agent auto-install
+#### Bundled crew auto-install
 
-On first run, the skill checks bundled agent versions against installed agent versions (`version:` in frontmatter). Missing version is treated as `0`. If any installed agent is lower than the bundled version, the whole crew is updated atomically so all agents stay on the same version.
+On first run, the root checks both bundled agent and functional-skill versions. Missing versions are
+treated as `0`. If any functional skill is missing or older, all four sibling skills are installed
+or updated atomically beside the active root skill.
 
 ### GitHub Copilot coding agent
 
-Copy the `Copilot/dev-dude/` directory from this repository into your project:
+Copy the `Copilot/dev-dude/` directory from this repository into a Copilot skill location:
 
 ```
-<project>/dev-dude/
+# User-wide
+~/.copilot/skills/dev-dude/
+
+# Or repository-local
+<project>/.github/skills/dev-dude/
 ```
 
-On first run, the skill checks bundled agent versions against installed agent versions (`version:` in frontmatter). Missing version is treated as `0`. If any installed agent is lower than the bundled version, the whole crew is updated atomically so all agents stay on the same version.
+The root checks bundled agent and functional-skill versions on first run. Agents install under
+`~/.copilot/agents/`; the four functional skills install atomically under `~/.copilot/skills/`.
 
 ## Skill Structure
 
@@ -147,14 +154,23 @@ Claude skill/dev-dude/
 │   ├── feature-implementer.md                #   Implements features from design specs
 │   ├── test-implementer.md                   #   Writes and runs tests
 │   └── feature-validator.md                  #   Gates feature completion with SATISFIED/UNSATISFIED
-└── references/                               # Detailed workflow guides (loaded on demand)
-    ├── orchestration-state.md                 #   Durable checkpoints, recovery, task envelope
-    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch functional block
-    ├── feature-design-workflow.md             #   Feature investigation through design approval
-    ├── feature-implementation-workflow.md     #   Clarification through bounded validation
-    ├── doc-format-templates.md               #   Output document templates
-    ├── trusted-source-policy.md              #   Authoritative research and citation policy
-    └── verification-workflow.md              #   How docs are verified against code
+├── skills/                                   # Versioned, auto-installed functional skill crew
+│   ├── dev-dude-architecture/
+│   │   ├── SKILL.md
+│   │   └── references/workflow.md
+│   ├── dev-dude-feature-design/
+│   │   ├── SKILL.md
+│   │   └── references/workflow.md
+│   ├── dev-dude-feature-implementation/
+│   │   ├── SKILL.md
+│   │   └── references/workflow.md
+│   └── dev-dude-validation/
+│       ├── SKILL.md
+│       └── references/workflow.md
+└── references/                               # Root orchestration contracts and shared policies
+    ├── orchestration-state.md
+    ├── doc-format-templates.md
+    └── trusted-source-policy.md
 ```
 
 ### GitHub Copilot coding agent (`Copilot/dev-dude/`)
@@ -171,15 +187,16 @@ Copilot/dev-dude/
 │   ├── feature-implementer-copilot.md        #   Implements features from design specs
 │   ├── test-implementer-copilot.md           #   Writes and runs tests
 │   └── feature-validator-copilot.md          #   Gates feature completion with SATISFIED/UNSATISFIED
-└── references/                               # Detailed workflow guides (loaded on demand)
-    ├── argument-parsing.md                   #   Command routing, aliases, and usage text
-    ├── orchestration-state.md                 #   Durable checkpoints, recovery, task envelope
-    ├── arch-investigation-workflow.md         #   DudeWhereIsMyArch functional block
-    ├── feature-design-workflow.md             #   Feature investigation through design approval
-    ├── feature-implementation-workflow.md     #   Clarification through bounded validation
-    ├── doc-format-templates.md               #   Output document templates
-    ├── trusted-source-policy.md              #   Authoritative research and citation policy
-    └── verification-workflow.md              #   How docs are verified against code
+├── skills/                                   # Versioned, auto-installed functional skill crew
+│   ├── dev-dude-architecture/
+│   ├── dev-dude-feature-design/
+│   ├── dev-dude-feature-implementation/
+│   └── dev-dude-validation/                  # Each contains SKILL.md + references/workflow.md
+└── references/                               # Root orchestration contracts and shared policies
+    ├── argument-parsing.md
+    ├── orchestration-state.md
+    ├── doc-format-templates.md
+    └── trusted-source-policy.md
 ```
 
 After installation the agent definitions are placed in the runtime-specific agents folder:
@@ -188,6 +205,14 @@ After installation the agent definitions are placed in the runtime-specific agen
 |---------|--------------|
 | Claude Code | `.claude/agents/` |
 | GitHub Copilot coding agent | `~/.copilot/agents/` |
+
+The functional skills are installed as discoverable siblings:
+
+| Runtime | Functional skill folder |
+|---------|-------------------------|
+| Claude Code project scope | `<project>/.claude/skills/<skill-name>/` |
+| Claude Code user scope | `~/.claude/skills/<skill-name>/` |
+| GitHub Copilot | `~/.copilot/skills/<skill-name>/` |
 
 ## Agent Swarm Architecture
 
@@ -207,7 +232,7 @@ DevDude orchestrates eight specialized agent types:
 Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., resource research consumes code-flow findings and tests are blocked by implementation). External or architecturally material resource choices receive a conditional, append-only critique pass using a stronger model. Feature implementation starts only after design approval and the Implementation Clarification Gate, then uses a bounded implementation -> testing -> validation loop. Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
 
 The root skill is intentionally limited to runtime setup, routing, global invariants, user gates,
-recovery, and dispatch. Functional workflow references return control at explicit boundaries. Every
+recovery, and dispatch. Installed functional skills return control at explicit boundaries. Every
 run maintains `.dev-dude-run-state.md` beside its normal outputs; the root reconciles that checkpoint
 with actual documents, task results, and repository changes at command and phase entry. Delegated
 tasks receive a compact orchestration envelope so their lane and completion evidence survive long
@@ -272,6 +297,12 @@ All documents use consistent templates with:
 
 Agent files in `.claude/agents/` (Claude Code) or `~/.copilot/agents/` (GitHub Copilot) can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
 
+### Functional skills
+
+Installed `dev-dude-*` functional skills may be customized in their runtime skill directory. Keep a
+custom skill's version equal to or newer than the bundle to prevent an older bundle replacing it;
+mixed newer/older crews stop at the version-conflict gate.
+
 ### Document templates
 
 Output templates are defined in `references/doc-format-templates.md` and can be modified to match your team's documentation standards.
@@ -289,7 +320,8 @@ Output templates are defined in `references/doc-format-templates.md` and can be 
 | **Trusted-source enforcement** | External resource recommendations require allowlisted authoritative citations; unsupported candidates remain unverified |
 | **Provenance-preserving critique** | Conditional resource critique appends amendments without deleting the discovery pass's evidence or citations |
 | **One-pass verification** | Verifies docs once and applies fixes — no infinite re-verification loops |
-| **Progressive disclosure** | SKILL.md stays lean; detailed workflows live in reference files loaded on demand |
+| **Progressive disclosure** | The root SKILL.md stays lean and invokes only the installed functional skill needed for the reconciled state |
+| **Atomic skill crew** | Four versioned functional skills are staged, verified, and installed together so workflow ownership cannot drift |
 | **Durable orchestration state** | Phase, task, gate, and transition checkpoints are reconciled with real outputs before a compacted or resumed run continues |
 | **Orchestration envelope** | Every delegated task receives its run state, workflow block, lane, expected output, completion evidence, and next owner |
 | **`$INDEXER_CONTEXT` injection** | Agents receive a structured description of active indexer tools via task prompts so they can adapt to any indexer without hardcoded tool names |

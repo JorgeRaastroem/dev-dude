@@ -22,7 +22,7 @@ Keep the file concise and update it in place using this structure:
 - **Command**: <normalized command and argument>
 - **Workflow**: <architecture|feature>
 - **Status**: <active|waiting-for-user|complete|bounded-unresolved>
-- **Current block**: <functional workflow reference>
+- **Current block**: <installed functional skill name>
 - **Current step**: <step identifier and name>
 - **Next transition**: <one permitted next action>
 - **Source revision**: <git HEAD when last reconciled, or unavailable>
@@ -83,7 +83,7 @@ Every delegated task prompt must contain this compact envelope before task-speci
 ```markdown
 ## DevDude Orchestration
 - Run state: <path>
-- Workflow block: <reference path and step>
+- Workflow block: <installed skill name and step>
 - Task ID: <stable ID matching the state table>
 - In lane: <single responsibility for this task>
 - Expected output: <path or result contract>

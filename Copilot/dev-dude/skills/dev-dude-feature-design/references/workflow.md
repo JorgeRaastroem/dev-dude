@@ -1,8 +1,8 @@
 # Feature Design Workflow
 
 Detailed functional steps for `DudeWriteMyFeature` from input gathering through explicit design
-approval. The root orchestrator owns transitions and checkpoints per
-[orchestration-state.md](orchestration-state.md); this block does not plan or implement code.
+approval. The root orchestrator owns transitions and checkpoints using the orchestration contract
+supplied at invocation; this skill does not plan or implement code.
 
 ## Entry Contract
 
@@ -30,7 +30,7 @@ model alias, the feature input, `investigation.md`, relevant UX and architecture
 `$INDEXER_CONTEXT`, `$RESOURCE_RESEARCH_CONTEXT`, and the orchestration envelope.
 
 It validates internal reuse candidates without retracing flows and considers external resources only
-from [trusted-source-policy.md](trusted-source-policy.md). Every external fact and recommendation
+from the trusted-source policy supplied by the root orchestrator. Every external fact and recommendation
 requires an allowlisted citation; unsupported candidates remain unverified. It is read-only and
 writes `resources-investigation.md`.
 
@@ -69,6 +69,5 @@ Return control to the root orchestrator only when `investigation.md`, `ux-review
 `resources-investigation.md`, and refined `design-options.md` have reconciled evidence and the user
 review gate contains an explicit approval.
 
-The next permitted block is
-[feature-implementation-workflow.md](feature-implementation-workflow.md). This design block must not
+The next permitted skill is `dev-dude-feature-implementation`. This design skill must not
 create an implementation plan, modify production code, implement tests, or perform final validation.

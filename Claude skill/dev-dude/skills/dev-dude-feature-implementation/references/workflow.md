@@ -1,9 +1,8 @@
-# Feature Implementation & Validation Workflow
+# Feature Implementation Workflow
 
 Detailed functional steps for `DudeWriteMyFeature` after a design option is approved. The root
-orchestrator owns transitions and checkpoints per
-[orchestration-state.md](orchestration-state.md); this block owns clarification, planning,
-implementation, testing, and validation only.
+orchestrator owns transitions and checkpoints using the orchestration contract supplied at
+invocation; this skill owns clarification, planning, implementation, and paired testing only.
 
 ## Entry Contract
 
@@ -39,7 +38,7 @@ For each dependency-ready component, launch `feature-implementer` with:
 
 - its plan section, approved design, investigation context, and current remediation findings;
 - `$INDEXER_CONTEXT`;
-- the orchestration envelope from `orchestration-state.md`; and
+- the orchestration envelope supplied at invocation; and
 - a requirement to return changed paths plus an implementation summary headed
   `## Test Specifications for Test-Implementer`.
 
@@ -54,39 +53,13 @@ the approved design, changed paths, remediation context, `$INDEXER_CONTEXT`, and
 envelope. Require it to follow nearby test patterns, implement the specifications, run relevant
 tests, and report results. Wait for all paired test tasks.
 
-## Step 5: Bounded Validation
-
-The default maximum is three validation attempts unless the user explicitly changes it. After every
-implementation/test batch:
-
-1. Discover and run relevant build, test, lint, and type-check commands from project configuration.
-   Record commands, exit codes, and concise results.
-2. For non-trivial flow or integration changes, run `code-flow-analyzer` with the spec, design,
-   plan, summaries, test results, changed paths, `$INDEXER_CONTEXT`, and orchestration envelope.
-3. Run read-only `feature-validator` with all evidence and the current/max attempt numbers. Write
-   `verification.md` and checkpoint its `SATISFIED` or `UNSATISFIED` decision.
-4. If unsatisfied, route only failed criteria:
-
-| Finding | Owner |
-|---|---|
-| Production behavior or spec gap | `feature-implementer` |
-| Missing, incorrect, or brittle tests | `test-implementer` |
-| Insufficient flow evidence | `code-flow-analyzer`, then validator rerun |
-| Ambiguous requirement | Root orchestrator user gate |
-| Verification document formatting | `investigation-documenter` |
-
-Repeat implementation, paired testing, and validation. Never skip from production remediation
-directly to validation.
-
 ## Exit Contract
 
 Return control to the root orchestrator only when:
 
 - the plan exists and every implementation task has implementation and paired test evidence;
-- project validation is recorded, including unavailable commands;
-- semantic verification ran where required;
-- `verification.md` contains the latest validator decision; and
-- the decision is `SATISFIED`, or the attempt limit is reached and unresolved findings are reported.
+- relevant targeted checks run during implementation are recorded; and
+- changed paths and current implementation/test summaries are checkpointed.
 
-Set run status to `complete` or `bounded-unresolved`, record the evidence, clean `.tmp/`, preserve
-`.dev-dude-run-state.md`, and return control to the root orchestrator for the final report.
+Set the next transition to `dev-dude-validation` and return control. This skill must not make the
+final `SATISFIED` decision or own the bounded validation loop.
