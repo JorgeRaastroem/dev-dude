@@ -21,9 +21,13 @@ Keep the file concise and update it in place using this structure:
 
 - **Command**: <normalized command and argument>
 - **Workflow**: <architecture|feature>
+- **Workflow version**: <workflow definition or amendment version>
+- **Run ID**: <stable run identifier>
 - **Status**: <active|waiting-for-user|complete|bounded-unresolved>
 - **Current block**: <installed functional skill name>
 - **Current step**: <step identifier and name>
+- **Validated input contract**: <path under .dev-dude-handoffs/>
+- **Latest output contract**: <path under .dev-dude-handoffs/ or none>
 - **Next transition**: <one permitted next action>
 - **Source revision**: <git HEAD when last reconciled, or unavailable>
 - **Updated**: <ISO-8601 timestamp>
@@ -55,9 +59,15 @@ Update state:
 Write the checkpoint before starting the next transition. A checkpoint records orchestration facts,
 not investigation content; detailed findings stay in normal workflow outputs.
 
+Every transition contract is a YAML file under `.dev-dude-handoffs/` beside this state file. Keep
+validated contracts immutable; remediation creates the next sequenced contract. The state file
+indexes the current validated input and latest output. Read
+[stage-workflow.md](stage-workflow.md), [handoff-contract-schema.md](handoff-contract-schema.md), and
+[validation-rules.md](validation-rules.md) before creating, consuming, or validating a contract.
+
 ## Reconciliation and Recovery
 
-On every command entry, phase entry, direct resume, or suspected compaction:
+On every command entry, stage entry, direct resume, or suspected compaction:
 
 1. Read this contract and the run-state file.
 2. Inspect the expected output paths, current repository changes, and relevant approval or
@@ -69,9 +79,11 @@ On every command entry, phase entry, direct resume, or suspected compaction:
    - Missing or stale evidence moves the task to `pending`; record why.
    - Evidence of completed work may advance a stale checkpoint; record the discovered evidence.
 4. Never roll back, overwrite, or repeat valid work solely because the checkpoint is stale.
-5. Determine exactly one valid next transition from reconciled evidence and update state.
-6. Load only the current functional workflow reference, then continue from its first incomplete
-   step.
+5. Validate the current contract and reconcile its evidence and artifact references. A stale or
+   invalid contract does not authorize a transition; record structured remediation.
+6. Determine exactly one valid next transition from reconciled evidence and update state.
+7. Initialize a fresh stage with only its workflow, validated contract, authorized artifacts/tools,
+   and current-stage tool results, then continue from its first incomplete step.
 
 The filesystem and repository are evidence; the state file is the index. If they disagree and the
 safe transition is unclear, set `waiting-for-user`, record the discrepancy, and ask at a gate.
@@ -88,9 +100,11 @@ Every delegated task prompt must contain this compact envelope before task-speci
 - In lane: <single responsibility for this task>
 - Expected output: <path or result contract>
 - Completion evidence: <specific evidence required>
+- Input handoff: <validated YAML contract path>
+- Output handoff: <next YAML contract path>
 - Next owner: root DevDude orchestrator
 ```
 
-Also include the context blocks required by the functional workflow. An agent must not advance the
-workflow, change gate status, or assume work owned by another block; it returns control and evidence
-to the root orchestrator.
+Also include only the context blocks authorized by the input contract. An agent must not use prior
+conversation as workflow state, advance the workflow, change gate status, or assume work owned by
+another block; it returns control and a typed evidence contract to the root orchestrator.
