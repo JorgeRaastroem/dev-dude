@@ -40,7 +40,7 @@ Required Task `subagent_type` values:
 
 ### Install and Verify the Functional Skill Crew
 
-Bundled skill crew version: `1.0.0`. Bundled directories under `skills/`:
+Bundled skill crew version: `1.1.0`. Bundled directories under `skills/`:
 
 - `dev-dude-architecture`
 - `dev-dude-feature-design`
@@ -102,8 +102,10 @@ feature slug of at most 40 characters.
 
 ## 3. Recover or Initialize State
 
-Read [orchestration-state.md](references/orchestration-state.md) on every command entry, phase entry,
-direct resume, or suspected compaction.
+Read [orchestration-state.md](references/orchestration-state.md) and
+[stage-workflow.md](references/stage-workflow.md) on every command entry, stage entry, direct resume,
+or suspected compaction. Load [handoff-contract-schema.md](references/handoff-contract-schema.md) and
+[validation-rules.md](references/validation-rules.md) whenever creating or validating a transition.
 
 - Architecture state: `./docs/ArchOverview/.dev-dude-run-state.md`
 - Feature state: `./docs/<feature-slug>/.dev-dude-run-state.md`
@@ -124,19 +126,32 @@ and after every task, gate, workflow-block transition, and validation attempt.
 | Feature clarification changes the design materially | Invoke `dev-dude-feature-design` for renewed approval |
 | Workflow exit contract is met | Record final status and report |
 
-At each dispatch:
+Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch:
 
-1. Record the current block, step, and one permitted next transition.
-2. Invoke the installed functional skill by name through the Skill capability.
-3. Pass relevant durable outputs, state path, current step, global invariants, trusted-source and
-   document-template paths when relevant, `$INDEXER_CONTEXT`, and the orchestration envelope.
-4. Pass `$RESOURCE_RESEARCH_CONTEXT` only to `dev-dude-feature-design`.
-5. Require each skill to return evidence and control to this root orchestrator.
-6. Reconcile and checkpoint before invoking the next skill.
+1. Declare the stage objective, inputs, outputs, completion criteria, and one permitted transition.
+2. Create or select its YAML input contract and run the contract validation gate. Do not dispatch on
+   failure; return structured remediation.
+3. Invoke the installed functional skill by name through the Skill capability with no prior-stage
+   conversation history.
+4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and tools,
+   state and shared-policy paths, handoff schema and validation-rule paths, and the orchestration
+   envelope.
+5. Pass `$RESOURCE_RESEARCH_CONTEXT` only when authorized for `dev-dude-feature-design`.
+6. Require a typed output contract containing completion evidence and returning control to root.
+7. Validate, reconcile, and checkpoint that contract before any next dispatch. `partial`, `blocked`,
+   or `failed` work cannot advance to a different stage.
 
 ## 5. Global Invariants
 
 - Root orchestration owns all phase transitions and gate status.
+- A stage may rely only on its workflow, validated handoff, authorized artifacts/tools, and evidence
+  it independently retrieves. Missing information is unknown or blocking, never recovered from chat.
+- Preserve facts, assumptions, constraints, decisions, rejected approaches, open questions, blockers,
+  failures, and artifacts as distinct contract types; never silently promote an assumption.
+- No transition occurs until its contract passes structural, evidence, epistemic, and workflow
+  validation. Workflow amendments are explicit and versioned.
+- Contracts contain evidence-backed outcomes, not chain-of-thought, scratchpads, tool chatter, raw
+  exploration, or irrelevant conversation history.
 - Never infer user approval. Pause at every gate until an explicit decision is recorded.
 - Maximum concurrent Code-Flow-Analyzers: 6.
 - Maximum concurrent Feature-Implementers: 3.

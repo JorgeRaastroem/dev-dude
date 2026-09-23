@@ -169,6 +169,9 @@ Claude skill/dev-dude/
 │       └── references/workflow.md
 └── references/                               # Root orchestration contracts and shared policies
     ├── orchestration-state.md
+    ├── stage-workflow.md
+    ├── handoff-contract-schema.md
+    ├── validation-rules.md
     ├── doc-format-templates.md
     └── trusted-source-policy.md
 ```
@@ -195,6 +198,9 @@ Copilot/dev-dude/
 └── references/                               # Root orchestration contracts and shared policies
     ├── argument-parsing.md
     ├── orchestration-state.md
+    ├── stage-workflow.md
+    ├── handoff-contract-schema.md
+    ├── validation-rules.md
     ├── doc-format-templates.md
     └── trusted-source-policy.md
 ```
@@ -236,7 +242,11 @@ recovery, and dispatch. Installed functional skills return control at explicit b
 run maintains `.dev-dude-run-state.md` beside its normal outputs; the root reconciles that checkpoint
 with actual documents, task results, and repository changes at command and phase entry. Delegated
 tasks receive a compact orchestration envelope so their lane and completion evidence survive long
-sessions and context compaction.
+sessions and context compaction. Each functional-skill transition also creates a validated YAML
+handoff under `.dev-dude-handoffs/`. A fresh stage receives only its workflow, typed contract,
+authorized artifacts and tools, and evidence it retrieves itself; prior conversation is not durable
+workflow state. Structural, evidence, epistemic, and workflow validation blocks unsupported,
+contradictory, incomplete, or out-of-scope transitions with actionable remediation.
 
 ```
 DudeWhereIsMyArch "all"
