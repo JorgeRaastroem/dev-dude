@@ -11,8 +11,9 @@ independent of the producing stage's assertions and has four passes.
 - Resolve every `based_on`, evidence, required-input, continuation, and authorization reference to a
   declared item.
 - Require receiving-stage fields for nonterminal work and prohibit them for terminal work.
-- Treat `complete`, `cancelled`, and `abandoned` as terminal statuses. The latter two require an
-  explicit durable user decision and must not authorize continuation.
+- A `complete` contract may be nonterminal or terminal according to its receiving-stage fields.
+  Treat `bounded-unresolved`, `cancelled`, and `abandoned` as always terminal; they must not authorize
+  continuation.
 - Confirm the declared receiving stage and next objective are permitted by the workflow version.
 
 ## Evidence Pass
@@ -43,9 +44,12 @@ independent of the producing stage's assertions and has four passes.
 - Confirm the producing stage stayed in its declared scope and evaluated all completion criteria.
 - A `complete` contract cannot contain unmet applicable criteria, blockers, blocking questions, or
   unresolved failures.
-- A `cancelled` or `abandoned` contract may retain unmet criteria only when it records the explicit
-  user decision, retained durable outputs, superseded pending work, and no receiving stage or
+- A `bounded-unresolved` contract may retain failed criteria only when it records the exhausted
+  attempt limit, current durable evidence, remaining remediation, and no receiving stage or
   continuation authorization.
+- A `cancelled` or `abandoned` contract may retain unmet criteria only when it records the explicit
+  user decision, retained durable outputs, quiescent workers, superseded incomplete work, and no
+  receiving stage or continuation authorization.
 - `partial`, `blocked`, and `failed` contracts cannot advance to a different stage.
 - Confirm required downstream inputs are present and artifact/tool authorization is least-context.
 - The workflow definition prevails over a conflicting handoff unless a referenced, authorized,

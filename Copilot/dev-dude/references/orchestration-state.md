@@ -101,12 +101,14 @@ produce or consume temporary evidence, but the root orchestrator owns preservati
    checkpoint `absent` or `removed` with evidence. If deletion fails, leave the substantive run
    `complete`, record `cleanup-failed`, the exact error, remaining path, and a safe remediation
    action, and do not broaden the deletion scope.
-6. On explicit cancellation or abandonment, stop at a user gate and ask whether to preserve `.tmp/`
-   evidence for resume or clean it up. Record the quoted decision. Preservation ends with
-   `preserve-for-resume`. For cleanup, first validate and checkpoint the terminal cancellation or
-   abandonment contract, durable outputs retained, and validation evidence available; mark pending
-   work `superseded`, confirm no remaining stage reference, then apply the same narrow, idempotent
-   deletion rule.
+6. On explicit cancellation or abandonment, stop new dispatches, cancel or join every running worker,
+   and confirm they are quiescent before terminalization. At a user gate, ask whether to preserve
+   `.tmp/` evidence for resume or clean it up and record the quoted decision. Mark every incomplete
+   task `superseded`, then validate and checkpoint the terminal cancellation or abandonment contract,
+   retained durable outputs, available validation evidence, and artifact decision. Preservation ends
+   with `preserve-for-resume`; a later explicit resume reconciles the preserved evidence and creates
+   a new root-to-stage contract without mutating the terminal contract. For cleanup, additionally
+   confirm no remaining stage reference, then apply the same narrow, idempotent deletion rule.
 
 ### Lifecycle Conformance Examples
 
