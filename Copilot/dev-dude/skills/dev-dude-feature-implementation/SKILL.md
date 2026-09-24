@@ -3,7 +3,7 @@ name: dev-dude-feature-implementation
 description: >
   Internal DevDude functional skill for implementation clarification, planning, production
   changes, and mandatory paired test implementation from an approved design.
-version: 1.1.0
+version: 1.1.1
 ---
 
 # DevDude Feature Implementation

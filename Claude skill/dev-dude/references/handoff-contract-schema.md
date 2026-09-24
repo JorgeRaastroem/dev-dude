@@ -12,7 +12,7 @@ handoff:
   contract_id: "<stable unique contract identifier>"
   producing_stage: "<stage name or root-initialization>"
   receiving_stage: "<next stage name or null for terminal>"
-  status: "complete | partial | blocked | failed"
+  status: "complete | partial | blocked | failed | bounded-unresolved | cancelled | abandoned"
 
 objective:
   statement: "<bounded objective attempted by the producing stage>"
@@ -56,7 +56,7 @@ rejected_approaches:
 
 artifacts:
   - id: "ART001"
-    uri_or_path: "<durable path or URI>"
+    uri_or_path: "<authorized durable or temporary path or URI>"
     media_type: "<media type>"
     digest: "<optional algorithm:value>"
     purpose: "<downstream need>"
@@ -115,11 +115,23 @@ validation:
   no blocker, and no unresolved failure.
 - `partial` requires unmet criteria and a precise `continuation`; `blocked` requires a blocker or
   blocking question; `failed` requires a recorded failure. None authorizes a different next stage.
+- `bounded-unresolved` is terminal and requires the exhausted attempt limit, current durable
+  validation evidence, failed criteria, remaining remediation, null/empty next-stage fields, and no
+  continuation authorization.
+- `cancelled` and `abandoned` are terminal dispositions for voluntarily stopped incomplete work.
+  They require durable evidence of the explicit user decision, `receiving_stage: null`, null/empty
+  next-stage fields, every running worker confirmed quiescent, all incomplete work marked
+  `superseded` in run state, retained durable outputs declared, and no continuation authorization.
+  Unmet completion criteria remain recorded as unmet.
 - Every verified fact requires resolvable evidence. Confidence wording is not evidence.
 - Assumptions remain assumptions until new evidence supports a separately recorded verified fact.
 - Decisions and rejections reference declared facts or constraints in `based_on`.
 - Artifact authorization is least-access: listing an artifact permits access only for its stated
   purpose. A present digest must match before use.
+- A nonterminal contract may reference a `.tmp/` artifact only when the receiving stage requires it;
+  the run state must preserve it through that transition. A terminal contract must use durable
+  artifact and evidence locators only, while immutable historical contracts retain their original
+  locators for audit.
 - Record contradictions as blocking open questions with both claims and evidence references until an
   allowed resolution stage resolves them.
 - Never serialize chain-of-thought, raw scratchpads, tool chatter, or whole transcripts.

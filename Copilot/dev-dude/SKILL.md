@@ -40,7 +40,7 @@ Required custom agent types:
 
 ### Install and Verify the Functional Skill Crew
 
-Bundled skill crew version: `1.1.0`. Bundled directories under `skills/`:
+Bundled skill crew version: `1.1.1`. Bundled directories under `skills/`:
 
 - `dev-dude-architecture`
 - `dev-dude-feature-design`
@@ -156,8 +156,9 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 - Feature work finishes only on validator `SATISFIED` or a recorded bounded-unresolved state.
 - Discover and run available project build, test, lint, and type-check commands before feature
   completion.
-- Remove `.tmp/` artifacts after their consuming block finishes. Preserve normal outputs and
-  `.dev-dude-run-state.md`.
+- Apply the shared temporary-artifact lifecycle in
+  [orchestration-state.md](references/orchestration-state.md); root alone authorizes narrowly scoped,
+  post-checkpoint cleanup.
 
 ## 6. Stable Outputs
 

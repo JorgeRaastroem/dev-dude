@@ -4,6 +4,10 @@ Detailed functional steps for `DudeWriteMyFeature` from input gathering through 
 approval. The root orchestrator owns transitions and checkpoints using the orchestration contract
 supplied at invocation; this skill does not plan or implement code.
 
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. Preserve
+`.tmp/architecture-review.md` through the user gate and for every downstream stage that references
+it; this skill must not delete temporary evidence.
+
 ## Entry Contract
 
 Reconcile `./docs/<feature-slug>/.dev-dude-run-state.md` and resume at the first incomplete step.

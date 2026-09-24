@@ -7,6 +7,17 @@ invocation. Reconcile
 `./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
 return control when the exit contract is met.
 
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. This skill may
+create and consume `./docs/ArchOverview/.tmp/` evidence, but must not delete it; the root orchestrator
+owns final preservation or cleanup after this exit contract is validated.
+
+The final correction-application integrity check applies to every base, additive, and refresh path.
+Confirm that every final document exists and is readable and every confirmed report correction is
+applied. Annotate only genuinely unverifiable claims; an unapplied confirmed correction prevents a
+complete exit. Distill the temporary verification/review findings and integrity result into the
+terminal handoff with durable final-document, source-code, or durable-result locators. The terminal
+handoff must not depend on a `.tmp/` locator.
+
 Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
 agent's frontmatter `model` alias, then checkpoint the task before launch and after its result.
 Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
@@ -164,9 +175,9 @@ Launch a single Investigation-Documenter to apply corrections:
     - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
     - Process: Apply corrections to documents, update inaccurate
       file paths/symbol names/descriptions, fold in architecture critique,
-      add future considerations, note unverifiable items
+      add future considerations, note unverifiable items, and run the final correction-application
+      integrity check without repeating content verification
     - Output: Updated documents in ./docs/ArchOverview/
-    - Cleanup: Remove .tmp/ directory
 ```
 
 ## Additive Investigation (Specific Area)
@@ -210,8 +221,8 @@ Step 4: Architecture-Reviewer (sync, after Step 3)
   Output: ./docs/ArchOverview/.tmp/architecture-review.md
 
 Step 5: Investigation-Documenter (sync, after Step 4)
-  Apply corrections and fold in architecture review
-  Cleanup: Remove .tmp/ directory
+  Apply corrections, fold in architecture review, and run the final correction-application
+  integrity check
 ```
 
 ## Delta Refresh (`<scope> refresh`)
@@ -277,12 +288,15 @@ Do not regenerate or touch unaffected deep-dives.
 Verify only changed/new documents and changed overview sections against the target commit. Then run
 architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
 corrections and future considerations (with write permissions). Ensure each refresh row summarizes
-the finalized changes.
-Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
+the finalized changes, then run the final correction-application integrity check.
+Return the temporary evidence to root for lifecycle reconciliation.
 
 ## Exit Contract
 
 Return control to the root orchestrator after all active documents are verified and corrected, the
-architecture review is incorporated, and `.tmp/` is removed. Set run status to `complete`, preserve
-`.dev-dude-run-state.md`, and record the final document paths and source commit. A no-change delta
-refresh may also complete after its no-op evidence is recorded.
+architecture review is incorporated, and final document paths, validation evidence, and source
+commit are recorded. The terminal handoff contains the durable validation summary and
+correction-application integrity result; temporary reports are supporting inputs, not terminal
+evidence. Root validates the exit contract, checkpoints durable outputs, and applies the shared
+temporary-artifact lifecycle. A no-change delta refresh may also complete after its no-op evidence
+is recorded.

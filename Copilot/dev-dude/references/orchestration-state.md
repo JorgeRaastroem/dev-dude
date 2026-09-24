@@ -23,7 +23,7 @@ Keep the file concise and update it in place using this structure:
 - **Workflow**: <architecture|feature>
 - **Workflow version**: <workflow definition or amendment version>
 - **Run ID**: <stable run identifier>
-- **Status**: <active|waiting-for-user|complete|bounded-unresolved>
+- **Status**: <active|waiting-for-user|complete|bounded-unresolved|cancelled|abandoned>
 - **Current block**: <installed functional skill name>
 - **Current step**: <step identifier and name>
 - **Validated input contract**: <path under .dev-dude-handoffs/>
@@ -40,10 +40,21 @@ Keep the file concise and update it in place using this structure:
 
 ## Reconciliation
 - <checks performed and discrepancies found>
+
+## Temporary Artifacts
+- **Output directory**: <./docs/ArchOverview/|./docs/<feature-slug>/>
+- **Run-owned temporary directory**: <output-directory>/.tmp/
+- **Durable outputs**: <final paths or none>
+- **Validation evidence**: <paths/results or not-yet-final>
+- **Decision**: <preserve-for-resume|cleanup-authorized|cleanup-complete|cleanup-failed>
+- **Decision evidence**: <normal-completion checks or explicit user decision>
+- **Cleanup result**: <not-attempted|absent|removed|exact failure and remediation>
 ```
 
-Allowed task statuses are `pending`, `running`, `complete`, `failed`, and `superseded`. Record user
-decisions by concise quotation or by a durable document path; do not infer approval.
+Allowed run statuses are `active`, `waiting-for-user`, `complete`, `bounded-unresolved`, `cancelled`,
+and `abandoned`. Allowed task statuses are `pending`, `running`, `complete`, `failed`, and
+`superseded`. Record user decisions by concise quotation or by a durable document path; do not infer
+approval.
 
 ## Checkpoint Rules
 
@@ -58,6 +69,60 @@ Update state:
 
 Write the checkpoint before starting the next transition. A checkpoint records orchestration facts,
 not investigation content; detailed findings stay in normal workflow outputs.
+
+## Temporary Artifact Lifecycle
+
+This is the single cleanup rule for every architecture and feature workflow. Functional skills may
+produce or consume temporary evidence, but the root orchestrator owns preservation and cleanup.
+
+1. Scope temporary evidence to the current workflow output directory: architecture uses
+   `./docs/ArchOverview/.tmp/`; a feature uses `./docs/<feature-slug>/.tmp/`. Record the exact output
+   and temporary paths plus evidence that the current run owns that `.tmp/`. If ownership is unclear,
+   preserve it and stop at a user gate.
+2. Preserve the entire run-owned `.tmp/` while any pending or running task, current or future stage,
+   transition contract, validation/remediation attempt, or user gate references an artifact inside
+   it. A normal interruption preserves it for reconciliation and resume. A `bounded-unresolved`
+   terminal result also records `preserve-for-resume` and keeps `.tmp/`; cleanup requires a later
+   explicit cancellation or abandonment decision. A later resume requires explicit user
+   authorization of a new or extended attempt budget, reconciliation of the preserved evidence, and
+   a new root-to-stage contract; never mutate the bounded-unresolved terminal contract.
+3. After successful workflow completion, cleanup is authorized only after:
+   - every final output and exit/transition contract is present and validated;
+   - a pre-cleanup checkpoint records `complete`, all durable output paths, validation evidence, and
+     `cleanup-authorized`; and
+   - the latest terminal contract and checkpoint resolve final evidence only through durable paths,
+     not `.tmp/`; and
+   - reconciliation confirms that no pending or running task, stage, gate, or current contract
+     references `.tmp/`, and every worker is quiescent. Immutable historical contracts may retain
+     their original temporary locators as audit history after their consuming transitions are
+     complete.
+4. Delete only the recorded run-owned `.tmp/` directory. Never delete
+   `.dev-dude-run-state.md`, `.dev-dude-handoffs/`, final documents, the output directory itself, a
+   symlink, a resolved path other than the expected `.tmp/` child, or any unrelated temporary
+   directory. Do not use a wildcard, parent-directory sweep, or repository-wide cleanup.
+5. Cleanup is idempotent: an already absent recorded `.tmp/` is success. After every attempt,
+   checkpoint `absent` or `removed` with evidence. If deletion fails, leave the substantive run
+   `complete`, record `cleanup-failed`, the exact error, remaining path, and a safe remediation
+   action, and do not broaden the deletion scope.
+6. On explicit cancellation or abandonment, stop new dispatches, cancel or join every running worker,
+   and confirm they are quiescent before terminalization. At a user gate, ask whether to preserve
+   `.tmp/` evidence for resume or clean it up and record the quoted decision. Mark every incomplete
+   task `superseded`, then validate and checkpoint the terminal cancellation or abandonment contract,
+   retained durable outputs, available validation evidence, and artifact decision. Preservation ends
+   with `preserve-for-resume`; a later explicit resume reconciles the preserved evidence and creates
+   a new root-to-stage contract without mutating the terminal contract. For cleanup, additionally
+   confirm no remaining stage reference, then apply the same narrow, idempotent deletion rule.
+
+### Lifecycle Conformance Examples
+
+| Scenario | Required result |
+|---|---|
+| Successful completion | Validate final outputs/contracts, checkpoint durable paths and evidence, confirm no pending/running `.tmp/` reference and quiescent workers, remove only the recorded `.tmp/`, then checkpoint the result. |
+| Paused user gate | Keep `.tmp/` intact, set `waiting-for-user`, and record the gate; do not authorize cleanup. |
+| Resumable interruption | Preserve `.tmp/`, reconcile it on entry, and continue from the first incomplete step. |
+| Bounded unresolved | Record the remaining remediation and `preserve-for-resume`; resume only through a newly authorized contract, or clean if a later cancellation or abandonment gate authorizes it. |
+| Explicit abandonment | Ask preserve-or-clean, record the decision, and clean only after terminal reconciliation if the user selects cleanup. |
+| Repeated cleanup | Treat a missing recorded `.tmp/` as successful and checkpoint `absent` without touching any other path. |
 
 Every transition contract is a YAML file under `.dev-dude-handoffs/` beside this state file. Keep
 validated contracts immutable; remediation creates the next sequenced contract. The state file

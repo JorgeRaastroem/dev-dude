@@ -25,7 +25,8 @@ Spawns a parallel swarm of agents to investigate your codebase and produce struc
 3. **Documentation** — Investigation-Documenter agents create an overview doc, per-area deep-dives, and UX collateral such as simple layout maps
 4. **Verification** — Code-Flow-Analyzer agents validate every file path, symbol, and claim against actual code
 5. **Critical Review** — Architecture-Reviewer critiques the mapped architecture for reuse, performance, scalability, and operational cost, then produces future considerations
-6. **Fix** — Corrections and review findings are folded into the final documents; temporary artifacts are cleaned up
+6. **Fix** — Corrections and review findings are folded into final documents; run-owned temporary
+   artifacts are cleaned only after output validation and a durable run-state checkpoint
 
 **Output:** `./docs/ArchOverview/` containing a high-level overview and per-area deep-dive documents.
 
