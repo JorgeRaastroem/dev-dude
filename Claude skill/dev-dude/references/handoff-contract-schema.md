@@ -12,7 +12,7 @@ handoff:
   contract_id: "<stable unique contract identifier>"
   producing_stage: "<stage name or root-initialization>"
   receiving_stage: "<next stage name or null for terminal>"
-  status: "complete | partial | blocked | failed"
+  status: "complete | partial | blocked | failed | cancelled | abandoned"
 
 objective:
   statement: "<bounded objective attempted by the producing stage>"
@@ -115,6 +115,10 @@ validation:
   no blocker, and no unresolved failure.
 - `partial` requires unmet criteria and a precise `continuation`; `blocked` requires a blocker or
   blocking question; `failed` requires a recorded failure. None authorizes a different next stage.
+- `cancelled` and `abandoned` are terminal dispositions for voluntarily stopped incomplete work.
+  They require durable evidence of the explicit user decision, `receiving_stage: null`, null/empty
+  next-stage fields, all pending work marked `superseded` in run state, retained durable outputs
+  declared, and no continuation authorization. Unmet completion criteria remain recorded as unmet.
 - Every verified fact requires resolvable evidence. Confidence wording is not evidence.
 - Assumptions remain assumptions until new evidence supports a separately recorded verified fact.
 - Decisions and rejections reference declared facts or constraints in `based_on`.
