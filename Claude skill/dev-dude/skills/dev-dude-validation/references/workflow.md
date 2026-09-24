@@ -149,9 +149,10 @@ For each item verified, record:
 ## Documentation Fix Application Rules
 
 1. **One pass only for documentation fixes**: Apply documentation corrections once. Then confirm the
-   final documents exist and are readable and every reported correction is applied or explicitly
-   noted. Record that bounded integrity check as final-output validation; do not repeat content
-   verification after fixing.
+   final documents exist and are readable and every confirmed correction is applied. Annotate only
+   genuinely unverifiable claims. An unapplied confirmed correction prevents a complete result.
+   Record that bounded integrity check as final-output validation; do not repeat content verification
+   after fixing.
    - This prevents documentation-only verification-fix loops.
    - This rule does not apply to Phase 2 feature implementation verification, which uses the bounded remediation loop above.
 
