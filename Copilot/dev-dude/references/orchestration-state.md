@@ -83,16 +83,19 @@ produce or consume temporary evidence, but the root orchestrator owns preservati
    transition contract, validation/remediation attempt, or user gate references an artifact inside
    it. A normal interruption preserves it for reconciliation and resume. A `bounded-unresolved`
    terminal result also records `preserve-for-resume` and keeps `.tmp/`; cleanup requires a later
-   explicit cancellation or abandonment decision.
+   explicit cancellation or abandonment decision. A later resume requires explicit user
+   authorization of a new or extended attempt budget, reconciliation of the preserved evidence, and
+   a new root-to-stage contract; never mutate the bounded-unresolved terminal contract.
 3. After successful workflow completion, cleanup is authorized only after:
    - every final output and exit/transition contract is present and validated;
    - a pre-cleanup checkpoint records `complete`, all durable output paths, validation evidence, and
      `cleanup-authorized`; and
    - the latest terminal contract and checkpoint resolve final evidence only through durable paths,
      not `.tmp/`; and
-   - reconciliation confirms that no pending task, stage, gate, or current contract references
-     `.tmp/`. Immutable historical contracts may retain their original temporary locators as audit
-     history after their consuming transitions are complete.
+   - reconciliation confirms that no pending or running task, stage, gate, or current contract
+     references `.tmp/`, and every worker is quiescent. Immutable historical contracts may retain
+     their original temporary locators as audit history after their consuming transitions are
+     complete.
 4. Delete only the recorded run-owned `.tmp/` directory. Never delete
    `.dev-dude-run-state.md`, `.dev-dude-handoffs/`, final documents, the output directory itself, a
    symlink, a resolved path other than the expected `.tmp/` child, or any unrelated temporary
@@ -114,10 +117,10 @@ produce or consume temporary evidence, but the root orchestrator owns preservati
 
 | Scenario | Required result |
 |---|---|
-| Successful completion | Validate final outputs/contracts, checkpoint durable paths and evidence, confirm no pending `.tmp/` reference, remove only the recorded `.tmp/`, then checkpoint the result. |
+| Successful completion | Validate final outputs/contracts, checkpoint durable paths and evidence, confirm no pending/running `.tmp/` reference and quiescent workers, remove only the recorded `.tmp/`, then checkpoint the result. |
 | Paused user gate | Keep `.tmp/` intact, set `waiting-for-user`, and record the gate; do not authorize cleanup. |
 | Resumable interruption | Preserve `.tmp/`, reconcile it on entry, and continue from the first incomplete step. |
-| Bounded unresolved | Record the remaining remediation and `preserve-for-resume`; clean only if a later cancellation or abandonment gate authorizes it. |
+| Bounded unresolved | Record the remaining remediation and `preserve-for-resume`; resume only through a newly authorized contract, or clean if a later cancellation or abandonment gate authorizes it. |
 | Explicit abandonment | Ask preserve-or-clean, record the decision, and clean only after terminal reconciliation if the user selects cleanup. |
 | Repeated cleanup | Treat a missing recorded `.tmp/` as successful and checkpoint `absent` without touching any other path. |
 
