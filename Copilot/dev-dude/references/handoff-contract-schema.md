@@ -56,7 +56,7 @@ rejected_approaches:
 
 artifacts:
   - id: "ART001"
-    uri_or_path: "<durable path or URI>"
+    uri_or_path: "<authorized durable or temporary path or URI>"
     media_type: "<media type>"
     digest: "<optional algorithm:value>"
     purpose: "<downstream need>"
@@ -120,6 +120,10 @@ validation:
 - Decisions and rejections reference declared facts or constraints in `based_on`.
 - Artifact authorization is least-access: listing an artifact permits access only for its stated
   purpose. A present digest must match before use.
+- A nonterminal contract may reference a `.tmp/` artifact only when the receiving stage requires it;
+  the run state must preserve it through that transition. A terminal contract must use durable
+  artifact and evidence locators only, while immutable historical contracts retain their original
+  locators for audit.
 - Record contradictions as blocking open questions with both claims and evidence references until an
   allowed resolution stage resolves them.
 - Never serialize chain-of-thought, raw scratchpads, tool chatter, or whole transcripts.

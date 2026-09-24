@@ -19,6 +19,9 @@ independent of the producing stage's assertions and has four passes.
   completion criterion marked `met`.
 - Confirm referenced artifacts exist, are accessible, and are declared.
 - When an artifact has a digest, recompute and compare it before accepting the contract.
+- Permit `.tmp/` locators only in nonterminal contracts whose receiving stage still consumes them and
+  whose run state requires preservation. A terminal contract must resolve all final evidence through
+  durable artifacts.
 - Downgrade unsupported claims to assumptions/open questions or fail validation; never preserve a
   false `verified` label.
 
@@ -43,6 +46,9 @@ independent of the producing stage's assertions and has four passes.
 - The workflow definition prevails over a conflicting handoff unless a referenced, authorized,
   versioned amendment exists.
 - Confirm any user approval has durable evidence; never infer it from status or conversation.
+- After authorized cleanup, do not revalidate an immutable historical contract as a current
+  transition. Reconcile through the latest terminal contract and cleanup checkpoint; the historical
+  `.tmp/` locator and recorded deletion remain audit evidence, not authorization to advance.
 
 ## Outcome
 

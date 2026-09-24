@@ -6,9 +6,10 @@ The root orchestrator supplies the reconciled run state, orchestration envelope,
 and permitted transition. This skill owns validation decisions and remediation routing; it does not
 implement production or test remediations itself.
 
-Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. Return all
-temporary artifact references and final validation evidence to root; this skill must not delete
-`.tmp/` or authorize cleanup.
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. A nonterminal
+remediation contract may retain required `.tmp/` references. Before a terminal result, resolve final
+validation evidence through durable artifacts only and ensure run state records the run-owned
+`.tmp/` path for root reconciliation; this skill must not delete `.tmp/` or authorize cleanup.
 
 Use the code indexer tools provided in `$INDEXER_CONTEXT`. The examples below use Serena tool names; substitute the equivalent tool from your active indexer(s).
 
@@ -147,7 +148,10 @@ For each item verified, record:
 
 ## Documentation Fix Application Rules
 
-1. **One pass only for documentation fixes**: Apply documentation corrections once, do not re-verify after fixing.
+1. **One pass only for documentation fixes**: Apply documentation corrections once. Then confirm the
+   final documents exist and are readable and every reported correction is applied or explicitly
+   noted. Record that bounded integrity check as final-output validation; do not repeat content
+   verification after fixing.
    - This prevents documentation-only verification-fix loops.
    - This rule does not apply to Phase 2 feature implementation verification, which uses the bounded remediation loop above.
 

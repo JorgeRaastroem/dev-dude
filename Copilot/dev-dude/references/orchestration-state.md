@@ -86,7 +86,11 @@ produce or consume temporary evidence, but the root orchestrator owns preservati
    - every final output and exit/transition contract is present and validated;
    - a pre-cleanup checkpoint records `complete`, all durable output paths, validation evidence, and
      `cleanup-authorized`; and
-   - reconciliation confirms that no pending task, stage, gate, or contract references `.tmp/`.
+   - the latest terminal contract and checkpoint resolve final evidence only through durable paths,
+     not `.tmp/`; and
+   - reconciliation confirms that no pending task, stage, gate, or current contract references
+     `.tmp/`. Immutable historical contracts may retain their original temporary locators as audit
+     history after their consuming transitions are complete.
 4. Delete only the recorded run-owned `.tmp/` directory. Never delete
    `.dev-dude-run-state.md`, `.dev-dude-handoffs/`, final documents, the output directory itself, a
    symlink, a resolved path other than the expected `.tmp/` child, or any unrelated temporary

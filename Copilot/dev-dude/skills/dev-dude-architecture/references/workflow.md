@@ -168,7 +168,9 @@ Launch a single Investigation-Documenter to apply corrections:
     - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
     - Process: Apply corrections to documents, update inaccurate
       file paths/symbol names/descriptions, fold in architecture critique,
-      add future considerations, note unverifiable items
+      add future considerations, note unverifiable items, and confirm every report correction is
+      applied or explicitly noted and every final document exists and is readable; this is an
+      integrity check, not another content-verification pass
     - Output: Updated documents in ./docs/ArchOverview/
 ```
 
@@ -213,7 +215,8 @@ Step 4: Architecture-Reviewer (sync, after Step 3)
   Output: ./docs/ArchOverview/.tmp/architecture-review.md
 
 Step 5: Investigation-Documenter (sync, after Step 4)
-  Apply corrections and fold in architecture review
+  Apply corrections, fold in architecture review, and run the final correction-application
+  integrity check
 ```
 
 ## Delta Refresh (`<scope> refresh`)
@@ -279,13 +282,14 @@ Do not regenerate or touch unaffected deep-dives.
 Verify only changed/new documents and changed overview sections against the target commit. Then run
 architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
 corrections and future considerations (with write permissions). Ensure each refresh row summarizes
-the finalized changes.
+the finalized changes, then run the final correction-application integrity check.
 Return the temporary evidence to root for lifecycle reconciliation.
 
 ## Exit Contract
 
 Return control to the root orchestrator after all active documents are verified and corrected, the
 architecture review is incorporated, and final document paths, validation evidence, and source
-commit are recorded. Root validates the exit contract, checkpoints durable outputs, and applies the
-shared temporary-artifact lifecycle. A no-change delta refresh may also complete after its no-op
-evidence is recorded.
+commit are recorded. Validation evidence includes the verification/review reports and final
+correction-application integrity check. Root validates the exit contract, checkpoints durable
+outputs, and applies the shared temporary-artifact lifecycle. A no-change delta refresh may also
+complete after its no-op evidence is recorded.
