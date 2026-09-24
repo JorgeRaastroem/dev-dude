@@ -4,6 +4,10 @@ Detailed functional steps for `DudeWriteMyFeature` after a design option is appr
 orchestrator owns transitions and checkpoints using the orchestration contract supplied at
 invocation; this skill owns clarification, planning, implementation, and paired testing only.
 
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. Preserve every
+`.tmp/` input while clarification, implementation, paired testing, validation, remediation, or a
+user gate may still reference it; this skill must not delete temporary evidence.
+
 ## Entry Contract
 
 Enter with an explicitly approved `design-options.md`. Reconcile

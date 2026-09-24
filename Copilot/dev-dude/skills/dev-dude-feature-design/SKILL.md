@@ -3,7 +3,7 @@ name: dev-dude-feature-design
 description: >
   Internal DevDude functional skill for feature investigation, trusted resource research, design
   options, architecture critique, refinement, and explicit user design selection.
-version: 1.1.0
+version: 1.1.1
 ---
 
 # DevDude Feature Design

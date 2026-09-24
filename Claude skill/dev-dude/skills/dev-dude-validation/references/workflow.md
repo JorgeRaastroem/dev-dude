@@ -6,6 +6,10 @@ The root orchestrator supplies the reconciled run state, orchestration envelope,
 and permitted transition. This skill owns validation decisions and remediation routing; it does not
 implement production or test remediations itself.
 
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. Return all
+temporary artifact references and final validation evidence to root; this skill must not delete
+`.tmp/` or authorize cleanup.
+
 Use the code indexer tools provided in `$INDEXER_CONTEXT`. The examples below use Serena tool names; substitute the equivalent tool from your active indexer(s).
 
 ## Documentation Verification Steps

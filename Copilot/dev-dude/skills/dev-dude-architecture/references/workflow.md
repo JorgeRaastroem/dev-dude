@@ -7,6 +7,10 @@ invocation. Reconcile
 `./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
 return control when the exit contract is met.
 
+Apply the **Temporary Artifact Lifecycle** from the supplied `orchestration-state.md`. This skill may
+create and consume `./docs/ArchOverview/.tmp/` evidence, but must not delete it; the root orchestrator
+owns final preservation or cleanup after this exit contract is validated.
+
 Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
 agent's frontmatter `model` alias, then checkpoint the task before launch and after its result.
 Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
@@ -166,7 +170,6 @@ Launch a single Investigation-Documenter to apply corrections:
       file paths/symbol names/descriptions, fold in architecture critique,
       add future considerations, note unverifiable items
     - Output: Updated documents in ./docs/ArchOverview/
-    - Cleanup: Remove .tmp/ directory
 ```
 
 ## Additive Investigation (Specific Area)
@@ -211,7 +214,6 @@ Step 4: Architecture-Reviewer (sync, after Step 3)
 
 Step 5: Investigation-Documenter (sync, after Step 4)
   Apply corrections and fold in architecture review
-  Cleanup: Remove .tmp/ directory
 ```
 
 ## Delta Refresh (`<scope> refresh`)
@@ -278,11 +280,12 @@ Verify only changed/new documents and changed overview sections against the targ
 architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
 corrections and future considerations (with write permissions). Ensure each refresh row summarizes
 the finalized changes.
-Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
+Return the temporary evidence to root for lifecycle reconciliation.
 
 ## Exit Contract
 
 Return control to the root orchestrator after all active documents are verified and corrected, the
-architecture review is incorporated, and `.tmp/` is removed. Set run status to `complete`, preserve
-`.dev-dude-run-state.md`, and record the final document paths and source commit. A no-change delta
-refresh may also complete after its no-op evidence is recorded.
+architecture review is incorporated, and final document paths, validation evidence, and source
+commit are recorded. Root validates the exit contract, checkpoints durable outputs, and applies the
+shared temporary-artifact lifecycle. A no-change delta refresh may also complete after its no-op
+evidence is recorded.

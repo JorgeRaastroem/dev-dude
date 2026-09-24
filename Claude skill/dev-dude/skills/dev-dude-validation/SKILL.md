@@ -3,7 +3,7 @@ name: dev-dude-validation
 description: >
   Internal DevDude functional skill for project checks, semantic verification, final validator
   decisions, and bounded remediation routing.
-version: 1.1.0
+version: 1.1.1
 ---
 
 # DevDude Validation
