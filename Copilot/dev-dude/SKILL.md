@@ -40,7 +40,7 @@ Required custom agent types:
 
 ### Install and Verify the Functional Skill Crew
 
-Bundled skill crew version: `1.1.0`. Bundled directories under `skills/`:
+Bundled skill crew version: `1.1.2`. Bundled directories under `skills/`:
 
 - `dev-dude-architecture`
 - `dev-dude-feature-design`
@@ -117,7 +117,7 @@ and after every task, gate, workflow-block transition, and validation attempt.
 | Feature design is approved but implementation/test evidence is incomplete | Invoke `dev-dude-feature-implementation` |
 | Implementation and paired-test evidence is complete | Invoke `dev-dude-validation` |
 | Validation requests production/test remediation | Invoke the named implementation skill, then `dev-dude-validation` |
-| Feature clarification changes the design materially | Invoke `dev-dude-feature-design` for renewed approval |
+| Feature clarification changes the design materially | Supersede the implementation attempt and create a new root-validated design input contract for `dev-dude-feature-design`; require renewed approval |
 | Workflow exit contract is met | Record final status and report |
 
 Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch:
@@ -126,15 +126,30 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 2. Create or select its YAML input contract and run the contract validation gate. Do not dispatch on
    failure; return structured remediation.
 3. Invoke the installed functional skill by name through the Skill capability with no prior-stage
-   conversation history.
+   conversation history, only after verifying an available Task can invoke Skill in background
+   **and** cancel the invocation and its descendants, or the Skill call has an enforced bounded
+   timeout. Do not assume a Task wrapper is cancellable merely because it runs in background.
 4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and tools,
-   state and shared-policy paths, handoff schema and validation-rule paths, and the orchestration
-   envelope.
+   state and stage-journal paths, shared-policy paths, handoff schema and validation-rule paths,
+   and the orchestration envelope.
 5. Pass `$RESOURCE_RESEARCH_CONTEXT` only when authorized for `dev-dude-feature-design`.
-6. Require each skill to pass agent frontmatter model aliases, use background mode only for
-   independent work, and return a typed output contract and control to root.
+6. Require each skill to pass agent frontmatter model aliases, use background mode for independent
+   work or bounded watchdog monitoring, and return a typed output contract and control to root.
 7. Validate, reconcile, and checkpoint that contract before any next dispatch. `partial`, `blocked`,
    or `failed` work cannot advance to a different stage.
+
+Apply the watchdog in [orchestration-state.md](references/orchestration-state.md) while the
+functional skill runs: checkpoint its invocation, check it at bounded intervals against the
+validated handoff and run state, and cancel/retry or stop at a gate as that contract requires.
+When wrapping a synchronous Skill call, monitor and cancel the outer Task; verify it and any
+descendant work have stopped before retry. If neither mechanism is verified, record the missing
+capability and stop at the pre-dispatch `waiting-for-user` gate: watchdog-protected functional
+dispatch is unavailable in that runtime, and user approval does not make an uninterruptible call
+safe. Root alone writes run state; while a stage runs, root polls its stage-owned journal and
+reconciles child progress before checkpointing. At an approval gate the stage returns a `blocked`
+handoff and stops; root then asks the user without a deadline and re-dispatches only after an
+explicit decision is recorded in a new validated handoff.
+Functional skills apply the same watchdog to their own agent, tool, and shell invocations.
 
 ## 5. Global Invariants
 

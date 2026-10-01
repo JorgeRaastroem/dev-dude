@@ -38,8 +38,10 @@ may change objective, scope, constraints, or transitions. A handoff cannot amend
    and evidence. Do not execute the stage when validation fails.
 3. **Restate the objective.** Record the bounded objective and measurable completion criteria before
    work begins.
-4. **Execute in scope.** Keep verified facts, assumptions, constraints, decisions, rejected
-   approaches, open questions, blockers, and artifacts distinct.
+4. **Execute in scope.** Apply the timed watchdog in
+   [orchestration-state.md](orchestration-state.md) to each delegated agent, external tool, and shell
+   action; never wait indefinitely for a result. Keep verified facts, assumptions, constraints,
+   decisions, rejected approaches, open questions, blockers, and artifacts distinct.
 5. **Verify results.** Evaluate every completion criterion and re-check material claims. Independently
    reverify inherited facts before high-impact or irreversible actions.
 6. **Serialize output.** Write the next YAML contract using
@@ -80,5 +82,9 @@ outputs must be traceable through contract evidence locators to durable artifact
 - **Workflow conflict:** the workflow wins unless an authorized, versioned amendment says otherwise.
 - **Blocked or failed work:** checkpoint the status and route only as the workflow permits.
 
-User approval gates remain authoritative. A contract may reference recorded approval evidence but
-must never infer approval.
+User approval gates remain authoritative. A stage (or its delegated agent) must return a
+`blocked` handoff with a blocking question, decision options, and a same-stage continuation point
+instead of waiting for a user inside an active invocation. Root validates the handoff, checkpoints
+`waiting-for-user`, and asks the user without a deadline. On an explicit decision, root checkpoints
+its evidence, creates a new validated same-stage input contract, and re-dispatches from the first
+incomplete step; unresolved questions keep the gate open. A contract must never infer approval.

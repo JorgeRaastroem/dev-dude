@@ -54,18 +54,19 @@ the critique and UX guidance into `design-options.md` without hiding open questi
 
 ## User Review Gate
 
-Present the refined options and ask the user to select one or provide feedback. Record
-`waiting-for-user` before asking.
+Return a `blocked` handoff with the refined options and a blocking approval question to root.
+Root validates the handoff, records `waiting-for-user`, and presents the options to the user.
+Do not keep a stage invocation running while waiting for a decision.
 
-- Feedback returns to the relevant design step.
-- Only an explicit selection marks the gate approved.
-- Record the decision evidence and approved design in run state.
+- Feedback returns via a new validated handoff to the relevant design step.
+- Only an explicit selection recorded by root marks the gate approved.
+- Root records decision evidence and approved design in run state, then re-dispatches this stage.
 
 ## Exit Contract
 
-Return control to the root orchestrator only when `investigation.md`, `ux-review.md`,
-`resources-investigation.md`, and refined `design-options.md` have reconciled evidence and the user
-review gate contains an explicit approval.
+Return control to root at the user gate with a `blocked` handoff. Complete the stage only when
+`investigation.md`, `ux-review.md`, `resources-investigation.md`, and refined `design-options.md`
+have reconciled evidence and the gate contains an explicit approval.
 
 The next permitted skill is `dev-dude-feature-implementation`. This design skill must not
 create an implementation plan, modify production code, implement tests, or perform final validation.

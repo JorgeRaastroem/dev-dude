@@ -10,7 +10,8 @@ return control when the exit contract is met.
 Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
 agent's frontmatter `model` alias, then checkpoint the task before launch and after its result.
 Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
-Record the Vertical Review Gate before asking and after every operator decision.
+Return control to root at the Vertical Review Gate; root records and presents the gate and
+re-dispatches this stage only after an explicit decision.
 
 ## Phase 0: Codebase Discovery
 
@@ -72,7 +73,8 @@ Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONT
 4. Document patterns, conventions, and design decisions
 5. Create mermaid diagrams for major flows
 
-**Wait for all Phase 1 tasks**: Use `read_agent(wait: true)` for each background agent before proceeding to Phase 2.
+**Wait for all Phase 1 tasks**: Poll each background agent with bounded `read_agent` waits under
+the orchestration watchdog; do not proceed to Phase 2 until all required results are reconciled.
 
 ### Phase 2: Documentation (after all Phase 1 tasks complete)
 
@@ -105,20 +107,21 @@ Tasks 2-N: Deep-dive documents (one per area)
       key interfaces, dependencies, and text-only layout maps when relevant
 ```
 
-**Wait for all Phase 2 tasks** before proceeding.
+**Wait for all Phase 2 tasks** with bounded watchdog checks before proceeding.
 
 ### Vertical Review Gate (after Phase 2; before Phase 3)
 
-Present the generated deep-dives to the operator as an editable vertical list. For each vertical,
-include its name, brief description, and deep-dive document path. Ask the operator to confirm the
-list, exclude named verticals, or add verticals (request a path or brief description when needed).
-Wait for explicit confirmation before continuing.
+Return a `blocked` handoff to root with an editable vertical list. For each vertical, include its
+name, brief description, and deep-dive document path. Root validates the handoff, records
+`waiting-for-user`, and asks the operator to confirm the list, exclude named verticals, or add
+verticals (requesting a path or brief description when needed). Do not keep this stage running
+while waiting; root re-dispatches it with the recorded decision in a new validated handoff.
 
 - For exclusions, remove the vertical from the active list and update the overview's summaries,
   cross-references, and diagrams. Keep its generated deep-dive, but do not include it in Phases 3-5.
 - For additions, run Phases 1 and 2 for each new vertical and update the overview to include it.
-- After any change, present the revised list, including newly generated deep-dives, and request
-  confirmation again.
+- After any change, return a new `blocked` handoff with the revised list, including newly generated
+  deep-dives, for root to request confirmation again.
 
 ### Phase 3: Verification (after the Vertical Review Gate)
 
@@ -135,7 +138,7 @@ One task for the overview and one per active vertical document, all in parallel:
     - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
 ```
 
-**Wait for all Phase 3 tasks** before proceeding.
+**Wait for all Phase 3 tasks** with bounded watchdog checks before proceeding.
 
 ### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
 
@@ -143,7 +146,7 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
 
 ```
   agent_type: "architecture-reviewer-copilot"
-  mode: "sync"
+  mode: "background"
   prompt:
     - Input: Final architecture overview + active vertical deep-dive documents
     - Include: All verification reports
@@ -152,6 +155,8 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
     - Require: "Future Considerations" list for the project
 ```
 
+Poll the Architecture-Reviewer with bounded watchdog checks before Phase 5.
+
 ### Phase 5: Fix Application (after Phase 4 completes)
 
 Launch a single Investigation-Documenter to apply corrections:
@@ -159,7 +164,7 @@ Launch a single Investigation-Documenter to apply corrections:
 ```
   agent_type: "investigation-documenter-copilot"
   permissions: "write"
-  mode: "sync"
+  mode: "background"
   prompt:
     - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
     - Process: Apply corrections to documents, update inaccurate
@@ -169,6 +174,8 @@ Launch a single Investigation-Documenter to apply corrections:
     - Cleanup: Remove .tmp/ directory
 ```
 
+Poll the Investigation-Documenter with bounded watchdog checks before proceeding.
+
 ## Additive Investigation (Specific Area)
 
 Triggered when a specific area is requested AND `./docs/ArchOverview/` already exists.
@@ -177,14 +184,14 @@ Triggered when a specific area is requested AND `./docs/ArchOverview/` already e
 Step 1: Parallel investigation
   Task A:
     agent_type: "code-flow-analyzer-copilot"
-    mode: "sync"
+    mode: "background"
     prompt: "Deep-dive investigate <specific-area>"
     Input: Area path, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/<area-slug>.md
 
   Task B:
     agent_type: "ux-design-reviewer-copilot"
-    mode: "sync"
+    mode: "background"
     prompt: "Review UX for <specific-area>"
     Input: Area path, relevant screens/specs, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
@@ -199,17 +206,17 @@ Step 2: Two Investigation-Documenters (parallel, after Step 1)
     - Update high-level diagram if needed
     - Add UX notes/layout maps if relevant
 
-  Wait for both tasks to complete.
+  Wait for both tasks with bounded watchdog checks.
 
-Step 3: Code-Flow-Analyzer (sync, after Step 2)
+Step 3: Code-Flow-Analyzer (background, after Step 2; poll with bounded watchdog checks)
   Verify new/updated content only
   Output: ./docs/ArchOverview/.tmp/verification-<area>.md
 
-Step 4: Architecture-Reviewer (sync, after Step 3)
+Step 4: Architecture-Reviewer (background, after Step 3; poll with bounded watchdog checks)
   Critique the new/updated area and produce future considerations
   Output: ./docs/ArchOverview/.tmp/architecture-review.md
 
-Step 5: Investigation-Documenter (sync, after Step 4)
+Step 5: Investigation-Documenter (background, after Step 4; poll with bounded watchdog checks)
   Apply corrections and fold in architecture review
   Cleanup: Remove .tmp/ directory
 ```

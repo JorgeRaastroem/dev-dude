@@ -16,11 +16,17 @@ If `implementation-interview.md` is missing or predates the approved design:
 
 1. Derive only unresolved, implementation-critical questions from the feature spec,
    `design-options.md`, `ux-review.md`, and `.tmp/architecture-review.md`.
-2. Ask one batched set. For each question give its source, why it blocks implementation, and a
-   proposed default the user may accept or explicitly waive.
-3. Record every answer or waiver in `implementation-interview.md` and in the run-state gate table.
-4. If a decision materially changes scope or approach, return control to the root orchestrator,
-   transition back to the feature-design workflow, and require renewed design approval.
+2. Return a `blocked` handoff to root with one batched set. For each question give its source,
+   why it blocks implementation, and a proposed default the user may accept or explicitly waive.
+   Root records `waiting-for-user`, asks the user, and re-dispatches this stage with the decision in
+   a new validated handoff; do not keep a stage invocation running while waiting.
+3. Record every answer or waiver in `implementation-interview.md`; root records its decision
+   evidence in the run-state gate table.
+4. If a decision materially changes scope or approach, return a `blocked` contract to root with
+   the decision evidence and why the approved design is no longer valid. Root supersedes this
+   implementation attempt and routes to feature design with a new root-produced, validated design
+   input contract; the blocked implementation handoff itself does not authorize a cross-stage
+   transition. Require renewed design approval before returning to implementation.
 
 The gate is complete only when every derived question is answered or explicitly waived. If no
 questions remain, record that result. Fold decisions into the implementation plan; downstream
@@ -30,7 +36,8 @@ agents do not need the interview transcript.
 
 Create or refresh `implementation-plan.md` with the selected design, clarification decisions,
 ordered tasks, expected file changes, dependencies, validation criteria, and remediation attempt.
-Create stable task IDs in run state for every planned component.
+Record stable task IDs for every planned component in the stage journal; root reconciles them
+into run state.
 
 ## Step 3: Implementation
 
@@ -51,11 +58,11 @@ Every completed Feature-Implementer or Feature-Implementer remediation requires 
 `test-implementer` task before validation. Pass its implementation summary and test specifications,
 the approved design, changed paths, remediation context, `$INDEXER_CONTEXT`, and orchestration
 envelope. Require it to follow nearby test patterns, implement the specifications, run relevant
-tests, and report results. Wait for all paired test tasks.
+tests, and report results. Wait for all paired test tasks with bounded watchdog checks.
 
 ## Exit Contract
 
-Return control to the root orchestrator only when:
+Return control to root at the clarification gate with a `blocked` handoff. Complete the stage only when:
 
 - the plan exists and every implementation task has implementation and paired test evidence;
 - relevant targeted checks run during implementation are recorded; and
