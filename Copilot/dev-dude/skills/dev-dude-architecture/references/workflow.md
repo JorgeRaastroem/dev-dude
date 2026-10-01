@@ -144,7 +144,7 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
 
 ```
   agent_type: "architecture-reviewer-copilot"
-  mode: "sync"
+  mode: "background"
   prompt:
     - Input: Final architecture overview + active vertical deep-dive documents
     - Include: All verification reports
@@ -153,6 +153,8 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
     - Require: "Future Considerations" list for the project
 ```
 
+Poll the Architecture-Reviewer with bounded watchdog checks before Phase 5.
+
 ### Phase 5: Fix Application (after Phase 4 completes)
 
 Launch a single Investigation-Documenter to apply corrections:
@@ -160,7 +162,7 @@ Launch a single Investigation-Documenter to apply corrections:
 ```
   agent_type: "investigation-documenter-copilot"
   permissions: "write"
-  mode: "sync"
+  mode: "background"
   prompt:
     - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md
     - Process: Apply corrections to documents, update inaccurate
@@ -170,6 +172,8 @@ Launch a single Investigation-Documenter to apply corrections:
     - Cleanup: Remove .tmp/ directory
 ```
 
+Poll the Investigation-Documenter with bounded watchdog checks before proceeding.
+
 ## Additive Investigation (Specific Area)
 
 Triggered when a specific area is requested AND `./docs/ArchOverview/` already exists.
@@ -178,14 +182,14 @@ Triggered when a specific area is requested AND `./docs/ArchOverview/` already e
 Step 1: Parallel investigation
   Task A:
     agent_type: "code-flow-analyzer-copilot"
-    mode: "sync"
+    mode: "background"
     prompt: "Deep-dive investigate <specific-area>"
     Input: Area path, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/<area-slug>.md
 
   Task B:
     agent_type: "ux-design-reviewer-copilot"
-    mode: "sync"
+    mode: "background"
     prompt: "Review UX for <specific-area>"
     Input: Area path, relevant screens/specs, existing overview doc for context
     Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md
@@ -200,17 +204,17 @@ Step 2: Two Investigation-Documenters (parallel, after Step 1)
     - Update high-level diagram if needed
     - Add UX notes/layout maps if relevant
 
-  Wait for both tasks to complete.
+  Wait for both tasks with bounded watchdog checks.
 
-Step 3: Code-Flow-Analyzer (sync, after Step 2)
+Step 3: Code-Flow-Analyzer (background, after Step 2; poll with bounded watchdog checks)
   Verify new/updated content only
   Output: ./docs/ArchOverview/.tmp/verification-<area>.md
 
-Step 4: Architecture-Reviewer (sync, after Step 3)
+Step 4: Architecture-Reviewer (background, after Step 3; poll with bounded watchdog checks)
   Critique the new/updated area and produce future considerations
   Output: ./docs/ArchOverview/.tmp/architecture-review.md
 
-Step 5: Investigation-Documenter (sync, after Step 4)
+Step 5: Investigation-Documenter (background, after Step 4; poll with bounded watchdog checks)
   Apply corrections and fold in architecture review
   Cleanup: Remove .tmp/ directory
 ```
