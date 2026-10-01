@@ -39,7 +39,7 @@ Keep the file concise and update it in place using this structure:
 | ID | Owner | Status | Expected output | Evidence |
 
 ## Watchdog
-| Action ID (task/step/tool) | Started (UTC) | Deadline (UTC) | Last check (UTC) | Retries (0-3) | Active invocation | Outcome |
+| Action ID (task/step/tool) | Parent invocation | Started (UTC) | Deadline (UTC) | Last check (UTC) | Retries (0-3) | Active invocation | Outcome |
 
 ## Reconciliation
 - <checks performed and discrepancies found>
@@ -56,7 +56,7 @@ Update state:
 2. after every task result, including failures;
 3. before and after every user gate;
 4. when entering or exiting a functional workflow block;
-5. after each validation/remediation attempt; and
+5. after each validation/remediation attempt;
 6. at each watchdog check, timeout, cancellation, and retry; and
 7. before reporting completion or bounded unresolved work.
 
@@ -101,16 +101,44 @@ polls, or a tool-enforced timeout that returns control within the check interval
 available, stop at a `waiting-for-user` gate before launching the blocking action; a prompt alone
 cannot interrupt a hung synchronous call. User-decision gates are not timed or retried.
 
+## Single-writer and nested actions
+
+Only root writes `.dev-dude-run-state.md`, including task/gate transitions and the consolidated
+watchdog table. For each stage invocation, root assigns an invocation ID and a stage-owned journal
+at `<run-output>/.dev-dude-watchdog/<invocation-id>.md`, and passes its path to that stage. The stage
+is the sole writer of its journal; it never edits the run state. Before dispatch and after each
+check/result, the stage records its own status and last update, plus each child action's parent ID,
+invocation ID, start/deadline, retry count, last check, outcome, and evidence in its journal.
+Root reads the journal at every bounded poll and copies reconciled facts into the run state;
+missing, stale, or conflicting journal data
+cannot prove a child stopped. Delegated agents report results to their stage owner and never edit
+either file. Checkpoint instructions within a functional workflow mean write the stage journal
+and let root reconcile it into run state. Preserve journals across resumes until all referenced
+invocations are quiescent and their evidence is indexed in the run state. A restarted stage reads
+prior journals and the run state for that action ID before choosing a retry count; a new stage
+invocation ID never resets an action's retry budget.
+
+Root's deadline applies to the stage invocation, not independently to its child actions. Each
+child has its own deadline and retry budget in the stage journal. Root may cancel a timed-out stage
+only after examining its journal; after cancellation, confirm both the stage and active children
+have stopped before redispatch. If a child is still running or its status is unknown, stop at a
+gate instead of retrying the parent. A gate requested by a stage is not a running invocation:
+the stage returns a `blocked` handoff and stops, then root validates it, records
+`waiting-for-user`, and asks without a deadline. The next invocation starts only after explicit
+decision evidence and a new validated same-stage handoff.
+
 Before each action, assign a stable action ID (task ID, step, and tool/action), record its start,
-deadline, invocation identifier if available, and retry count in the run state. Default to a
+deadline, invocation identifier if available, and retry count in its owner's file (run state for
+root actions, stage journal for child actions). Default to a
 60-second check interval and a 10-minute deadline per attempt. For an action expected to need
 longer, record a justified deadline *before* starting it; never extend a running attempt's
 deadline merely because it is still running. Start a new deadline for each retry, preserving the
 same action ID and retry count across resumes. Use bounded waits of at most 60 seconds; when
 several actions run concurrently, check each one at least every 60 seconds.
 
-At each check, read the run state and validated input handoff, restate the current step's objective,
-completion evidence, and permitted next transition, then reconcile completed results with actual
+At each check, read the run state, stage journal when applicable, and validated input handoff;
+restate the current step's objective, completion evidence, and permitted next transition, then
+reconcile completed results with actual
 outputs and repository changes. Record the check time and evidence. If an action is still active
 before its deadline, continue bounded polling; a completed action follows normal contract
 validation. A missing or invalid handoff blocks progress, never authorizes an inferred next step.
@@ -121,9 +149,11 @@ outputs before deciding whether the action remains incomplete. Retry only the sa
 action when it is safe to repeat, up to **three retries after the initial attempt**, recording
 each attempt before dispatch. Do not replay completed work, non-idempotent side effects, or an
 action whose prior invocation may still be running. If cancellation cannot be confirmed or a
-safe retry cannot be established, set `waiting-for-user` and ask at a gate with the evidence.
-After the third failed retry, mark the task failed and the run `bounded-unresolved`, record the
-failure and exhausted budget, and do not advance to another stage. The watchdog retry budget is
+safe retry cannot be established, the stage reports this in its journal; root sets
+`waiting-for-user` and asks at a gate with the evidence.
+After the third failed retry, the stage reports exhaustion in its journal; root marks the task
+failed and the run `bounded-unresolved`, recording the failure and exhausted budget. Do not
+advance to another stage. The watchdog retry budget is
 independent of the feature validation/remediation attempt counter. On resume, reconcile evidence
 and reuse the persisted count; never reset it to evade exhaustion.
 
