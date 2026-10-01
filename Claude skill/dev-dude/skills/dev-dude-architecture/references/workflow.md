@@ -9,8 +9,8 @@ return control when the exit contract is met.
 
 Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, then checkpoint
 the task before launch and after its result. Expected `.tmp/` or final documents are completion
-evidence, not substitutes for the task result. Record the Vertical Review Gate before asking and
-after every operator decision.
+evidence, not substitutes for the task result. Return control to root at the Vertical Review Gate;
+root records and presents the gate and re-dispatches this stage after an explicit decision.
 
 ## Phase 0: Codebase Discovery
 
@@ -98,16 +98,17 @@ Tasks 2-N: Deep-dive documents (each blocked by its own Phase 1 task)
 
 ### Vertical Review Gate (blocked by Phase 2; blocks Phase 3)
 
-Present the generated deep-dives to the operator as an editable vertical list. For each vertical,
-include its name, brief description, and deep-dive document path. Ask the operator to confirm the
-list, exclude named verticals, or add verticals (request a path or brief description when needed).
-Wait for explicit confirmation before continuing.
+Return a `blocked` handoff to root with an editable vertical list. For each vertical, include its
+name, brief description, and deep-dive document path. Root validates the handoff, records
+`waiting-for-user`, and asks the operator to confirm the list, exclude named verticals, or add
+verticals (requesting a path or brief description when needed). Do not keep this stage running
+while waiting; root re-dispatches it with the recorded decision in a new validated handoff.
 
 - For exclusions, remove the vertical from the active list and update the overview's summaries,
   cross-references, and diagrams. Keep its generated deep-dive, but do not include it in Phases 3-5.
 - For additions, run Phases 1 and 2 for each new vertical and update the overview to include it.
-- After any change, present the revised list, including newly generated deep-dives, and request
-  confirmation again.
+- After any change, return a new `blocked` handoff with the revised list, including newly generated
+  deep-dives, for root to request confirmation again.
 
 ### Phase 3: Verification (blocked by the Vertical Review Gate)
 

@@ -13,7 +13,7 @@ feature slug.
 
 ## Step 1: Investigation
 
-Launch in sync mode:
+Launch as background tasks and poll each with bounded watchdog checks:
 
 - `code-flow-analyzer-copilot` to trace related flows, integration points, constraints, conventions,
   and reuse candidates into `investigation.md`;
@@ -25,7 +25,7 @@ Pass each agent's frontmatter `model` alias. Include relevant architecture docum
 
 ## Step 2: Resource Investigation
 
-After investigation, launch `technical-resource-investigator-copilot` in `discovery` mode with its
+After investigation, launch `technical-resource-investigator-copilot` as a background task in `discovery` mode with its
 model alias, the feature input, `investigation.md`, relevant UX and architecture context,
 `$INDEXER_CONTEXT`, `$RESOURCE_RESEARCH_CONTEXT`, and the orchestration envelope.
 
@@ -35,39 +35,43 @@ requires an allowlisted citation; unsupported candidates remain unverified. It i
 writes `resources-investigation.md`.
 
 When external candidates exist or the resource choice is architecturally material, run a second
-`critique-and-amend` pass using a stronger model. It critiques security, reliability, maintenance,
+background `critique-and-amend` pass using a stronger model. Poll each pass with bounded watchdog
+checks before consuming its output. It critiques security, reliability, maintenance,
 licensing, ecosystem health, supply-chain risk, operational cost, citation quality, and uncertainty.
 Append amendments without deleting first-pass evidence. Otherwise record why the pass was skipped.
 
 ## Step 3: Design Options
 
-Launch `investigation-documenter-copilot` in sync mode with its model alias and write permission.
+Launch `investigation-documenter-copilot` in background mode with its model alias and write permission.
+Poll with bounded watchdog checks before consuming its output.
 Pass all prior outputs, relevant architecture documents, `$INDEXER_CONTEXT`, and the orchestration
 envelope. Create `design-options.md` with two or three approaches, affected modules, complexity,
 trade-offs, diagrams, and UX guidance.
 
 ## Step 4: Architecture Critique and Refinement
 
-Launch `architecture-reviewer-copilot` in sync mode with its model alias, spec, and design evidence.
+Launch `architecture-reviewer-copilot` in background mode with its model alias, spec, and design evidence.
+Poll with bounded watchdog checks before consuming its output.
 Critique reuse, performance, scalability, operational cost, resource risk, and unresolved criteria
-into `.tmp/architecture-review.md`. Then launch `investigation-documenter-copilot` in sync mode with
-its model alias and write permission to fold critique and UX guidance into `design-options.md`
+into `.tmp/architecture-review.md`. Then launch `investigation-documenter-copilot` in background mode with
+its model alias and write permission; poll with bounded watchdog checks to fold critique and UX guidance into `design-options.md`
 without hiding open questions.
 
 ## User Review Gate
 
-Present the refined options and ask the user to select one or provide feedback. Record
-`waiting-for-user` before asking.
+Return a `blocked` handoff with the refined options and a blocking approval question to root.
+Root validates the handoff, records `waiting-for-user`, and presents the options to the user.
+Do not keep a stage invocation running while waiting for a decision.
 
-- Feedback returns to the relevant design step.
-- Only an explicit selection marks the gate approved.
-- Record the decision evidence and approved design in run state.
+- Feedback returns via a new validated handoff to the relevant design step.
+- Only an explicit selection recorded by root marks the gate approved.
+- Root records decision evidence and approved design in run state, then re-dispatches this stage.
 
 ## Exit Contract
 
-Return control to the root orchestrator only when `investigation.md`, `ux-review.md`,
-`resources-investigation.md`, and refined `design-options.md` have reconciled evidence and the user
-review gate contains an explicit approval.
+Return control to root at the user gate with a `blocked` handoff. Complete the stage only when
+`investigation.md`, `ux-review.md`, `resources-investigation.md`, and refined `design-options.md`
+have reconciled evidence and the gate contains an explicit approval.
 
 The next permitted skill is `dev-dude-feature-implementation`. This design skill must not
 create an implementation plan, modify production code, implement tests, or perform final validation.
