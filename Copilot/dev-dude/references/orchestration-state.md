@@ -38,6 +38,9 @@ Keep the file concise and update it in place using this structure:
 ## Tasks
 | ID | Owner | Status | Expected output | Evidence |
 
+## Watchdog
+| Action ID (task/step/tool) | Started (UTC) | Deadline (UTC) | Last check (UTC) | Retries (0-3) | Active invocation | Outcome |
+
 ## Reconciliation
 - <checks performed and discrepancies found>
 ```
@@ -54,7 +57,8 @@ Update state:
 3. before and after every user gate;
 4. when entering or exiting a functional workflow block;
 5. after each validation/remediation attempt; and
-6. before reporting completion or bounded unresolved work.
+6. at each watchdog check, timeout, cancellation, and retry; and
+7. before reporting completion or bounded unresolved work.
 
 Write the checkpoint before starting the next transition. A checkpoint records orchestration facts,
 not investigation content; detailed findings stay in normal workflow outputs.
@@ -87,6 +91,41 @@ On every command entry, stage entry, direct resume, or suspected compaction:
 
 The filesystem and repository are evidence; the state file is the index. If they disagree and the
 safe transition is unclear, set `waiting-for-user`, record the discrepancy, and ask at a gate.
+
+## Watchdog
+
+The root owns the watchdog for functional-skill dispatches; each functional skill owns it for
+delegated agents, external tools, and shell commands within its stage. Do not leave a tool or
+agent call in an unbounded foreground wait. Use a cancellable background invocation with bounded
+polls, or a tool-enforced timeout that returns control within the check interval. If neither is
+available, stop at a `waiting-for-user` gate before launching the blocking action; a prompt alone
+cannot interrupt a hung synchronous call. User-decision gates are not timed or retried.
+
+Before each action, assign a stable action ID (task ID, step, and tool/action), record its start,
+deadline, invocation identifier if available, and retry count in the run state. Default to a
+60-second check interval and a 10-minute deadline per attempt. For an action expected to need
+longer, record a justified deadline *before* starting it; never extend a running attempt's
+deadline merely because it is still running. Start a new deadline for each retry, preserving the
+same action ID and retry count across resumes. Use bounded waits of at most 60 seconds; when
+several actions run concurrently, check each one at least every 60 seconds.
+
+At each check, read the run state and validated input handoff, restate the current step's objective,
+completion evidence, and permitted next transition, then reconcile completed results with actual
+outputs and repository changes. Record the check time and evidence. If an action is still active
+before its deadline, continue bounded polling; a completed action follows normal contract
+validation. A missing or invalid handoff blocks progress, never authorizes an inferred next step.
+
+At the deadline, record the timeout, request cancellation of the specific invocation (or let its
+enforced timeout terminate it), and confirm it has stopped before any retry. Reconcile any partial
+outputs before deciding whether the action remains incomplete. Retry only the same incomplete
+action when it is safe to repeat, up to **three retries after the initial attempt**, recording
+each attempt before dispatch. Do not replay completed work, non-idempotent side effects, or an
+action whose prior invocation may still be running. If cancellation cannot be confirmed or a
+safe retry cannot be established, set `waiting-for-user` and ask at a gate with the evidence.
+After the third failed retry, mark the task failed and the run `bounded-unresolved`, record the
+failure and exhausted budget, and do not advance to another stage. The watchdog retry budget is
+independent of the feature validation/remediation attempt counter. On resume, reconcile evidence
+and reuse the persisted count; never reset it to evade exhaustion.
 
 ## Orchestration Envelope
 
