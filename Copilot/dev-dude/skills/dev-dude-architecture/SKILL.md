@@ -3,7 +3,7 @@ name: dev-dude-architecture
 description: >
   Internal DevDude functional skill for architecture discovery, investigation, documentation,
   operator vertical review, verification, architecture critique, and correction.
-version: 1.1.0
+version: 1.1.1
 ---
 
 # DevDude Architecture

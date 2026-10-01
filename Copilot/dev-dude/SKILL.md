@@ -40,7 +40,7 @@ Required custom agent types:
 
 ### Install and Verify the Functional Skill Crew
 
-Bundled skill crew version: `1.1.0`. Bundled directories under `skills/`:
+Bundled skill crew version: `1.1.1`. Bundled directories under `skills/`:
 
 - `dev-dude-architecture`
 - `dev-dude-feature-design`
@@ -126,7 +126,8 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 2. Create or select its YAML input contract and run the contract validation gate. Do not dispatch on
    failure; return structured remediation.
 3. Invoke the installed functional skill by name through the Skill capability with no prior-stage
-   conversation history.
+   conversation history, using a cancellable background Task that has Skill access (or a
+   tool-enforced bounded Skill invocation).
 4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and tools,
    state and shared-policy paths, handoff schema and validation-rule paths, and the orchestration
    envelope.
@@ -139,8 +140,9 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 Apply the watchdog in [orchestration-state.md](references/orchestration-state.md) while the
 functional skill runs: checkpoint its invocation, check it at bounded intervals against the
 validated handoff and run state, and cancel/retry or stop at a gate as that contract requires.
-If the Skill capability cannot provide cancellable background dispatch or a bounded timeout,
-stop at the pre-dispatch `waiting-for-user` gate instead of invoking it synchronously.
+When wrapping a synchronous Skill call, monitor and cancel the outer Task; verify it and any
+descendant work have stopped before retry. If neither a monitorable wrapper nor a bounded Skill
+invocation is available, stop at the pre-dispatch `waiting-for-user` gate.
 Functional skills apply the same watchdog to their own agent, tool, and shell invocations.
 
 ## 5. Global Invariants
