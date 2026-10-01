@@ -123,7 +123,7 @@ and after every task, gate, workflow-block transition, and validation attempt.
 | Feature design is approved but implementation/test evidence is incomplete | Invoke `dev-dude-feature-implementation` |
 | Implementation and paired-test evidence is complete | Invoke `dev-dude-validation` |
 | Validation requests production/test remediation | Invoke the named implementation skill, then `dev-dude-validation` |
-| Feature clarification changes the design materially | Invoke `dev-dude-feature-design` for renewed approval |
+| Feature clarification changes the design materially | Supersede the implementation attempt and create a new root-validated design input contract for `dev-dude-feature-design`; require renewed approval |
 | Workflow exit contract is met | Record final status and report |
 
 Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch:

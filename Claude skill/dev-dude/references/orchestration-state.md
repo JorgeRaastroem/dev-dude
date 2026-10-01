@@ -151,8 +151,9 @@ each attempt before dispatch. Do not replay completed work, non-idempotent side 
 action whose prior invocation may still be running. If cancellation cannot be confirmed or a
 safe retry cannot be established, the stage reports this in its journal; root sets
 `waiting-for-user` and asks at a gate with the evidence.
-After the third failed retry, the stage reports exhaustion in its journal; root marks the task
-failed and the run `bounded-unresolved`, recording the failure and exhausted budget. Do not
+After the third failed retry, the action owner records exhaustion (root in run state, stage in its
+journal); root marks the task failed and the run `bounded-unresolved`, recording the failure and
+exhausted budget. Do not
 advance to another stage. The watchdog retry budget is
 independent of the feature validation/remediation attempt counter. On resume, reconcile evidence
 and reuse the persisted count; never reset it to evade exhaustion.
@@ -171,9 +172,10 @@ Every delegated task prompt must contain this compact envelope before task-speci
 - Completion evidence: <specific evidence required>
 - Input handoff: <validated YAML contract path>
 - Output handoff: <next YAML contract path>
-- Next owner: root DevDude orchestrator
+- Next owner: invoking functional stage (root only for a stage output handoff)
 ```
 
 Also include only the context blocks authorized by the input contract. An agent must not use prior
 conversation as workflow state, advance the workflow, change gate status, or assume work owned by
-another block; it returns control and a typed evidence contract to the root orchestrator.
+another block; it returns control and typed evidence to its invoking stage. The stage reconciles
+child results into its journal and returns its output handoff for root to validate.

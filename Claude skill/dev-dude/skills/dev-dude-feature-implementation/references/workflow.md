@@ -22,8 +22,11 @@ If `implementation-interview.md` is missing or predates the approved design:
    a new validated handoff; do not keep a stage invocation running while waiting.
 3. Record every answer or waiver in `implementation-interview.md`; root records its decision
    evidence in the run-state gate table.
-4. If a decision materially changes scope or approach, return control to the root orchestrator,
-   transition back to the feature-design workflow, and require renewed design approval.
+4. If a decision materially changes scope or approach, return a `blocked` contract to root with
+   the decision evidence and why the approved design is no longer valid. Root supersedes this
+   implementation attempt and routes to feature design with a new root-produced, validated design
+   input contract; the blocked implementation handoff itself does not authorize a cross-stage
+   transition. Require renewed design approval before returning to implementation.
 
 The gate is complete only when every derived question is answered or explicitly waived. If no
 questions remain, record that result. Fold decisions into the implementation plan; downstream
