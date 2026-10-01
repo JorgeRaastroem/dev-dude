@@ -72,7 +72,8 @@ Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONT
 4. Document patterns, conventions, and design decisions
 5. Create mermaid diagrams for major flows
 
-**Wait for all Phase 1 tasks**: Use `read_agent(wait: true)` for each background agent before proceeding to Phase 2.
+**Wait for all Phase 1 tasks**: Poll each background agent with bounded `read_agent` waits under
+the orchestration watchdog; do not proceed to Phase 2 until all required results are reconciled.
 
 ### Phase 2: Documentation (after all Phase 1 tasks complete)
 
@@ -105,7 +106,7 @@ Tasks 2-N: Deep-dive documents (one per area)
       key interfaces, dependencies, and text-only layout maps when relevant
 ```
 
-**Wait for all Phase 2 tasks** before proceeding.
+**Wait for all Phase 2 tasks** with bounded watchdog checks before proceeding.
 
 ### Vertical Review Gate (after Phase 2; before Phase 3)
 
@@ -135,7 +136,7 @@ One task for the overview and one per active vertical document, all in parallel:
     - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
 ```
 
-**Wait for all Phase 3 tasks** before proceeding.
+**Wait for all Phase 3 tasks** with bounded watchdog checks before proceeding.
 
 ### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
 

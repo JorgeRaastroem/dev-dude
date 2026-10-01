@@ -141,6 +141,11 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 7. Validate, reconcile, and checkpoint that contract before any next dispatch. `partial`, `blocked`,
    or `failed` work cannot advance to a different stage.
 
+Apply the watchdog in [orchestration-state.md](references/orchestration-state.md) while the
+functional skill runs: checkpoint its invocation, check it at bounded intervals against the
+validated handoff and run state, and cancel/retry or stop at a gate as that contract requires.
+Functional skills apply the same watchdog to their own agent, tool, and shell invocations.
+
 ## 5. Global Invariants
 
 - Root orchestration owns all phase transitions and gate status.

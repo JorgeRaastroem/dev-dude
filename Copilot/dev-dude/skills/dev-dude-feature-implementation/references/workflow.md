@@ -52,7 +52,8 @@ Every completed Feature-Implementer or Feature-Implementer remediation requires 
 `test-implementer-copilot` task before validation. Pass its frontmatter `model` alias, implementation
 summary and test specifications, approved design, changed paths, remediation context,
 `$INDEXER_CONTEXT`, and orchestration envelope. Require it to follow nearby test patterns, implement
-the specifications, run relevant tests, and report results. Wait for all paired test tasks.
+the specifications, run relevant tests, and report results. Wait for all paired test tasks with
+bounded watchdog checks.
 
 ## Exit Contract
 

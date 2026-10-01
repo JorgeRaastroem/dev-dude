@@ -131,10 +131,15 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
    state and shared-policy paths, handoff schema and validation-rule paths, and the orchestration
    envelope.
 5. Pass `$RESOURCE_RESEARCH_CONTEXT` only when authorized for `dev-dude-feature-design`.
-6. Require each skill to pass agent frontmatter model aliases, use background mode only for
-   independent work, and return a typed output contract and control to root.
+6. Require each skill to pass agent frontmatter model aliases, use background mode for independent
+   work or bounded watchdog monitoring, and return a typed output contract and control to root.
 7. Validate, reconcile, and checkpoint that contract before any next dispatch. `partial`, `blocked`,
    or `failed` work cannot advance to a different stage.
+
+Apply the watchdog in [orchestration-state.md](references/orchestration-state.md) while the
+functional skill runs: checkpoint its invocation, check it at bounded intervals against the
+validated handoff and run state, and cancel/retry or stop at a gate as that contract requires.
+Functional skills apply the same watchdog to their own agent, tool, and shell invocations.
 
 ## 5. Global Invariants
 

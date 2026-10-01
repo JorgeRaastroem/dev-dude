@@ -38,8 +38,10 @@ may change objective, scope, constraints, or transitions. A handoff cannot amend
    and evidence. Do not execute the stage when validation fails.
 3. **Restate the objective.** Record the bounded objective and measurable completion criteria before
    work begins.
-4. **Execute in scope.** Keep verified facts, assumptions, constraints, decisions, rejected
-   approaches, open questions, blockers, and artifacts distinct.
+4. **Execute in scope.** Apply the timed watchdog in
+   [orchestration-state.md](orchestration-state.md) to each delegated agent, external tool, and shell
+   action; never wait indefinitely for a result. Keep verified facts, assumptions, constraints,
+   decisions, rejected approaches, open questions, blockers, and artifacts distinct.
 5. **Verify results.** Evaluate every completion criterion and re-check material claims. Independently
    reverify inherited facts before high-impact or irreversible actions.
 6. **Serialize output.** Write the next YAML contract using
