@@ -4,6 +4,11 @@ Detailed functional steps for `DudeWriteMyFeature` after a design option is appr
 orchestrator owns transitions and checkpoints using the orchestration contract supplied at
 invocation; this skill owns clarification, planning, implementation, and paired testing only.
 
+All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+launches and bounded polls apply when supported; otherwise use the runtime's supported invocation
+and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
 ## Entry Contract
 
 Enter with an explicitly approved `design-options.md`. Reconcile

@@ -6,6 +6,11 @@ The root orchestrator supplies the reconciled run state, orchestration envelope,
 and permitted transition. This skill owns validation decisions and remediation routing; it does not
 implement production or test remediations itself.
 
+All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+launches and bounded polls apply when supported; otherwise use the runtime's supported invocation
+and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
 Use the code indexer tools provided in `$INDEXER_CONTEXT`. The examples below use Serena tool names; substitute the equivalent tool from your active indexer(s).
 
 ## Documentation Verification Steps
