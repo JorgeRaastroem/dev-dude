@@ -102,9 +102,11 @@ research gap explicitly.
 DevDude selects an execution mode per invocation and records capabilities and limitations in durable
 run state and stage journals:
 
-- **Controlled:** verified cancellation or an enforced timeout is available; retain watchdog checks
-  and deadline handling, verifying termination before recovery.
-- **Cooperative:** neither is available; dispatch through the runtime's supported mechanism without
+- **Controlled:** this invocation supports verified background execution with bounded status polls
+  and callable cancellation, or an enforced timeout returning control within the check interval;
+  retain watchdog checks and deadline handling, verifying termination before recovery.
+- **Cooperative:** neither control mechanism is usable and verified for this invocation, even if
+  cancellation exists elsewhere in the runtime; dispatch through its supported mechanism without
   a cancellation-only approval gate. Work stays within its bounded objective, checkpoints progress,
   and returns partial or blocked results when appropriate. Deadlines are monitoring thresholds.
 

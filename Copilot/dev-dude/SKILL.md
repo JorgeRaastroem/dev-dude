@@ -127,7 +127,9 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
    failure; return structured remediation.
 3. Invoke the installed functional skill by name through the Skill capability with no prior-stage
    conversation history using the runtime's supported invocation mechanism. Select controlled mode
-   when cancellation or an enforced timeout is verified; otherwise select cooperative mode and
+   only when this invocation supports background execution with bounded status polls and callable
+   cancellation, or an enforced timeout returning control within the check interval; otherwise
+   select cooperative mode and
    record its limitations before dispatch. Missing cancellation alone is not a prerequisite failure
    or approval gate. Do not assume a background Task wrapper can cancel Skill or its descendants.
 4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and tools,

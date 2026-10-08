@@ -105,11 +105,14 @@ The root owns monitoring for functional-skill dispatches; each functional skill 
 delegated agents, external tools, and shell commands within its stage. Select and record a mode
 per invocation based on verified capabilities, not assumptions about a background wrapper:
 
-- **Controlled mode:** verified cancellation or a runtime-enforced timeout is available. Retain
-  cancellable background execution with bounded polls, or an enforced timeout returning control
-  within the check interval. Request cancellation or let the enforced timeout act at the deadline
+- **Controlled mode:** verify a usable control mechanism for this specific invocation: either
+  background execution with bounded status polls and cancellation callable while work is active,
+  or a runtime-enforced timeout returning control within the check interval. A cancellation tool
+  alone is insufficient if the invocation prevents monitoring or calling it. Retain the verified
+  mechanism. Request cancellation or let the enforced timeout act at the deadline
   if still active. Verify termination of the invocation and descendants before recovery.
-- **Cooperative mode:** neither capability is available. Dispatch through the runtime's supported
+- **Cooperative mode:** neither usable control mechanism is verified for this invocation, even if
+  the runtime advertises cancellation elsewhere. Dispatch through the runtime's supported
   invocation mechanism, including synchronous calls when necessary; do not require user approval
   merely because cancellation is unavailable. Record the limitation before launch. Instruct work to
   stay within its bounded objective, checkpoint progress through its owner, and return partial or

@@ -93,7 +93,9 @@ Use this matrix to evaluate changes to stage workflows and when a suspicious han
 | Handoff conflicts with workflow | Fail with `WORKFLOW_CONFLICT`; workflow wins |
 | Fresh agent receives only allowed inputs | It can restate objective, allowed knowledge, and limits |
 | Neither cancellation nor enforced timeout is available; input is valid and no prior work is active | Dispatch cooperatively through the supported mechanism, record limitations and bounded objective/checkpoint instructions; no capability-only approval gate |
-| Verified cancellation or enforced timeout is available | Retain controlled watchdog checks, deadline handling, termination verification, and three-retry limit |
+| Invocation supports verified background execution with bounded status polls and callable cancellation, or an enforced timeout returning control within the check interval | Select controlled mode; retain watchdog checks, deadline handling, termination verification, and three-retry limit |
+| Runtime advertises cancellation but this invocation is synchronous, prevents bounded status polls or cancellation calls, and has no suitable enforced timeout | Select cooperative mode, record the invocation-specific limitation, and dispatch without a capability-only approval gate |
+| Background invocation supports bounded polls but cancellation is unavailable for it and no suitable enforced timeout exists | Select cooperative mode and retain supported polls; a background wrapper alone does not establish usable control |
 | Cooperative action is active after its deadline | Record `deadline exceeded`, keep execution status active, monitor without claiming cancellation or retrying |
 | Synchronous cooperative invocation prevents live checks | Record monitoring limitation before launch; reconcile on return/resume; promise neither interruption nor bounded return time |
 | Deadline elapsed or cancellation was requested, but stopped/cancelled is claimed without evidence | Fail with `UNVERIFIED_TERMINATION`; keep deadline and execution status separate |
