@@ -38,10 +38,12 @@ may change objective, scope, constraints, or transitions. A handoff cannot amend
    and evidence. Do not execute the stage when validation fails.
 3. **Restate the objective.** Record the bounded objective and measurable completion criteria before
    work begins.
-4. **Execute in scope.** Apply the timed watchdog in
+4. **Execute in scope.** Select controlled or cooperative monitoring per invocation under
    [orchestration-state.md](orchestration-state.md) to each delegated agent, external tool, and shell
-   action; never wait indefinitely for a result. Keep verified facts, assumptions, constraints,
-   decisions, rejected approaches, open questions, blockers, and artifacts distinct.
+   action. Preserve bounded watchdog waits when supported; cooperative deadlines cannot guarantee
+   interruption or bounded return time. Checkpoint progress and return partial or blocked results
+   when appropriate. Keep verified facts, assumptions, constraints, decisions, rejected approaches,
+   open questions, blockers, and artifacts distinct.
 5. **Verify results.** Evaluate every completion criterion and re-check material claims. Independently
    reverify inherited facts before high-impact or irreversible actions.
 6. **Serialize output.** Write the next YAML contract using
@@ -74,7 +76,13 @@ outputs must be traceable through contract evidence locators to durable artifact
 - **Contradictory evidence:** preserve both claims and evidence, record the contradiction, and route
   to an allowed resolution stage or stop as `blocked`.
 - **Partial completion:** use `partial`, list unmet criteria and a precise continuation point, and
-  redispatch the same stage when safe. Do not advance to a different stage.
+  redispatch the same stage only after the prior invocation and descendants have completed or are
+  verified stopped, partial outputs are reconciled, and repeat safety and retry budget are checked.
+  Do not advance to a different stage.
+- **Deadline exceeded:** record the threshold separately from execution status; never infer
+  cancellation. Monitor active work; unknown status checkpoints uncertainty and pauses recovery,
+  not initial dispatch. No retry, replacement work, or overlapping writes while prior work may
+  remain active. Missing cancellation alone does not require approval.
 - **Tool or artifact failure:** record the dependency, error category, attempted action, and safe
   retry or escalation condition. Never invent a result.
 - **Changed artifact:** when a digest is present, a mismatch requires revalidation. Intentional

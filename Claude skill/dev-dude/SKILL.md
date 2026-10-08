@@ -40,7 +40,7 @@ Required Task `subagent_type` values:
 
 ### Install and Verify the Functional Skill Crew
 
-Bundled skill crew version: `1.1.2`. Bundled directories under `skills/`:
+Bundled skill crew version: `1.1.3`. Bundled directories under `skills/`:
 
 - `dev-dude-architecture`
 - `dev-dude-feature-design`
@@ -132,9 +132,10 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
 2. Create or select its YAML input contract and run the contract validation gate. Do not dispatch on
    failure; return structured remediation.
 3. Invoke the installed functional skill by name through the Skill capability with no prior-stage
-   conversation history, only after verifying an available Task can invoke Skill in background
-   **and** cancel the invocation and its descendants, or the Skill call has an enforced bounded
-   timeout. Do not assume a Task wrapper is cancellable merely because it runs in background.
+   conversation history using the runtime's supported invocation mechanism. Select controlled mode
+   when cancellation or an enforced timeout is verified; otherwise select cooperative mode and
+   record its limitations before dispatch. Missing cancellation alone is not a prerequisite failure
+   or approval gate. Do not assume a background Task wrapper can cancel Skill or its descendants.
 4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and tools,
    state and stage-journal paths, shared-policy paths, handoff schema and validation-rule paths,
    and the orchestration envelope.
@@ -144,17 +145,19 @@ Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch
    or `failed` work cannot advance to a different stage.
 
 Apply the watchdog in [orchestration-state.md](references/orchestration-state.md) while the
-functional skill runs: checkpoint its invocation, check it at bounded intervals against the
-validated handoff and run state, and cancel/retry or stop at a gate as that contract requires.
-When wrapping a synchronous Skill call, monitor and cancel the outer Task; verify it and any
-descendant work have stopped before retry. If neither mechanism is verified, record the missing
-capability and stop at the pre-dispatch `waiting-for-user` gate: watchdog-protected functional
-dispatch is unavailable in that runtime, and user approval does not make an uninterruptible call
-safe. Root alone writes run state; while a stage runs, root polls its stage-owned journal and
-reconciles child progress before checkpointing. At an approval gate the stage returns a `blocked`
+functional skill runs in its selected mode. Checkpoint its invocation and monitor against the
+validated handoff and run state as the runtime permits; preserve bounded polls in controlled mode.
+Cooperative deadlines are monitoring thresholds, not guaranteed interruption or bounded return
+time. Record `deadline exceeded` separately from `execution status unknown` and `verified stopped`;
+never claim cancellation without evidence. Pause recovery, not initial dispatch, when prior work
+may still be active. Do not retry, replace work, or permit overlapping writes until the invocation
+and descendants have completed or are verified stopped; reconcile partial outputs first.
+Root alone writes run state and reconciles the stage-owned journal at available checks and on return
+or resume. At an approval gate the stage returns a `blocked`
 handoff and stops; root then asks the user without a deadline and re-dispatches only after an
 explicit decision is recorded in a new validated handoff.
-Functional skills apply the same watchdog to their own agent, tool, and shell invocations.
+Functional skills select and record the appropriate mode for their own agent, tool, and shell
+invocations. Safety concerns, uncertain side effects, conflicts, and scope changes still require gates.
 
 ## 5. Global Invariants
 

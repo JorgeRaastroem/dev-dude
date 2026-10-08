@@ -3,12 +3,18 @@ name: dev-dude-feature-design
 description: >
   Internal DevDude functional skill for feature investigation, trusted resource research, design
   options, architecture critique, refinement, and explicit user design selection.
-version: 1.1.2
+version: 1.1.3
 ---
 
 # DevDude Feature Design
 
 Execute [references/workflow.md](references/workflow.md).
+
+Apply the supplied orchestration-state policy's controlled/cooperative monitoring to every child
+invocation. Record capabilities and limitations in the stage journal, checkpoint progress, and
+return partial or blocked results when appropriate. Missing cancellation alone does not block
+dispatch; an elapsed deadline does not prove termination. No retry, replacement, or overlapping
+writes until prior work and descendants are confirmed quiescent and partial outputs reconciled.
 
 Accept only a root-validated YAML handoff containing reconciled state, the feature input and slug,
 orchestration envelope, authorized `$INDEXER_CONTEXT` and `$RESOURCE_RESEARCH_CONTEXT`,
