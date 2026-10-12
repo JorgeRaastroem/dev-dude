@@ -28,7 +28,7 @@ must skip it and start at section 2; it must never invoke itself or another cont
 
 ### Install and Verify the Agent Crew
 
-Bundled agent crew version: `1.0.5`. Compare the `version:` frontmatter of all bundled agents with
+Bundled agent crew version: `1.0.6`. Compare the `version:` frontmatter of all bundled agents with
 `~/.copilot/agents/`. Missing version is `0`. If any agent is missing or older, update the complete
 crew atomically; preserve an equal or newer installed crew.
 
