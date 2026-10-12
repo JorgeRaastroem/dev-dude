@@ -1,7 +1,16 @@
 # Durable Orchestration State
 
-This contract applies to every DevDude command. The root skill owns state transitions; functional
-workflow skills own only the work inside their declared entry and exit states.
+This contract applies to every DevDude command. The root skill defines state transitions, executed
+by the dedicated DevDude orchestrator agent. In all supplied workflow documents, **root** means
+that dedicated controller, not the invoking host. Functional workflow skills own only the work
+inside their declared entry and exit states.
+
+The host installs/verifies prerequisites and relays controller results. It never writes run
+outputs, state, journals, or handoffs, reconciles stage results, or selects transitions. When root
+"asks the user", it checkpoints the gate and returns a structured `blocked` result with the exact
+question/options for the host to relay. The host passes the user's verbatim decision as evidence
+to the next controller invocation; only root validates and records it. No human wait occurs inside
+an active controller or stage invocation.
 
 ## State Location
 
@@ -23,6 +32,7 @@ Keep the file concise and update it in place using this structure:
 - **Workflow**: <architecture|feature>
 - **Workflow version**: <workflow definition or amendment version>
 - **Run ID**: <stable run identifier>
+- **Orchestrator invocation**: <correlation ID; runtime invocation ID or unavailable; started UTC; last update UTC; execution status and evidence; mode and verified capabilities/limitations>
 - **Status**: <active|recovery-paused|waiting-for-user|complete|bounded-unresolved>
 - **Current block**: <installed functional skill name>
 - **Current step**: <step identifier and name>
@@ -70,6 +80,21 @@ indexes the current validated input and latest output. Read
 [validation-rules.md](validation-rules.md) before creating, consuming, or validating a contract.
 
 ## Reconciliation and Recovery
+
+On controller entry, verify identity and capabilities from the host bootstrap packet, then reconcile
+prior invocation and descendant quiescence before claiming sole-writer ownership. Record the new
+controller invocation in run state before dispatching any functional stage; update it at available
+checks and before returning to the host. Preserve its correlation ID even when runtime IDs are
+unavailable. Existing state without this field remains resumable, but the absence never proves
+quiescence: inspect task records, journals, and available runtime evidence before continuing.
+
+The host may read this marker and runtime results to prevent duplicate dispatch, but never writes
+it. A stale `active` checkpoint is not a permanent lock, and a `waiting-for-user`, `complete`, or
+`bounded-unresolved` label is not termination evidence. If the prior controller or descendants
+remain active, monitor without replacement; if status is unknown, report recovery paused without
+dispatching another controller. Root records `recovery-paused` when it has control. Controller
+returns include descendant identities and status evidence; a parent return alone cannot establish
+quiescence. Quiescence must be established before recovery even after user approval.
 
 On every command entry, stage entry, direct resume, or suspected compaction:
 
@@ -201,7 +226,9 @@ and reuse the persisted count; never reset it to evade exhaustion.
 
 ## Orchestration Envelope
 
-Every delegated task prompt must contain this compact envelope before task-specific context:
+Every stage or specialist task prompt must contain this compact envelope before task-specific
+context. The host-to-controller bootstrap packet is separate: root has not yet initialized or
+reconciled state and cannot supply a validated stage contract until it takes control.
 
 ```markdown
 ## DevDude Orchestration
@@ -219,7 +246,7 @@ Every delegated task prompt must contain this compact envelope before task-speci
 - Next owner: invoking functional stage (root only for a stage output handoff)
 ```
 
-Also include only the context blocks authorized by the input contract. An agent must not use prior
+Also include only the context blocks authorized by the input contract. A specialist agent must not use prior
 conversation as workflow state, advance the workflow, change gate status, or assume work owned by
 another block; it returns control and typed evidence to its invoking stage. The stage reconciles
 child results into its journal and returns its output handoff for root to validate.

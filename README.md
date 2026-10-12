@@ -145,6 +145,11 @@ On first run, the root checks both bundled agent and functional-skill versions. 
 treated as `0`. If any functional skill is missing or older, all four sibling skills are installed
 or updated atomically beside the active root skill.
 
+The host bootstrap installs the dedicated `dev-dude-orchestrator` with the rest of the agent crew,
+then transfers control through Task. The selected agent must be able to invoke Skill, delegate
+nested specialist tasks, use TeamCreate, and write authorized run outputs; host-level tool access
+alone does not establish these capabilities.
+
 ### GitHub Copilot coding agent
 
 Copy the `Copilot/dev-dude/` directory from this repository into a Copilot skill location:
@@ -160,14 +165,22 @@ Copy the `Copilot/dev-dude/` directory from this repository into a Copilot skill
 The root checks bundled agent and functional-skill versions on first run. Agents install under
 `~/.copilot/agents/`; the four functional skills install atomically under `~/.copilot/skills/`.
 
+The host bootstrap dispatches `dev-dude-orchestrator-copilot` explicitly using its installed model
+alias. Its invocation must support Skill, nested specialist delegation, and authorized output
+writes. In either runtime, unsupported or unknown capabilities stop at an **ORCHESTRATOR CAPABILITY
+GATE** with remediation, never a general-purpose fallback. Permission failures require an explicit
+user decision before trying alternative methods or locations. Runtime nesting support is a
+prerequisite, not a capability that these skill documents can grant.
+
 ## Skill Structure
 
 ### Claude Code (`Claude skill/dev-dude/`)
 
 ```
 Claude skill/dev-dude/
-├── SKILL.md                                  # Thin root orchestrator (loaded when triggered)
+├── SKILL.md                                  # Host bootstrap and root workflow definition
 ├── agents/                                   # Bundled agent definitions
+│   ├── dev-dude-orchestrator.md               #   Dedicated root workflow controller
 │   ├── code-flow-analyzer.md                 #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer.md                 #   Reviews UX, existing screens, and layout guidance
 │   ├── architecture-reviewer.md              #   Critiques architecture and future fitness
@@ -202,8 +215,9 @@ Claude skill/dev-dude/
 
 ```
 Copilot/dev-dude/
-├── SKILL.md                                  # Thin root orchestrator (loaded when triggered)
+├── SKILL.md                                  # Host bootstrap and root workflow definition
 ├── agents/                                   # Bundled agent definitions
+│   ├── dev-dude-orchestrator-copilot.md       #   Dedicated root workflow controller
 │   ├── code-flow-analyzer-copilot.md         #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer-copilot.md         #   Reviews UX, existing screens, and layout guidance
 │   ├── architecture-reviewer-copilot.md      #   Critiques architecture and future fitness
@@ -244,10 +258,11 @@ The functional skills are installed as discoverable siblings:
 
 ## Agent Swarm Architecture
 
-DevDude orchestrates eight specialized agent types:
+DevDude uses nine specialized agent types:
 
 | Agent | Role | Used In |
 |-------|------|---------|
+| **DevDude-Orchestrator** | Sole root controller: reconciles evidence, validates handoffs, monitors work, and handles gates through the host | Both commands |
 | **Code-Flow-Analyzer** | Traces execution flows, maps dependencies, verifies documentation accuracy | Both commands |
 | **UX-Design-Reviewer** | Inspects existing UX, raw specs, and interaction flows; creates text-first UX guidance and layout maps | Both commands |
 | **Architecture-Reviewer** | Critiques architecture and designs for reuse, performance, scalability, and operational cost | Both commands |
@@ -259,8 +274,15 @@ DevDude orchestrates eight specialized agent types:
 
 Agents run in parallel where possible (e.g., investigating multiple areas simultaneously) and are sequenced with dependency tracking where required (e.g., resource research consumes code-flow findings and tests are blocked by implementation). External or architecturally material resource choices receive a conditional, append-only critique pass using a stronger model. Feature implementation starts only after design approval and the Implementation Clarification Gate, then uses a bounded implementation -> testing -> validation loop. Phase 2 cannot complete until Feature-Validator returns `SATISFIED` or a bounded unresolved state is reported.
 
-The root skill is intentionally limited to runtime setup, routing, global invariants, user gates,
-recovery, and dispatch. Installed functional skills return control at explicit boundaries. Every
+The dedicated orchestrator supplies reusable coordination expertise; the root skill defines runtime
+setup, routing, global invariants, user gates, recovery, and dispatch. The `dev-dude-` agent-name
+prefix deliberately avoids collisions with other orchestration agents in shared installations.
+The host only bootstraps and relays exact questions and verbatim user decisions. It never writes
+run outputs or state, chooses transitions, or takes over failed work. The controller skips host
+bootstrap when loading the root skill, preventing recursive dispatch, and returns a structured
+result rather than waiting for a human inside an invocation.
+
+Installed functional skills return control to that dedicated root at explicit boundaries. Every
 run maintains `.dev-dude-run-state.md` beside its normal outputs; the root reconciles that checkpoint
 with actual documents, task results, and repository changes at command and phase entry. Delegated
 tasks receive a compact orchestration envelope so their lane and completion evidence survive long
@@ -269,6 +291,12 @@ handoff under `.dev-dude-handoffs/`. A fresh stage receives only its workflow, t
 authorized artifacts and tools, and evidence it retrieves itself; prior conversation is not durable
 workflow state. Structural, evidence, epistemic, and workflow validation blocks unsupported,
 contradictory, incomplete, or out-of-scope transitions with actionable remediation.
+
+Controller identity and status evidence are recorded in run state. The host verifies controller
+and descendant quiescence before re-entry, including after user approval; stale `active` status
+alone does not prohibit recovery, and a completed status label alone does not prove termination.
+Older state without the controller marker is reconciled against runtime and task evidence rather
+than assumed safe. Phase workflows, output paths, concurrency limits, and retry budgets are unchanged.
 
 ```
 DudeWhereIsMyArch "all"

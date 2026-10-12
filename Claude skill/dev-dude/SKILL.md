@@ -15,20 +15,26 @@ argument-hint:
 
 # DevDude Root Orchestrator
 
-This root skill coordinates setup, routing, durable state, user gates, and functional workflow
-transitions. It does not execute investigation, design, implementation, testing, or validation
-itself. Invoke only the installed skill for the current workflow block.
+This root skill defines setup, routing, durable state, user gates, and functional workflow
+transitions. The dedicated `dev-dude-orchestrator` agent executes that orchestration;
+the invoking host only bootstraps and relays user decisions. Neither performs specialist work.
+Agent definitions supply orchestration expertise; this skill and its references supply workflow
+authority. A general-purpose agent must never substitute for the dedicated controller.
 
-## 1. Prepare the Runtime
+## 1. Host Bootstrap — Prepare the Runtime
+
+This section is host-only. An already-selected orchestrator receiving `entry_role: orchestrator`
+must skip it and start at section 2; it must never invoke itself or another controller.
 
 ### Install and Verify the Agent Crew
 
-Bundled crew version: `1.0.5`. Compare the `version:` frontmatter of all bundled agents with
+Bundled agent crew version: `1.0.5`. Compare the `version:` frontmatter of all bundled agents with
 project-local and global `.claude/agents/` installs. Missing version is `0`. If any agent is missing
 or older, update the complete crew atomically; preserve an equal or newer installed crew.
 
 Required Task `subagent_type` values:
 
+- `dev-dude-orchestrator`
 - `code-flow-analyzer`
 - `ux-design-reviewer`
 - `architecture-reviewer`
@@ -86,7 +92,49 @@ available parser fallback.
 
 If a critical prerequisite fails, report remediation and stop.
 
-## 2. Route the Command
+### Transfer Control to the Dedicated Agent
+
+Verify `dev-dude-orchestrator` is discoverable as a custom agent. Verify its invocation can access
+Skill, delegate nested specialist tasks, use TeamCreate, and write the authorized run outputs.
+Host-level tool availability is not evidence of child access; use runtime capability metadata, or
+let the selected agent verify its exposed capabilities before any workflow action. If unsupported
+or unknown, stop at an **ORCHESTRATOR CAPABILITY GATE** with exact remediation. Permission failures
+require user approval before any alternative method or location; never fall back to general-purpose.
+
+Read existing run state and controller/descendant runtime status only to prevent duplicate
+dispatch. An `active` checkpoint may be stale: dispatch recovery only with evidence the prior
+controller and descendants completed or are verified stopped, regardless of its recorded status.
+If still active, monitor without replacement; if unknown, report recovery paused and stop.
+Missing output files, elapsed deadlines, and user approval never establish quiescence.
+
+Invoke Task with `subagent_type: dev-dude-orchestrator`, using supported background execution or
+cooperative synchronous execution. Pass a compact bootstrap packet, not a restatement of the
+agent's responsibilities:
+
+- `entry_role: orchestrator`, a unique controller invocation correlation ID, and repository root;
+- the absolute path of this root `SKILL.md`, original command and input paths;
+- absolute shared-policy paths under this root's `references/`;
+- authorized `$INDEXER_CONTEXT`, `$RESOURCE_RESEARCH_CONTEXT`, and verified runtime capabilities;
+- existing run-state/latest-contract locators when known, or `none` for a new run;
+- explicit user decision evidence, quoted verbatim, when resuming a gate.
+
+This packet transfers control; it is not a stage handoff and cannot authorize a stage transition.
+The controller creates and validates normal stage contracts after reconciliation. The host never
+writes run outputs, state, journals, or handoffs and never chooses workflow transitions.
+Monitor the controller using the verified mode; do not claim cancellation without evidence.
+On a `blocked` result, relay its exact question/options to the user without a deadline. Pass the
+verbatim response back through this bootstrap only after prior work is quiescent. On `partial`,
+relay the continuation; on `failed` or malformed/missing results, report the failure and stop, never
+take over. On `complete`, report the returned evidence. Every subsequent entry uses this same
+dedicated agent, reconciling durable evidence rather than passing conversation history.
+
+## 2. Orchestrator Entry — Route the Command
+
+Sections 2–6 are executed only by the dedicated controller. Verify the bootstrap entry role,
+identity, and required child capabilities before starting. After locating and reconciling run state,
+record the controller invocation identity and verified execution capabilities under
+[orchestration-state.md](references/orchestration-state.md). If the bootstrap packet is invalid,
+return `blocked` with remediation; do not execute host bootstrap or specialist work.
 
 Normalize arguments in this order:
 
