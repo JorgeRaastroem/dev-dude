@@ -123,6 +123,12 @@ validation:
 - Record contradictions as blocking open questions with both claims and evidence references until an
   allowed resolution stage resolves them.
 - Never serialize chain-of-thought, raw scratchpads, tool chatter, or whole transcripts.
+- Record cooperative execution limitations in `constraints`; record unknown execution status in
+  `blockers` with completion or verified termination as the required resolution. Reference the
+  authorized stage journal or runtime evidence in `artifacts` and evidence locators. A handoff
+  status describes work results, not invocation termination: even a `complete` result does not
+  prove descendants stopped or authorize overlapping work. Never encode an elapsed deadline or
+  cancellation request as a verified cancellation fact.
 
 The root creates the initial contract from normalized command input and verified runtime state. A
 stage writes all sections with a pending validation outcome; the root gate records the final outcome

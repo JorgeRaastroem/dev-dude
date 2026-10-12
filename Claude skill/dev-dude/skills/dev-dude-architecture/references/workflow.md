@@ -2,6 +2,11 @@
 
 Detailed steps for the `DudeWhereIsMyArch` command.
 
+All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+launches and bounded polls apply when supported; otherwise use the runtime's supported invocation
+and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
 The root orchestrator owns transitions and checkpoints using the orchestration contract supplied at
 invocation. Reconcile
 `./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and

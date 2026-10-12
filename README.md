@@ -97,6 +97,28 @@ research gap explicitly.
 
 ## Installation
 
+### Execution Monitoring
+
+DevDude selects an execution mode per invocation and records capabilities and limitations in durable
+run state and stage journals:
+
+- **Controlled:** this invocation supports verified background execution with bounded status polls
+  and callable cancellation, or an enforced timeout returning control within the check interval;
+  retain watchdog checks and deadline handling, verifying termination before recovery.
+- **Cooperative:** neither control mechanism is usable and verified for this invocation, even if
+  cancellation exists elsewhere in the runtime; dispatch through its supported mechanism without
+  a cancellation-only approval gate. Work stays within its bounded objective, checkpoints progress,
+  and returns partial or blocked results when appropriate. Deadlines are monitoring thresholds.
+
+Cooperative monitoring **cannot guarantee interruption or bounded return time**. Synchronous calls
+may prevent live checks; reconcile on return or resume. `deadline exceeded`, `execution status
+unknown`, and `verified stopped` are distinct: elapsed time never proves cancellation. Unknown
+status checkpoints uncertainty and pauses recovery, not initial dispatch. No retry, replacement
+work, or overlapping writes are allowed while prior work or descendants may remain active.
+After confirmed completion or termination, reconcile partial outputs and side effects before
+continuing; never replay completed work. Stage boundaries, evidence validation, explicit approval
+and safety gates, and the existing retry limits remain unchanged.
+
 ### Claude Code
 
 #### Option 1: Install via Claude Code CLI
