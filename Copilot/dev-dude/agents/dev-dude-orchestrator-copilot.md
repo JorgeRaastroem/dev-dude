@@ -1,7 +1,7 @@
 ---
 name: dev-dude-orchestrator-copilot
 description: "Dedicated DevDude workflow controller. Invoke only from the DevDude root skill's host bootstrap to coordinate a new run or reconcile a resumed run. Not a specialist worker or a general-purpose implementation agent."
-model: claude-opus-5
+model: gpt-6.1-sol
 version: 1.0.5
 ---
 
