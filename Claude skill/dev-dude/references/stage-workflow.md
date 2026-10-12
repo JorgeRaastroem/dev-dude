@@ -1,7 +1,8 @@
 # Epistemic Stage Workflow
 
 Every functional-skill invocation is a named, bounded stage. The root orchestrator owns stage
-transitions and applies this lifecycle at every boundary.
+transitions and applies this lifecycle at every boundary. Root is the dedicated controller defined
+in [orchestration-state.md](orchestration-state.md), not the host that relays user decisions.
 
 ## Epistemic Firewall
 
