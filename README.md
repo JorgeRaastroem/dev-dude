@@ -84,8 +84,10 @@ modify unrelated agents, project files, outputs, or durable run state. Extra upd
 rejected; `update refresh` still refreshes an architecture vertical named `update`.
 
 Updates require quiescent controllers and descendants, including other sessions sharing global
-crews. Ambiguous installation scopes, local customizations, unverifiable legacy files, newer local
-versions, and permission failures stop at explicit gates. The complete bundle is staged and
+crews. Ordinary launches and updates share scope-level locks so a new launch cannot race bundle
+replacement; unavailable locking stops before writes or dispatch. Ambiguous installation scopes,
+local customizations, unverifiable legacy files, newer local versions, and permission failures
+stop at explicit gates. The complete bundle is staged and
 verified before replacement, with backups and whole-set rollback on failure. Installation metadata
 in `<active-root>/.dev-dude-install.json` records the source SHA, versions, and owned-file hashes;
 it is separate from the project's run-state `Source revision`.
