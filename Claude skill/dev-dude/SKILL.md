@@ -1,6 +1,6 @@
 ---
 name: dev-dude
-version: 1.0.0
+version: 1.1.0
 description: >
   Resumable architecture investigation and feature implementation using agent swarms.
   DudeWhereIsMyArch (arch/where) writes architecture docs to ./docs/ArchOverview/.
@@ -198,6 +198,12 @@ controller and descendants completed or are verified stopped, regardless of its 
 If still active, monitor without replacement; if unknown, report recovery paused and stop.
 Missing output files, elapsed deadlines, and user approval never establish quiescence.
 
+Prepare the host heartbeat under [orchestration-state.md](references/orchestration-state.md#host-heartbeat).
+Use a verified scheduler to check this run every five minutes (at most ten); keep healthy checks
+silent. The heartbeat is a host wake-up, not another controller or a replacement for action
+monitoring. If scheduling or independent status access is unavailable, report the limitation once
+and retain checkpoint-based manual recovery; never promise an unsupported cadence.
+
 Invoke Task with `subagent_type: dev-dude-orchestrator`, using supported background execution or
 cooperative synchronous execution. Pass a compact bootstrap packet, not a restatement of the
 agent's responsibilities:
@@ -207,6 +213,8 @@ agent's responsibilities:
 - absolute shared-policy paths under this root's `references/`;
 - authorized `$INDEXER_CONTEXT`, `$RESOURCE_RESEARCH_CONTEXT`, and verified runtime capabilities;
 - existing run-state/latest-contract locators when known, or `none` for a new run;
+- heartbeat backend, interval, job identity and verified limitations, plus any read-only check
+  evidence; for a new run, bind the job to the controller's first published run ID/state locator;
 - explicit user decision evidence, quoted verbatim, when resuming a gate.
 
 This packet transfers control; it is not a stage handoff and cannot authorize a stage transition.
@@ -218,6 +226,10 @@ verbatim response back through this bootstrap only after prior work is quiescent
 relay the continuation; on `failed` or malformed/missing results, report the failure and stop, never
 take over. On `complete`, report the returned evidence. Every subsequent entry uses this same
 dedicated agent, reconciling durable evidence rather than passing conversation history.
+On a heartbeat wake-up, use the host-heartbeat decision rules before this transfer. Reuse verified
+setup within the same session instead of repeating update checks, installation, or onboarding.
+A fresh session still performs normal bootstrap. Suspend or remove only this run's heartbeat at
+user gates, explicit stop, completion, or exhausted retries; re-arm it on authorized continuation.
 
 ## 2. Orchestrator Entry — Route the Command
 
@@ -254,6 +266,10 @@ or suspected compaction. Load [handoff-contract-schema.md](references/handoff-co
 Create state before the first delegated task. If state exists, reconcile it with actual outputs,
 task results, repository changes, and gate evidence before choosing a transition. Update it before
 and after every task, gate, workflow-block transition, and validation attempt.
+Publish the initial Run ID/state locator to the host through the supported runtime status/result
+channel before the first stage dispatch so it can bind the prepared heartbeat. If live publication
+is unavailable, include these locators in the next structured return and record the initial
+monitoring gap; never claim the heartbeat was armed while the host could not bind it.
 
 ## 4. Dispatch Functional Workflows
 

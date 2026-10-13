@@ -331,6 +331,29 @@ alone does not prohibit recovery, and a completed status label alone does not pr
 Older state without the controller marker is reconciled against runtime and task evidence rather
 than assumed safe. Phase workflows, output paths, concurrency limits, and retry budgets are unchanged.
 
+### Quiet heartbeat and interrupted-run recovery
+
+The host prepares one run-bound heartbeat with a **five-minute default** (configurable to ten).
+Healthy checks stay silent; only recovery, new blockers/gates, scheduler loss, and completion
+produce notices. It is separate from the existing 60-second delegated-action watchdog.
+
+Prefer a verified native recurring prompt for a live session. Such timers may wait for an idle
+host or expire/disappear, so they are best-effort, not a guarantee during blocked calls or session
+exit. For independent five-to-ten-minute checks, an external local supervisor needs explicit
+setup approval, the same checkout, verified runtime status access, and serialized dispatch.
+Resume/compaction hooks supplement checks but are not timers; GitHub Actions cannot observe a
+local CLI's running tasks or uncommitted checkpoints. Unsupported scheduling is reported once
+and ordinary runs can still use manual checkpoint recovery.
+
+Each wake-up checks the bound Run ID, durable state, controller, and descendants. Active work is
+left alone; unknown status pauses recovery. Only verified quiescence permits re-entry through the
+dedicated controller, which reconciles outputs, journals, and validated handoffs before continuing
+the first incomplete step. Completed work and persisted retry budgets are preserved. User gates,
+explicit stops, completion, and exhausted retries suspend/remove only that run's heartbeat.
+On resume or compaction, rediscover the job rather than creating duplicates or touching unrelated
+schedules. See the shared [host heartbeat policy](Copilot/dev-dude/references/orchestration-state.md#host-heartbeat)
+for scheduler options, ownership, quiet reporting, and recovery rules (mirrored in the Claude bundle).
+
 ```
 DudeWhereIsMyArch "all"
 │
