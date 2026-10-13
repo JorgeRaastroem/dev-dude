@@ -4,7 +4,7 @@ A skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [G
 
 ## What It Does
 
-DevDude provides two commands accessible via `/dev-dude` in Claude Code (or as a Copilot coding agent skill):
+DevDude provides two workflow commands and an update command accessible via `/dev-dude` in Claude Code (or as a Copilot coding agent skill):
 
 ### `DudeWhereIsMyArch` — Architecture Investigation
 
@@ -63,6 +63,37 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 **Output:** `./docs/<feature-slug>/` containing `investigation.md`,
 `resources-investigation.md`, `design-options.md`, `implementation-interview.md`,
 `implementation-plan.md`, and `verification.md`.
+
+### `update` — Update DevDude
+
+```
+/dev-dude update
+```
+
+Every launch checks the installed root and bundled crew versions against
+[JorgeRaastroem/dev-dude](https://github.com/JorgeRaastroem/dev-dude) and reports newer versions.
+The read-only check is bounded to four network requests and 15 seconds, with no retries; offline
+or unavailable checks warn and do not block ordinary workflows. Updates are never automatic.
+Missing version/revision metadata is reported as unknown, not up to date.
+
+`update` fetches the latest stable published GitHub release, pinned to its commit. If no release
+exists, it uses the API-discovered default branch HEAD and labels it an **unreleased default-branch
+build**. It updates the active root, its bundled references, the nine owned agents, and all four
+functional skills in their existing installation scopes. It does not pull/reset your project or
+modify unrelated agents, project files, outputs, or durable run state. Extra update arguments are
+rejected; `update refresh` still refreshes an architecture vertical named `update`.
+
+Updates require quiescent controllers and descendants, including other sessions sharing global
+crews. Ambiguous installation scopes, local customizations, unverifiable legacy files, newer local
+versions, and permission failures stop at explicit gates. The complete bundle is staged and
+verified before replacement, with backups and whole-set rollback on failure. Installation metadata
+in `<active-root>/.dev-dude-install.json` records the source SHA, versions, and owned-file hashes;
+it is separate from the project's run-state `Source revision`.
+
+After installation, DevDude reloads the session only through a supported, verified runtime operation
+that rediscovers both skills and agents. If unavailable, exit and start a fresh session, then invoke
+`/dev-dude` with your next command. Rereading skill files is not a reload. Update never dispatches
+cached agents or automatically resumes a workflow in the old session.
 
 ## Prerequisites
 
@@ -355,17 +386,28 @@ All documents use consistent templates with:
 
 ### Agent definitions
 
-Agent files in `.claude/agents/` (Claude Code) or `~/.copilot/agents/` (GitHub Copilot) can be customized after installation. The skill won't overwrite existing agent files on subsequent runs.
+Agent files in `.claude/agents/` (Claude Code) or `~/.copilot/agents/` (GitHub Copilot) can be customized after installation. Ordinary bootstrap preserves equal or newer installed crews and replaces missing or older crews. Explicit `update` detects changes using installation hashes and requires approval before replacing customized or unverifiable files.
 
 ### Functional skills
 
 Installed `dev-dude-*` functional skills may be customized in their runtime skill directory. Keep a
 custom skill's version equal to or newer than the bundle to prevent an older bundle replacing it;
 mixed newer/older crews stop at the version-conflict gate.
+Explicit `update` also gates changed files; back up customizations before approving replacement.
 
 ### Document templates
 
 Output templates are defined in `references/doc-format-templates.md` and can be modified to match your team's documentation standards.
+
+### Release versions
+
+The root `SKILL.md` frontmatter `version:` is DevDude's user-facing semantic version, separate from
+agent and functional-skill crew versions. Bump it in both platform roots for shipped bundle changes,
+including root/reference changes; bump the affected crew versions for agent or functional-skill
+changes. The existing agent-version workflow still maintains the shared agent crew version.
+Before publishing a stable release, verify both platform roots and bundled crews agree, then tag
+and publish a non-draft, non-prerelease GitHub release. Launch compares numeric version tuples;
+a different commit alone is not evidence of a newer release.
 
 ## Design Decisions
 
