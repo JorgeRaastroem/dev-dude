@@ -2,6 +2,12 @@
 
 Parse `$ARGUMENTS` in this order:
 
+The exact single token `update` is handled by the host bootstrap before this parser or any
+controller dispatch. It updates DevDude itself, reloads supported runtimes (otherwise requires a
+fresh session), and stops. Reject extra arguments after `update` with usage, except `update refresh`,
+which remains a valid refresh scope under rule 1 below. A controller receiving standalone `update`
+returns `blocked` for host maintenance; it never installs or updates itself.
+
 1. If there are exactly two tokens and the second is `refresh`, route to Architecture Investigation
    in Delta Refresh mode. The first token is the refresh scope: `all` refreshes every affected
    vertical and discovers new verticals; any other value refreshes only that vertical. Reject
@@ -22,6 +28,7 @@ If no recognized command, print usage:
 DevDude - Architecture Investigation & Feature Implementation
 
 Usage:
+  /dev-dude update
   /dev-dude DudeWhereIsMyArch [area|all]
   /dev-dude <all|vertical> refresh
   /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>
@@ -31,6 +38,7 @@ Aliases:
   feature, write → DudeWriteMyFeature
 
 Examples:
+  /dev-dude update                      # Update DevDude; reload or start a fresh session
   /dev-dude arch all                    # Full codebase architecture investigation
   /dev-dude all refresh                 # Refresh all affected docs and discover new verticals
   /dev-dude authentication refresh      # Refresh one architecture vertical
