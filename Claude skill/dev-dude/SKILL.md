@@ -1,6 +1,6 @@
 ---
 name: dev-dude
-version: 1.0.0
+version: 1.0.1
 description: >
   Resumable architecture investigation and feature implementation using agent swarms.
   DudeWhereIsMyArch (arch/where) writes architecture docs to ./docs/ArchOverview/.
@@ -67,17 +67,10 @@ Mermaid setup, or controller dispatch; it never creates or writes workflow state
    or user-wide `.claude/agents/` crew used by this root. Inspect other install scopes and stop
    at an **UPDATE SCOPE GATE** if shadowing or conflicting copies make the active definitions
    ambiguous; never guess or silently update multiple roots.
-3. Acquire exclusive maintenance locks for the active root and all affected crew directories in
-   canonical path order, using the same protocol as ordinary bootstrap. A competing lock or
-   unavailable verified lock mechanism stops at an **UPDATE LOCK GATE**; never bypass a lock.
-   Keep lock storage outside replaced directories, keyed by canonical target paths, so directory
-   replacement cannot change lock identity. Exclude lock metadata from the owned-file inventory.
-   Hold locks through replacement and rollback. Only after acquiring them, verify controllers
-   and descendants using every affected install scope are completed or stopped.
+3. Verify controllers and descendants using every affected install scope are completed or stopped.
    Use local runtime evidence and ask the user to confirm other sessions sharing user-wide crews
    have exited. Unknown local execution status still blocks; user confirmation, absent state,
    and elapsed time do not prove termination. Stop at an **UPDATE QUIESCENCE GATE** if unsafe.
-   A competing or unverifiable stale lock blocks; do not remove it based on age alone.
 4. Download the pinned repository archive from GitHub into temporary staging outside the user's
    project. Extract only this platform bundle; reject traversal, absolute paths, symlinks, and
    targets escaping the approved install directories. Validate the root, its references, all nine
@@ -100,7 +93,6 @@ Mermaid setup, or controller dispatch; it never creates or writes workflow state
    (remove newly created targets), including its marker. Report failure, not success; if rollback
    fails, retain backups, report exact recovery paths, and stop. Clean staging after success or
    successful rollback. Permission errors require approval before any alternative method/location.
-   Release maintenance locks only after the transaction ends.
 7. After successful installation, use a documented runtime session-reload operation only if it is
    available and verified to rediscover both skills and agents; execute it and verify discovery
    and installed versions. Otherwise report **UPDATE RELOAD GATE**: `DevDude updated on disk.
@@ -111,13 +103,7 @@ Mermaid setup, or controller dispatch; it never creates or writes workflow state
 
 ### Install and Verify the Agent Crew
 
-For ordinary commands, participate in the same scope-level locking protocol as update. Acquire
-exclusive locks for the active root and all affected crew directories before either crew installer
-writes; atomically downgrade to shared usage locks before controller dispatch. Retain those shared
-locks until the controller and every descendant are completed or verified stopped, including across
-monitoring and host re-entry; unknown status never permits release. Acquire multi-scope locks in
-canonical path order. A competing lock or unavailable verified lock mechanism stops at an
-**UPDATE LOCK GATE**, before writes or dispatch; never bypass a maintenance lock.
+Initialization and updates do not require installation locks or cross-session lock coordination.
 
 Bundled agent crew version: `1.0.6`. Compare the `version:` frontmatter of all bundled agents with
 project-local and global `.claude/agents/` installs. Missing version is `0`. If any agent is missing
