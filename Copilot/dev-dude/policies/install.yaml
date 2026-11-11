@@ -1,0 +1,113 @@
+schema_version: '1.0'
+bundle: copilot
+domain: install
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  INST-LOCK-001:
+    title: No installation locks
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions:
+    - update still requires quiescence (UPD-CMD-001.R04)
+    rules:
+      INST-LOCK-001.R01:
+        statement: Initialization and updates do not require installation locks or cross-session lock
+          coordination.
+    planned_changes:
+      PCH-MOD-003: policies/models.yaml#config
+    source_nuance:
+    - path: SKILL.md
+      lines: 104-106
+      text: '### Install and Verify the Agent Crew
+
+
+        Initialization and updates do not require installation locks or cross-session lock coordination.
+
+        '
+  INST-AGT-001:
+    title: Agent crew install/verify
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults:
+      missing_version: '0'
+    exceptions: []
+    platform_binding:
+      install_scopes: ~/.copilot/agents/
+    rules:
+      INST-AGT-001.R01:
+        statement: Compare bundled agent `version:` with installed agents; missing version is 0.
+      INST-AGT-001.R02:
+        statement: If any agent missing or older, update the complete crew atomically.
+      INST-AGT-001.R03:
+        statement: Preserve an equal or newer installed crew.
+    planned_changes:
+      PCH-MOD-003: policies/models.yaml#config
+    source_nuance:
+    - path: SKILL.md
+      lines: 108-110
+      text: 'Bundled agent crew version: `<policies/metadata.yaml crews.agents.version>`. Compare the
+        `version:` frontmatter of all bundled agents with
+
+        `~/.copilot/agents/`. Missing version is `0`. If any agent is missing or older, update the complete
+
+        crew atomically; preserve an equal or newer installed crew.
+
+        '
+  INST-SKL-001:
+    title: Functional skill crew install/verify
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults:
+      missing_version: '0'
+    exceptions: []
+    platform_binding:
+      target: ~/.copilot/skills/<skill>/ (always user-wide, even for project root .github/skills/dev-dude/)
+    rules:
+      INST-SKL-001.R01:
+        statement: Install as sibling skills; compare each installed SKILL.md top-level version with bundle;
+          missing skill/version is 0.
+      INST-SKL-001.R02:
+        statement: All equal -> keep crew.
+      INST-SKL-001.R03:
+        statement: None newer and any missing/older -> copy all four to staging under target, verify staged
+          names/versions, replace all four only after staging succeeds; remove staging on failure, leave
+          crew unchanged.
+      INST-SKL-001.R04:
+        statement: Any newer while another missing/older -> version-conflict gate; no mixing or silent
+          downgrade.
+      INST-SKL-001.R05:
+        statement: All equal or newer -> preserve installed crew and report newer versions.
+      INST-SKL-001.R06:
+        statement: Verify all four names discoverable through Skill before dispatch; permission failure
+          -> FUNCTIONAL SKILL INSTALL GATE with exact target/failure; ask before alternative location/method.
+    source_nuance:
+    - path: SKILL.md
+      lines: 133-149
+      text: "Install them as sibling user skills under `~/.copilot/skills/<skill-name>/`. For each installed\n\
+        `SKILL.md`, compare its top-level `version:` with the bundled version. Missing skill or version\
+        \ is\n`0`.\n\n- If every installed version equals the bundle, keep the crew.\n- If none is newer\
+        \ and any is missing or older, copy all four bundled directories to a staging\n  directory under\
+        \ `~/.copilot/skills/`, verify every staged name/version, then replace all four\n  installed directories\
+        \ only after staging succeeds. Remove staging on failure and leave the\n  installed crew unchanged.\n\
+        - If any installed version is newer while another is missing or older, stop at a version-conflict\n\
+        \  gate rather than mixing versions or silently downgrading.\n- If every installed version is\
+        \ equal to or newer than the bundle, preserve the installed crew and\n  report newer versions.\n\
+        \nVerify all four names are discoverable through the Skill capability before dispatch. If copying\
+        \ or\ndiscovery fails because of permissions, stop at a **FUNCTIONAL SKILL INSTALL GATE**, report\
+        \ the exact\ntarget and failure, and ask the user before trying any alternative location or method.\n"

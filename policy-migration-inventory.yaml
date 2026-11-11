@@ -2862,3 +2862,2406 @@ coverage:
       covered: 2589
       percent: 100.0
       gaps: []
+
+# ==================================================================== migration record (appended; baseline above unchanged)
+migration_record:
+  status: implemented-pending-independent-review
+  baseline_sha256: 27f7cf8bc398c0ba9c0e05b998b2847f707215646967bf460a285f2555cc208f
+  baseline_bytes: 238762
+  independent_semantic_review: pending
+  recorded_by: implementing agent; not an independent review. Baseline sections above are unchanged.
+  layout:
+    description: 'Per-bundle, platform-projected YAML domain files. Deviation from implementation_architecture:
+      files are projected per bundle rather than byte-identical shared files, so each complete bundle
+      (root SKILL.md, policies/, agents/, skills/, references/) is self-contained and needs no runtime
+      platform filtering. Individual agents and skills are not self-contained: they are loaders that require
+      the complete installed bundle (architecture_decisions.agent_body_strategy).'
+    projection: Rules with platform != bundle are omitted; {claude,copilot} valued fields take the bundle
+      value; <field>_<bundle> becomes <field>.
+    nuance: 'Each policy carries source_nuance: the verbatim baseline excerpt(s) for this bundle (inventory
+      sources line ranges at the baseline commit) with only the declared substitutions applied, because
+      inventory rule statements are compressed summaries. Template bodies (doc-format-templates.md) are
+      not excerpted; they stay as retained prose.'
+    source_nuance_substitutions:
+    - pattern: \[(?:references/)?(orchestration-state|stage-workflow|handoff-contract-schema|validation-rules|trusted-source-policy|argument-parsing)\.md\]\([^)]*\)
+      replacement: REFMAP
+    - pattern: DudeWriteMyFeature Phase 1
+      replacement: DudeWriteMyFeature feature-design Step 2 (Resource Investigation)
+    - pattern: must skip it and start at section 2;
+      replacement: must skip the host steps and start at the controller load set;
+    - pattern: Sections 2–6 are executed only by the dedicated controller\.
+      replacement: Controller steps (manifest load set `controller`) are executed only by the dedicated
+        controller.
+    - pattern: completion gate for Phase 2 of `DudeWriteMyFeature`
+      replacement: completion gate for the feature-implementation stage of `DudeWriteMyFeature`
+    - pattern: whether Phase 2 follows Phase 1 or
+      replacement: whether feature implementation follows feature design or
+    - pattern: current Phase 2 state
+      replacement: current feature-implementation state
+    - pattern: Phase 2 exits only on
+      replacement: The feature implementation/validation loop exits only on
+    - pattern: to Phase 2 feature implementation verification
+      replacement: to feature implementation verification
+    - pattern: '(?m)^version: \d+\.\d+\.\d+$'
+      replacement: 'version: <current value: installed frontmatter, see policies/metadata.yaml crews>'
+    - pattern: 'Bundled agent crew version: `[^`]+`'
+      replacement: 'Bundled agent crew version: `<policies/metadata.yaml crews.agents.version>`'
+    - pattern: 'Bundled skill crew version: `[^`]+`'
+      replacement: 'Bundled skill crew version: `<policies/metadata.yaml crews.skills.version>`'
+    - pattern: \[references/workflow\.md\]\(references/workflow\.md\)
+      replacement: '`references/workflow.yaml` (manifest load set `stage.<skill>`)'
+    - pattern: absolute shared-policy paths under this root's `references/`;
+      replacement: the absolute `policies/manifest.yaml` locator and digest plus host-computed policy
+        snapshot values (manifest.yaml integrity);
+    - pattern: and its installed frontmatter model\nalias,
+      replacement: 'and the controller model ID
+
+        from the resolved model profile (bundled-default: installed frontmatter `model` alias),'
+    - pattern: 'Invoke Task with `subagent_type: dev-dude-orchestrator`,'
+      replacement: 'Invoke Task with `subagent_type: dev-dude-orchestrator` and the controller model ID
+        from the resolved model profile,'
+    - pattern: this skill and its references supply workflow\nauthority
+      replacement: 'the YAML policies indexed by `policies/manifest.yaml` supply workflow
+
+        authority'
+    - pattern: '## 1\. Host Bootstrap — Prepare the Runtime\n\nThis section is host-only\.'
+      replacement: '## Host Bootstrap — Prepare the Runtime
+
+
+        The host steps (manifest load set `host.launch`) are host-only.'
+    - pattern: must pass the selected agent's reasoning-agnostic frontmatter `model` alias\.
+      replacement: 'must pass the role model ID from the pinned model profile snapshot (bundled-default:
+        the agent''s reasoning-agnostic frontmatter `model` alias).'
+    reference_map:
+      orchestration-state.md: policies/state.yaml + policies/watchdog.yaml
+      stage-workflow.md: policies/stage-workflow.yaml
+      handoff-contract-schema.md: policies/handoff.yaml
+      validation-rules.md: policies/validation-rules.yaml
+      trusted-source-policy.md: policies/trusted-sources.yaml
+      argument-parsing.md: policies/commands.yaml
+  counts:
+    baseline_policies: 128
+    baseline_rules: 692
+    claude:
+      policies: 128
+      rules: 679
+    copilot:
+      policies: 127
+      rules: 683
+    baseline_rules_migrated: 692
+    baseline_rules_not_migrated: []
+    added_rules:
+    - ARCH-P3-001.R05
+    - BOOT-PKT-001.R13
+    - BOOT-PKT-001.R14
+    - CMD-ROUTE-001.R08
+    - CMD-USAGE-001.R04
+    - ENV-001.R07
+    - HOC-SCHEMA-001.R16
+    - STATE-SCHEMA-001.R07
+    - UPD-CMD-001.R09
+    - VAL-PASS-001.R06
+    amended_rules:
+    - AGT-AR-META-001.R05
+    - AGT-CFA-META-001.R06
+    - AGT-FI-META-001.R05
+    - AGT-FV-002.R01
+    - AGT-FV-META-001.R06
+    - AGT-ID-META-001.R05
+    - AGT-ORC-META-001.R04
+    - AGT-TI-META-001.R05
+    - AGT-TRI-002.R02
+    - AGT-TRI-META-001.R02
+    - AGT-TRI-META-001.R06
+    - AGT-UX-META-001.R05
+    - ARCH-P1-001.R04
+    - BOOT-PKT-001.R01
+    - BOOT-PKT-001.R08
+    - FDES-RES-001.R03
+    - FSK-META-001.R01
+    - FSK-META-001.R02
+    - FSK-META-001.R03
+    - FSK-META-001.R04
+    - FSK-META-001.R05
+    - FVAL-FEAT-001.R01
+    - FVAL-GATE-001.R03
+    - META-CREW-001.R01
+    - META-CREW-002.R01
+    - META-ROOT-001.R02
+    - META-ROOT-002.R01
+    - META-SKL-001.R01
+    - META-SKL-001.R02
+    - META-SKL-001.R03
+    - META-SKL-001.R04
+    - ORCH-ENTRY-001.R01
+    - ORCH-STATE-001.R01
+    - ORCH-STATE-001.R02
+    - UPD-CHECK-001.R01
+    - UPD-CMD-001.R05
+    policies_with_retained_prose:
+    - AGT-CFA-002
+    - AGT-ID-004
+    - AGT-ID-MERMAID-001
+    - AGT-UX-001
+    - ARCH-P1-001
+    - FVAL-GATE-001
+    - TPL-ARCH-001
+    - TPL-DEEP-001
+    - TPL-DES-001
+    - TPL-INT-001
+    - TPL-INTRO-001
+    - TPL-RES-001
+    - TPL-VER-001
+  final_mapping:
+    META-ROOT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 3
+      amended_rules:
+      - META-ROOT-001.R02
+    META-ROOT-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 1
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 1
+      amended_rules:
+      - META-ROOT-002.R01
+    META-ROOT-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 4
+    META-CREW-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 3
+      amended_rules:
+      - META-CREW-001.R01
+    META-CREW-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 2
+      amended_rules:
+      - META-CREW-002.R01
+    META-SKL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 4
+      amended_rules:
+      - META-SKL-001.R01
+      - META-SKL-001.R02
+      - META-SKL-001.R03
+      - META-SKL-001.R04
+    CMD-ROUTE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 8
+      added_rules:
+      - CMD-ROUTE-001.R08
+      policy_amendment:
+        by: CNF-ROOT-002
+        reason: argument-parsing.md removed; routing rules live in commands.yaml for both bundles.
+        changed:
+        - platform_binding
+    CMD-USAGE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 4
+      added_rules:
+      - CMD-USAGE-001.R04
+      policy_amendment:
+        by: CNF-ROOT-002
+        reason: Shared usage applies to both bundles.
+        changed:
+        - scope.platforms
+    CMD-INPUT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/commands.yaml
+          rules: 3
+    UPD-CHECK-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/update.yaml
+          rules: 13
+        copilot:
+          status: migrated
+          file: policies/update.yaml
+          rules: 13
+      amended_rules:
+      - UPD-CHECK-001.R01
+      policy_amendment:
+        by: PCH-UPD-001
+        reason: Offline models exception.
+        changed:
+        - scope.when
+    UPD-CMD-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/update.yaml
+          rules: 9
+        copilot:
+          status: migrated
+          file: policies/update.yaml
+          rules: 9
+      added_rules:
+      - UPD-CMD-001.R09
+      amended_rules:
+      - UPD-CMD-001.R05
+    INST-LOCK-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/install.yaml
+          rules: 1
+        copilot:
+          status: migrated
+          file: policies/install.yaml
+          rules: 1
+    INST-AGT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/install.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/install.yaml
+          rules: 3
+    INST-SKL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/install.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/install.yaml
+          rules: 6
+    INST-RT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/platform.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: policies/platform.yaml
+          rules: 2
+    CTX-IDX-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/runtime-context.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/runtime-context.yaml
+          rules: 3
+    CTX-RES-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/runtime-context.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/runtime-context.yaml
+          rules: 3
+    BOOT-CAP-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 5
+    BOOT-DUP-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 4
+    BOOT-PKT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 14
+        copilot:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 14
+      amended_rules:
+      - BOOT-PKT-001.R01
+      - BOOT-PKT-001.R08
+      added_rules:
+      - BOOT-PKT-001.R13
+      - BOOT-PKT-001.R14
+    BOOT-RELAY-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/bootstrap.yaml
+          rules: 5
+    ORCH-ENTRY-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 4
+      amended_rules:
+      - ORCH-ENTRY-001.R01
+    ORCH-STATE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 5
+      amended_rules:
+      - ORCH-STATE-001.R01
+      - ORCH-STATE-001.R02
+    DISP-TABLE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 7
+    DISP-STEP-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 7
+    DISP-WD-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 7
+    INV-GLOBAL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 15
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 14
+    OUT-STABLE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 3
+    STATE-ROLE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/state.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/state.yaml
+          rules: 4
+    STATE-LOC-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/state.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/state.yaml
+          rules: 3
+    STATE-SCHEMA-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/state.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/state.yaml
+          rules: 7
+      added_rules:
+      - STATE-SCHEMA-001.R07
+    STATE-CKPT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/state.yaml
+          rules: 10
+        copilot:
+          status: migrated
+          file: policies/state.yaml
+          rules: 10
+    STATE-RECON-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/state.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/state.yaml
+          rules: 8
+    WD-MODE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 5
+    WD-JOURNAL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 6
+    WD-DEADLINE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 10
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 10
+    WD-RETRY-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 7
+    ENV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 7
+      added_rules:
+      - ENV-001.R07
+    STG-FW-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 3
+    STG-DECL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 2
+    STG-LIFE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 8
+    STG-STORE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 2
+    STG-FAIL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 10
+        copilot:
+          status: migrated
+          file: policies/stage-workflow.yaml
+          rules: 10
+    HOC-SCHEMA-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 16
+        copilot:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 16
+      added_rules:
+      - HOC-SCHEMA-001.R16
+    HOC-SEM-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 12
+        copilot:
+          status: migrated
+          file: policies/handoff.yaml
+          rules: 12
+    VAL-PASS-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 6
+      added_rules:
+      - VAL-PASS-001.R06
+    VAL-OUT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 4
+    VAL-ADV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 25
+        copilot:
+          status: migrated
+          file: policies/validation-rules.yaml
+          rules: 25
+    TSP-SCOPE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 3
+    TSP-INV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 4
+    TSP-LIST-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 3
+    TSP-ADV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/trusted-sources.yaml
+          rules: 5
+    TPL-INTRO-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 1
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 1
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-ARCH-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-DEEP-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-VER-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-RES-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 3
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 3
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-DES-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 2
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    TPL-INT-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 4
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/output-templates.yaml
+          rules: 4
+      retained_prose:
+      - path: references/doc-format-templates.md
+        content: template body
+        reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+          are the YAML rules.
+    FSK-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 5
+      amended_rules:
+      - FSK-META-001.R01
+      - FSK-META-001.R02
+      - FSK-META-001.R03
+      - FSK-META-001.R04
+      - FSK-META-001.R05
+      policy_amendment:
+        by: PCH-MOD-006
+        reason: Default version derived from crews.skills.version.
+        changed:
+        - defaults
+    FSK-MON-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/watchdog.yaml
+          rules: 4
+    FSK-CONTRACT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/orchestration.yaml
+          rules: 5
+    ARCH-PRE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+    ARCH-P0-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 7
+    ARCH-BASE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 1
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 1
+    ARCH-P1-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated-with-retained-prose
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+      amended_rules:
+      - ARCH-P1-001.R04
+      policy_amendment:
+        by: CNF-CONC-001
+        reason: Root max 6.
+        changed:
+        - defaults
+      retained_prose:
+      - path: skills/dev-dude-architecture/references/workflow.md
+        content: task-call examples
+        reason: Illustrative dispatch examples; rules in workflow.yaml.
+    ARCH-P2-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+    ARCH-GATE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+    ARCH-P3-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+      added_rules:
+      - ARCH-P3-001.R05
+    ARCH-P4-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 4
+    ARCH-P5-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 4
+    ARCH-ADD-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 7
+    ARCH-DELTA-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 8
+    ARCH-DELTA-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 5
+    ARCH-TEAM-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: not-applicable
+          reason: policy scope excludes copilot
+    ARCH-EXIT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: skills/dev-dude-architecture/references/workflow.yaml
+          rules: 3
+    FDES-ENTRY-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 5
+    FDES-INV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 3
+    FDES-RES-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 6
+      amended_rules:
+      - FDES-RES-001.R03
+    FDES-OPT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 3
+    FDES-CRIT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 3
+    FDES-GATE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-design/references/workflow.yaml
+          rules: 5
+    FIMP-ENTRY-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 3
+    FIMP-CLAR-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 6
+    FIMP-PLAN-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 2
+    FIMP-IMPL-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 5
+    FIMP-TEST-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 4
+    FIMP-EXIT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: skills/dev-dude-feature-implementation/references/workflow.yaml
+          rules: 3
+    FVAL-PRE-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 4
+    FVAL-DOC-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 5
+    FVAL-FEAT-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 8
+      amended_rules:
+      - FVAL-FEAT-001.R01
+    FVAL-GATE-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 3
+        copilot:
+          status: migrated-with-retained-prose
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 4
+      amended_rules:
+      - FVAL-GATE-001.R03
+      retained_prose:
+      - path: skills/dev-dude-validation/references/workflow.md
+        content: verification.md report skeleton
+        reason: Template body; sections normative in FVAL-GATE-001.R04.
+    FVAL-LOOP-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 6
+    FVAL-DOCFIX-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: skills/dev-dude-validation/references/workflow.yaml
+          rules: 6
+    AGT-ORC-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-ORC-META-001.R04
+    AGT-ORC-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 6
+    AGT-ORC-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 8
+    AGT-ORC-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/agents/dev-dude-orchestrator.yaml
+          rules: 3
+    AGT-AR-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-AR-META-001.R05
+    AGT-AR-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/architecture-reviewer.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/agents/architecture-reviewer.yaml
+          rules: 8
+    AGT-UX-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-UX-META-001.R05
+    AGT-UX-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/agents/ux-design-reviewer.yaml
+          rules: 9
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/agents/ux-design-reviewer.yaml
+          rules: 9
+      retained_prose:
+      - path: agents/ux-design-reviewer.md
+        content: layout map example
+        reason: Illustrative output example; nonnormative.
+    AGT-CFA-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-CFA-META-001.R06
+    AGT-CFA-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 3
+    AGT-CFA-002:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 5
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 5
+      retained_prose:
+      - path: agents/code-flow-analyzer.md
+        content: snippet, mermaid and test-evidence format examples
+        reason: Illustrative formats; rules in policies/agents/code-flow-analyzer.yaml.
+    AGT-CFA-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/code-flow-analyzer.yaml
+          rules: 6
+    AGT-TRI-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-TRI-META-001.R02
+      - AGT-TRI-META-001.R06
+    AGT-TRI-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+    AGT-TRI-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+      amended_rules:
+      - AGT-TRI-002.R02
+    AGT-TRI-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/agents/technical-resource-investigator.yaml
+          rules: 5
+    AGT-FI-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-FI-META-001.R05
+    AGT-FI-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 2
+        copilot:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 2
+    AGT-FI-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 8
+        copilot:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 8
+    AGT-FI-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/feature-implementer.yaml
+          rules: 6
+    AGT-TI-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-TI-META-001.R05
+    AGT-TI-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 3
+    AGT-TI-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 6
+    AGT-TI-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 4
+    AGT-TI-004:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 5
+        copilot:
+          status: migrated
+          file: policies/agents/test-implementer.yaml
+          rules: 5
+    AGT-FV-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-FV-META-001.R06
+    AGT-FV-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/feature-validator.yaml
+          rules: 7
+        copilot:
+          status: migrated
+          file: policies/agents/feature-validator.yaml
+          rules: 7
+    AGT-FV-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/feature-validator.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/feature-validator.yaml
+          rules: 6
+      amended_rules:
+      - AGT-FV-002.R01
+    AGT-ID-META-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/metadata.yaml
+          rules: 6
+      amended_rules:
+      - AGT-ID-META-001.R05
+    AGT-ID-001:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 3
+        copilot:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 3
+    AGT-ID-002:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 4
+        copilot:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 4
+    AGT-ID-003:
+      final_status: migrated
+      bundles:
+        claude:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 6
+        copilot:
+          status: migrated
+          file: policies/agents/investigation-documenter.yaml
+          rules: 6
+    AGT-ID-MERMAID-001:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/agents/investigation-documenter.yaml
+          rules: 7
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/agents/investigation-documenter.yaml
+          rules: 7
+      retained_prose:
+      - path: agents/investigation-documenter.md
+        content: mermaid validation command example
+        reason: Illustrative command sequence; rules in YAML.
+    AGT-ID-004:
+      final_status: migrated-with-retained-prose
+      bundles:
+        claude:
+          status: migrated-with-retained-prose
+          file: policies/agents/investigation-documenter.yaml
+          rules: 4
+        copilot:
+          status: migrated-with-retained-prose
+          file: policies/agents/investigation-documenter.yaml
+          rules: 4
+      retained_prose:
+      - path: agents/investigation-documenter.md
+        content: document skeleton and diagram examples
+        reason: Illustrative template; TPL templates take precedence (CNF-TPL-002).
+  rule_amendments:
+    META-ROOT-001.R02:
+      by: PCH-MOD-006
+      reason: Version kept once in metadata root.version (bumped root release 1.1.0).
+      set:
+        value_ref: root.version
+      removed_fields:
+      - value
+    META-CREW-001.R01:
+      by: PCH-MOD-006
+      reason: Single bump-workflow target crews.agents.version (1.0.7); sentence in root SKILL.md also
+        maintained by TOOL-CI-001.
+      set:
+        value_ref: crews.agents.version
+        note: 'sentence `Bundled agent crew version: `x.y.z`` in root SKILL.md and metadata.yaml crews.agents.version
+          are both rewritten by TOOL-CI-001'
+      removed_fields:
+      - value
+    META-CREW-002.R01:
+      by: PCH-MOD-006
+      reason: Single source crews.skills.version (1.1.4).
+      set:
+        value_ref: crews.skills.version
+      removed_fields:
+      - value
+    META-SKL-001.R01:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    FSK-META-001.R01:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    META-SKL-001.R02:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    FSK-META-001.R02:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    META-SKL-001.R03:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    FSK-META-001.R03:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    META-SKL-001.R04:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    FSK-META-001.R04:
+      by: PCH-MOD-006
+      reason: Functional skill version derived from crews.skills.version (1.1.4).
+      set:
+        version_ref: crews.skills.version
+      removed_fields:
+      - version
+    AGT-ORC-META-001.R04:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-AR-META-001.R05:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-UX-META-001.R05:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-CFA-META-001.R06:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-TRI-META-001.R06:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-FI-META-001.R05:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-TI-META-001.R05:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-FV-META-001.R06:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    AGT-ID-META-001.R05:
+      by: PCH-MOD-006
+      reason: Agent version derived from crews.agents.version (1.0.7).
+      set:
+        value_ref: crews.agents.version
+      removed_fields:
+      - value
+    META-ROOT-002.R01:
+      by: PCH-MOD-002
+      reason: Models hints (every models grammar form) added to the displayed argument hints.
+      set:
+        statement: 'Hints: update; models show; models profiles; models validate; models set <role|all>
+          <model-id> --profile <name> --scope <project|user>; models use <profile|bundled-default> --scope
+          <project|user>; models reset --scope <project|user>; DudeWhereIsMyArch all; all refresh; authentication
+          refresh; DudeWhereIsMyArch authentication; DudeWriteMyFeature Add user caching'
+      removed_fields: []
+    FSK-META-001.R05:
+      by: CNF-STALE-001
+      reason: Markdown workflow no longer normative.
+      set:
+        statement: 'Body entry: apply the policy loader for manifest load set stage.<skill> and execute
+          references/workflow.yaml (root copy); references/workflow.md holds only nonnormative examples.'
+      removed_fields: []
+    AGT-TRI-META-001.R02:
+      by: CNF-STALE-001
+      reason: Stale phase label replaced.
+      set:
+        value: Investigate technical resources (external packages/services/platforms/APIs + reusable internal
+          components) in 'DudeWriteMyFeature feature-design Step 2 (Resource Investigation)' after code-flow
+          investigation; modes discovery and critique-and-amend (stronger model); read-only; allowlisted
+          sources.
+      removed_fields: []
+    UPD-CHECK-001.R01:
+      by: CNF-STALE-001
+      reason: Section numbers replaced by load sets.
+      set:
+        statement: Host-only step (manifest load sets host.*); an orchestrator with entry_role orchestrator
+          skips the host steps and never invokes itself or another controller.
+      removed_fields: []
+    ORCH-ENTRY-001.R01:
+      by: CNF-STALE-001
+      reason: Section numbers replaced by load sets.
+      set:
+        statement: Controller steps (manifest load set `controller`) run only in the dedicated controller.
+      removed_fields: []
+    ORCH-STATE-001.R01:
+      by: CNF-STALE-001
+      reason: Reference Markdown replaced by YAML domain files.
+      set:
+        statement: Load policies/state.yaml, policies/watchdog.yaml and policies/stage-workflow.yaml on
+          every command entry, stage entry, direct resume, suspected compaction.
+      removed_fields: []
+    ORCH-STATE-001.R02:
+      by: CNF-STALE-001
+      reason: Reference Markdown replaced by YAML domain files.
+      set:
+        statement: Load policies/handoff.yaml and policies/validation-rules.yaml whenever creating/validating
+          a transition.
+      removed_fields: []
+    BOOT-PKT-001.R08:
+      by: CNF-STALE-001
+      reason: references/ paths replaced by the policy root locator.
+      set:
+        field: policy_context
+        statement: absolute policy root, absolute policies/manifest.yaml path and its SHA-256 digest for
+          the installed root that launched the controller
+      removed_fields: []
+    BOOT-PKT-001.R01:
+      by: PCH-MOD-004
+      reason: Model comes from the resolved profile.
+      set:
+        statement: Invoke orchestrator via platform delegation (claude Task subagent_type; copilot task
+          agent_type + the dev-dude-orchestrator model ID from the resolved profile, which equals the
+          installed frontmatter model for bundled-default) using supported background or cooperative synchronous
+          execution.
+      removed_fields: []
+    FVAL-FEAT-001.R01:
+      by: CNF-STALE-001
+      reason: Phase 2 label replaced with stage names.
+      set:
+        statement: Mandatory completion gate for the feature-implementation stage of DudeWriteMyFeature
+          whether it follows feature design or resumes from an existing plan.
+      removed_fields: []
+    FDES-RES-001.R03:
+      by: CNF-WRITE-001
+      reason: Read-only role returns content; stage persists.
+      set:
+        statement: TRI is read-only; it returns resources-investigation.md content and the feature-design
+          stage persists it at the envelope Expected output.
+      removed_fields: []
+    FVAL-GATE-001.R03:
+      by: CNF-WRITE-001
+      reason: Read-only validator returns content; stage persists.
+      set:
+        statement: The validation stage writes/updates ./docs/<feature-slug>/verification.md from the
+          report returned by the read-only Feature-Validator.
+      removed_fields: []
+    AGT-TRI-002.R02:
+      by: CNF-WRITE-001
+      reason: Read-only role returns content.
+      set:
+        statement: Validate internal reuse from investigation.md; external only from allowlisted sources
+          with citation; facts vs recommendations; prefer in-repo reuse unless external clearly justified;
+          record gaps; never fetch/execute third-party code; return resources-investigation.md content
+          for the invoking stage to persist per template.
+      removed_fields: []
+    AGT-FV-002.R01:
+      by: CNF-FV-001
+      reason: Criteria rows aligned with the validation workflow six criteria.
+      set:
+        statement: 'Exact top-level structure as FVAL-GATE-001.R04 with criteria rows (Pass/Fail): Implementation
+          plan complete; Tests paired with implementation; Project validation run; Spec/design satisfied;
+          Integration verified; Evidence sufficient.'
+      removed_fields: []
+    ARCH-P1-001.R04:
+      by: CNF-CONC-001
+      reason: Root max of 6 applies on both platforms.
+      set:
+        value: '6'
+        statement: At most 6 Phase 1 agents (Code-Flow-Analyzer + UX-Design-Reviewer) run concurrently
+          on either platform; batch remaining areas.
+      removed_fields: []
+    UPD-CMD-001.R05:
+      by: CNF-STALE-001
+      reason: Staging validated deleted references/ files; it now validates the whole policy root (manifest
+        index, every policy file, workflow.yaml) before any replacement.
+      set:
+        statement: 'Step4: download pinned archive to staging outside project; extract only this platform
+          bundle; reject traversal, absolute paths, symlinks, escapes. Before replacing anything validate
+          the complete staged bundle: root SKILL.md frontmatter; policies/manifest.yaml (schema_version
+          1.0, bundle = this platform) whose `files` index equals exactly the staged policies/**/*.yaml
+          plus skills/*/references/workflow.yaml (no missing, extra, absolute or escaping paths); every
+          indexed file parses as one safe YAML document (no duplicate keys, anchors/aliases or explicit
+          tags) with schema_version 1.0, this bundle, and exactly the policy IDs its `files` entry and
+          `policy_index` declare; metadata.yaml names and versions agree with the nine agents and four
+          skills (frontmatter names, semver, crew agreement) and the root; references/doc-format-templates.md
+          present. Any missing, malformed, mismatched or escaping file stops without changes.'
+      removed_fields: []
+  added_rules:
+    ARCH-P3-001.R05:
+      policy: ARCH-P3-001
+      by: CNF-CONC-002
+    ENV-001.R07:
+      policy: ENV-001
+      by: PCH-MOD-004
+    HOC-SCHEMA-001.R16:
+      policy: HOC-SCHEMA-001
+      by: PCH-MOD-004
+    VAL-PASS-001.R06:
+      policy: VAL-PASS-001
+      by: PCH-MOD-004
+    STATE-SCHEMA-001.R07:
+      policy: STATE-SCHEMA-001
+      by: PCH-MOD-004
+    BOOT-PKT-001.R13:
+      policy: BOOT-PKT-001
+      by: PCH-MOD-004
+    BOOT-PKT-001.R14:
+      policy: BOOT-PKT-001
+      by: PCH-MOD-004
+    CMD-ROUTE-001.R08:
+      policy: CMD-ROUTE-001
+      by: PCH-MOD-002
+    CMD-USAGE-001.R04:
+      policy: CMD-USAGE-001
+      by: PCH-MOD-002
+    UPD-CMD-001.R09:
+      policy: UPD-CMD-001
+      by: PCH-MOD-003
+  conflict_decisions:
+    CNF-ROOT-001:
+      status: resolved
+      decision: argument-hint stays derived display text immediately after the root frontmatter; the authoritative
+        list is META-ROOT-002 (metadata.yaml derived_display). It is not moved into frontmatter because
+        no host documentation verified `argument-hint` as an accepted skill frontmatter key.
+      evidence: Baseline SKILL.md lines 11-17 follow the closing frontmatter delimiter at line 10 in both
+        bundles.
+      applied_to:
+      - META-ROOT-002
+    CNF-ROOT-002:
+      status: resolved
+      decision: One shared usage definition (CMD-USAGE-001 + commands.yaml usage_text) ships in both bundles;
+        Claude prints the same usage text Copilot printed from argument-parsing.md.
+      evidence: Baseline Claude SKILL.md said only "print usage"; Copilot references/argument-parsing.md
+        held the text.
+      applied_to:
+      - CMD-USAGE-001
+      - CMD-ROUTE-001
+    CNF-IDX-001:
+      status: resolved
+      decision: 'Platform-specific prerequisites are authoritative: Claude requires at least one code
+        indexer and TeamCreate; Copilot permits zero indexers with grep/glob/view fallback and has no
+        TeamCreate prerequisite. README prerequisites now state the difference.'
+      evidence: CTX-IDX-001 platform rules and INST-RT-001 in baseline SKILL.md; README listed one generic
+        prerequisite list.
+      applied_to:
+      - CTX-IDX-001
+      - INST-RT-001
+    CNF-IDX-002:
+      status: resolved
+      decision: Validation examples keep Serena names as illustrations with an explicit fallback mapping
+        (list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+        -> grep; search_for_pattern -> grep) recorded as rule resolutions.
+      evidence: Baseline validation workflow.md Steps 2-3 name Serena tools while Copilot allows indexer-less
+        runs.
+      applied_to:
+      - FVAL-PRE-001
+      - FVAL-DOC-001
+    CNF-RT-001:
+      status: resolved
+      decision: Host setup prefers the global Mermaid CLI install; the documenter `npm install --no-save`
+        + `npx mmdc` sequence is an accepted alternative when the global CLI is absent. The documenter
+        reports which tool or fallback was used.
+      evidence: INST-RT-001 (root SKILL.md runtime setup) vs AGT-ID-MERMAID-001 (documenter body).
+      applied_to:
+      - INST-RT-001
+      - AGT-ID-MERMAID-001
+    CNF-CONC-001:
+      status: resolved
+      decision: 'Root authority wins: at most 6 concurrent Phase 1 agents on both platforms; remaining
+        areas are batched. The baseline 4-6 lower bound was guidance, not a minimum.'
+      evidence: INV-GLOBAL-001 (max 6 Code-Flow-Analyzers) vs architecture workflow.md Phase 1 "4-6".
+      applied_to:
+      - ARCH-P1-001
+      - INV-GLOBAL-001
+    CNF-CONC-002:
+      status: resolved
+      decision: Phase 3 and additive/delta verification batch Code-Flow-Analyzer tasks to at most 6 concurrent
+        (added rule ARCH-P3-001.R05).
+      evidence: Baseline Phase 3 said "one per document, parallel" without a cap.
+      applied_to:
+      - ARCH-P3-001
+      - INV-GLOBAL-001
+    CNF-ASK-001:
+      status: resolved
+      decision: 'Orchestrated mode (envelope present): any step that would ask or wait for the user returns
+        `blocked` to the invoking stage with the exact question, options and proposed default; the stage
+        returns a blocked handoff; root records waiting-for-user and asks. Standalone mode (no envelope)
+        keeps interactive asking unchanged.'
+      evidence: STATE-ROLE-001 (only root talks to the user) vs agent bodies that ask directly (AR, UX,
+        CFA, FI, TI, ID).
+      applied_to:
+      - STATE-ROLE-001
+      - AGT-ORC-002
+      - AGT-AR-001
+      - AGT-UX-001
+      - AGT-CFA-003
+      - AGT-FI-002
+      - AGT-TI-002
+      - AGT-ID-002
+      - ARCH-P1-001
+      - ARCH-P4-001
+    CNF-ASK-002:
+      status: resolved
+      decision: 'Orchestrated: write permission plus an Expected output path in the envelope is the user-authorized
+        approval for exactly those paths, including in-place delta updates; other paths need a blocked
+        gate. Delta refresh "ask before Base fallback" becomes a blocked handoff gate. Standalone keeps
+        "May I create this file at [path]?".'
+      evidence: AGT-ID-002 write confirmation vs orchestrated document writes in ARCH-P2/ARCH-DELTA.
+      applied_to:
+      - AGT-ID-002
+      - ARCH-P2-001
+      - ARCH-DELTA-001
+    CNF-ASK-003:
+      status: resolved
+      decision: 'Orchestrated: the feature-implementation stage instruction to run relevant tests is the
+        explicit execution confirmation; no in-invocation question. Standalone keeps the confirmation
+        question.'
+      evidence: AGT-TI-002 asks before running tests; FIMP-TEST-001 instructs running them.
+      applied_to:
+      - AGT-TI-002
+      - FIMP-TEST-001
+    CNF-ASK-004:
+      status: resolved
+      decision: 'Orchestrated: the envelope Expected output and OUT-STABLE-001 locations are the storage
+        instruction; agents never ask where to store. Standalone without a location still asks.'
+      evidence: CFA/FI/TI/ID bodies ask for storage location when none is given.
+      applied_to:
+      - AGT-CFA-003
+      - AGT-FI-003
+      - AGT-TI-004
+      - OUT-STABLE-001
+    CNF-ASK-005:
+      status: resolved
+      decision: 'Orchestrated: the implementation-plan.md section supplied in the envelope is the approved
+        plan (approved through design approval and the clarification gate). A refactor touching more than
+        5 files or an unresolved convention choice returns `blocked` with the file list/options; the stage
+        returns a blocked handoff and root asks the user (REFACTOR PERMISSION / CONVENTION gates in the
+        run-state gate table).'
+      evidence: AGT-FI-002 / AGT-TI-002 plan approval and >5-file refactor permission vs FIMP-CLAR-001
+        clarification gate.
+      applied_to:
+      - AGT-FI-002
+      - AGT-TI-002
+      - FIMP-CLAR-001
+    CNF-NEST-001:
+      status: resolved
+      decision: Feature-Implementer may delegate the changes summary to investigation-documenter only
+        when its envelope authorizes nested delegation; the child envelope carries the same Policy manifest
+        and Model profile snapshot locators/digests, the documenter model comes from the snapshot role
+        investigation-documenter, write is limited to the changes-summary path, and the child identity/status
+        is reported to the stage. Otherwise Feature-Implementer writes the summary itself.
+      evidence: AGT-FI-003 nested documenter call vs ENV-001 envelope ownership.
+      applied_to:
+      - AGT-FI-003
+      - ENV-001
+    CNF-WRITE-001:
+      status: resolved
+      decision: No tool lists are broadened. Read-only roles (code-flow-analyzer, technical-resource-investigator,
+        feature-validator) return artifact content; the invoking functional stage persists it at the envelope
+        Expected output path. Standalone use returns content to the user.
+      evidence: Frontmatter tools lack Write while workflow.md said the agent "writes" its artifact.
+      applied_to:
+      - AGT-TRI-002
+      - FDES-RES-001
+      - FVAL-GATE-001
+      - AGT-CFA-META-001
+      - AGT-FV-META-001
+    CNF-STALE-001:
+      status: resolved
+      decision: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design Step
+        2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+      evidence: Baseline root SKILL.md lines 29-30 and 207-235; TRI description line 3; validation workflow.md
+        line 56; doc-format-templates.md lines 175-378. Baseline root SKILL.md lines 74-78 (staging validated
+        references/).
+      applied_to:
+      - AGT-TRI-META-001
+      - FVAL-FEAT-001
+      - UPD-CHECK-001
+      - ORCH-ENTRY-001
+      - ORCH-STATE-001
+      - BOOT-PKT-001
+      - FSK-META-001
+      - TPL-RES-001
+      - UPD-CMD-001
+    CNF-TPL-001:
+      status: resolved
+      decision: Resources template step labels fixed in references/doc-format-templates.md in both bundles.
+      evidence: doc-format-templates.md lines 175, 259, 273.
+      applied_to:
+      - TPL-RES-001
+    CNF-TPL-002:
+      status: resolved
+      decision: For DevDude workflow outputs the TPL-* templates take precedence; the documenter generic
+        structure applies only to standalone documents with no TPL template.
+      evidence: AGT-ID-001/AGT-ID-004 generic structure vs TPL-ARCH/TPL-DEEP/TPL-DES.
+      applied_to:
+      - AGT-ID-001
+      - AGT-ID-004
+      - TPL-ARCH-001
+    CNF-TEAM-001:
+      status: resolved
+      decision: 'Claude feature design follows the ARCH-TEAM-001 lifecycle: create the team at Step 1,
+        assign tasks with dependencies, reconcile and checkpoint each result, and shut down members and
+        delete the team before returning any handoff, including the blocked User Review Gate handoff.'
+      evidence: Baseline Claude feature-design workflow creates a team without the architecture shutdown
+        rules.
+      applied_to:
+      - FDES-INV-001
+    CNF-LIMIT-001:
+      status: resolved
+      decision: 'Root owns the validation attempt limit: default 3, changed only by an explicit quoted
+        user decision, recorded as `Validation attempts: <current>/<max> (source: default|user decision)`
+        (STATE-SCHEMA-001.R07).'
+      evidence: FVAL-LOOP-001 "unless user set another" without a recording location.
+      applied_to:
+      - FVAL-LOOP-001
+      - STATE-SCHEMA-001
+    CNF-FV-001:
+      status: resolved
+      decision: 'Feature-Validator criteria rows use the six validation-workflow criteria: Implementation
+        plan complete; Tests paired with implementation; Project validation run; Spec/design satisfied;
+        Integration verified; Evidence sufficient.'
+      evidence: AGT-FV-002 listed five differently worded rows vs FVAL-FEAT-001 six criteria.
+      applied_to:
+      - AGT-FV-002
+      - FVAL-FEAT-001
+    CNF-DRIFT-001:
+      status: preserved
+      decision: Intentional baseline platform variance (Claude-only FI/TI scope text and example; Copilot-only
+        TRI examples) is preserved in platform-scoped rules; harmonizing would change agent selection
+        without approval.
+      evidence: Inventory platform-scoped AGT-*-META values.
+      applied_to:
+      - AGT-FI-META-001
+      - AGT-TI-META-001
+      - AGT-TRI-META-001
+    CNF-DRIFT-002:
+      status: resolved
+      decision: README command docs list .docx and multiple-path feature inputs (CMD-INPUT-001.R02).
+      evidence: CMD-INPUT-001 vs README feature input list.
+      applied_to:
+      - CMD-INPUT-001
+    CNF-DRIFT-003:
+      status: preserved
+      decision: Copilot Phase 4 omits the explicit rubric interview line; AGT-AR-001 still establishes
+        criteria when absent through the CNF-ASK-001 blocked gate in orchestrated mode. No workflow text
+        added.
+      evidence: Copilot vs Claude architecture workflow Phase 4.
+      applied_to:
+      - ARCH-P4-001
+    CNF-COLOR-001:
+      status: preserved
+      decision: Cosmetic color difference recorded and preserved unchanged.
+      evidence: AGT-UX-META-001 / AGT-FV-META-001 color values.
+      applied_to:
+      - AGT-UX-META-001
+      - AGT-FV-META-001
+    CNF-MODEL-001:
+      status: resolved
+      decision: 'Bundled Copilot defaults are preserved exactly. Availability is never claimed: if the
+        runtime rejects a bundled default at dispatch, or launch validation cannot verify a custom profile
+        ID, the run stops at MODEL CAPABILITY GATE with no fallback (models.yaml launch_validation).'
+      evidence: claude-opus-5 / claude-opus-4.8 unverified in this environment.
+      applied_to:
+      - AGT-AR-META-001
+      - AGT-UX-META-001
+      - AGT-FI-META-001
+  planned_change_decisions:
+    PCH-MOD-001:
+      status: implemented
+      destination: policies/models.yaml#bundled_default
+    PCH-MOD-002:
+      status: implemented
+      destination: policies/commands.yaml#models_commands
+    PCH-MOD-003:
+      status: implemented
+      destination: policies/models.yaml#config
+    PCH-MOD-004:
+      status: implemented
+      destination: policies/models.yaml#resolution, policies/models.yaml#pinning
+    PCH-MOD-005:
+      status: implemented
+      destination: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+    PCH-MOD-006:
+      status: implemented
+      destination: policies/metadata.yaml#crews, policies/metadata.yaml#version_bump; .github/workflows/bump-agent-versions.yml
+    PCH-UPD-001:
+      status: implemented
+      destination: policies/update.yaml#launch_check.exceptions; README update paragraph
+    PCH-MOD-008:
+      status: implemented
+      destination: policies/platform.yaml#capabilities
+    PCH-MOD-007:
+      status: implemented
+      destination: policies/models.yaml#reasoning_effort
+  deleted_markdown:
+    files:
+    - references/orchestration-state.md
+    - references/stage-workflow.md
+    - references/handoff-contract-schema.md
+    - references/validation-rules.md
+    - references/trusted-source-policy.md
+    - references/argument-parsing.md (copilot only)
+    - skills/dev-dude-feature-design/references/workflow.md
+    - skills/dev-dude-feature-implementation/references/workflow.md
+    reason: All content is normative and now lives in YAML policies (rules + source_nuance); no nonnormative
+      examples remained.
+  retained_markdown:
+    root SKILL.md: frontmatter (derived from metadata.yaml) + argument hints + loader/step index citing
+      policy IDs; crew version sentences kept for TOOL-CI-001 and the update check
+    agents/*.md: frontmatter (derived) + loader stub + nonnormative examples
+    skills/*/SKILL.md: frontmatter (derived) + stage loader stub
+    skills/dev-dude-architecture|dev-dude-validation/references/workflow.md: nonnormative fenced examples
+      only
+    references/doc-format-templates.md: TPL-* template bodies (retained prose)
+  validation:
+    command: python3 scripts/policy_audit.py
+    scope: 'Repository consistency: policy/rule content vs baseline projection (with declared amendments/additions),
+      counts reconciliation, scopes, manifest index, load sets and dependency closure, policy integrity
+      fields, consumer loader paths, frontmatter and hint equality, deleted-file links, YAML-vs-reference-model
+      parity, bump workflow trigger/filter/bump functions, and pure-helper model config/command scenarios.'
+    limits: Not proof of host or runtime execution; loading is instruction-driven; semantic equivalence
+      of source_nuance-based rules awaits independent review.
+  architecture_decisions:
+    agent_body_strategy:
+      selected: ABS-B
+      baseline_recommendation: ABS-A (implementation_architecture.agent_body_strategy recommended keeping
+        self-contained agent bodies)
+      decision: 'Agents and functional skills are thin loaders: frontmatter, the manifest load set specialist.<role>
+        or stage.<skill>, POLICY ROOT GATE, and nonnormative examples. All normative behavior lives in
+        policies/**/*.yaml.'
+      rationale:
+      - 'The complete installed bundle is a prerequisite even for standalone specialist use: the loader
+        resolves the policy root and loads its manifest load set.'
+      - A missing or ambiguous policy root stops at POLICY ROOT GATE (platform.yaml root_discovery); there
+        is no embedded fallback copy of the rules.
+      - Copying or installing agents or skills alone, without the root bundle, is unsupported; README
+        states this.
+      - One YAML authority per rule removes the drift ABS-A would reintroduce between agent bodies and
+        policy files.
+      behavior_change: 'Before: each agent Markdown body carried its own rules and could run copied alone.
+        After: agents require the bundle root; the envelope `Agent policy` field is replaced by Policy
+        manifest + load set specialist.<role> plus the policy snapshot and model snapshot fields (ENV-001.R07).'
+      approval: Covered by the user-approved overall Markdown-to-YAML loader migration; recorded here
+        because it departs from the baseline recommendation.
+  review_amendments:
+    status: applied-pending-independent-review
+    items:
+      RVW-01-model-snapshot-resume: 'models.yaml launch_validation.when and pinning: a resumed run never
+        revalidates or rebuilds from mutable config; a missing or digest-mismatched pinned snapshot blocks
+        (MODEL PIN GATE). pinning.repin is the only change path: verified quiescence, quoted user decision,
+        launch validation, new snapshot version, old snapshot kept, run-state amendment; never a repair
+        for a tampered snapshot.'
+      RVW-02-update-staging: 'UPD-CMD-001.R05 amended (rule_amendments, CNF-STALE-001): staging validates
+        manifest index, every policy file and workflow.yaml (schema, bundle, IDs, names, versions) and
+        rejects missing/malformed/escaping files before any replace; update.yaml owned_files.applies_to
+        ties marker, backup and rollback to the same set.'
+      RVW-03-version-bump-trigger: 'PCH-MOD-006 extended: bump-agent-versions.yml triggers on and filters
+        agents/*.md, policies/agents/*.yaml and policies/models.yaml in both bundles; it writes only agent
+        versions, the root agent-crew sentence and metadata.yaml crews.agents.version; root and skill
+        versions stay manual; loop guard = bot actor + [skip agent-version-bump] tag and metadata.yaml
+        is not a trigger path. Declared in metadata.yaml version_bump; supersedes baseline TOOL-CI-001
+        trigger (agents/*.md only), which stays unchanged in the baseline section.'
+      RVW-04-abs-b: architecture_decisions.agent_body_strategy records ABS-B, rationale and behavior change;
+        README states bundle-level self-containment.
+      RVW-05-load-set-closure: 'manifest load_sets: host.launch += policies/trusted-sources.yaml (CTX-RES-001);
+        stage.dev-dude-architecture += policies/runtime-context.yaml (ARCH-P0-001 -> CTX-IDX-001); stage.dev-dude-feature-design
+        += architecture workflow.yaml (FDES-ENTRY-001.R02 -> ARCH-PRE-001.R02); every specialist.* +=
+        policies/state.yaml (watchdog heartbeats and state fields the specialist writes). Remaining cross-references
+        are listed in manifest informative_references; the audit checks closure.'
+      RVW-06-source-nuance: Declared source_nuance_substitutions replace stale version literals, crew-version
+        literals, deleted references/workflow.md links, references/ policy paths, frontmatter-alias-only
+        model passing and section numbering. The baseline wording stays in the immutable inventory section
+        and git history; ENV/HOC/STATE/BOOT field names and the handoff envelope_block now use separate
+        digest lines; root argument hints list every models command form.
+      RVW-07-policy-integrity: 'manifest.yaml integrity: host hashes every manifest-indexed file with
+        a runtime tool, the controller re-hashes and writes <run-output>/.dev-dude-policy-snapshot.yaml
+        (bundle revision + per-file sha256); every resume, envelope consumer and validator re-hashes and
+        blocks on change (POLICY INTEGRITY GATE); the model snapshot records policy_snapshot_digest. ENV-001.R07,
+        HOC-SCHEMA-001.R16, STATE-SCHEMA-001.R07, BOOT-PKT-001.R13/R14 and VAL-PASS-001.R06 carry the
+        fields. Instruction-driven: the model does not compute hashes itself and nothing here proves runtime
+        enforcement.'
+      RVW-08-audit-parity: scripts/policy_audit.py compares the actual YAML declarations (schema, version,
+        resolution order, grammar, reserved names, gates, precedence, integrity fields, load-set closure,
+        workflow trigger/filter via the embedded script) with its reference model so drift fails the audit.
+        It remains a consistency check, not proof of host execution.
+      RVW-09-counts: 'Counts reconciled automatically: 36 amended rules (35 + UPD-CMD-001.R05), 10 added;
+        baseline 128 policies / 692 rules all migrated; independent semantic review stays pending.'

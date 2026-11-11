@@ -1,0 +1,68 @@
+schema_version: '1.0'
+bundle: copilot
+domain: runtime-context
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  CTX-IDX-001:
+    title: Code-indexer detection and $INDEXER_CONTEXT
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults:
+      claude_min_indexers: 1
+      copilot_min_indexers: 0
+    exceptions: []
+    rules:
+      CTX-IDX-001.R01:
+        statement: Detect available code-indexing MCP servers; several -> ask user to select; sole ->
+          auto-select; run onboarding when needed.
+      CTX-IDX-001.R03:
+        platform: copilot
+        statement: If none, inform user and use standard grep/glob/view tools as fallback.
+      CTX-IDX-001.R04:
+        statement: 'Build $INDEXER_CONTEXT with each selected indexer''s prefix, search, symbol, modification,
+          memory capabilities (copilot: or standard-tool fallback); load relevant project memories (copilot:
+          where supported).'
+    resolutions:
+      CNF-IDX-001: 'Platform-specific prerequisites are authoritative: Claude requires at least one code
+        indexer and TeamCreate; Copilot permits zero indexers with grep/glob/view fallback and has no
+        TeamCreate prerequisite. README prerequisites now state the difference.'
+    source_nuance:
+    - path: SKILL.md
+      lines: 155-161
+      text: "### Build Session Context\n\n1. Detect available code-indexing MCP servers. If several are\
+        \ available, ask the user to select;\n   auto-select a sole indexer and run onboarding when needed.\
+        \ If none is available, inform the user\n   and use standard `grep`, `glob`, and `view` tools.\n\
+        2. Build `$INDEXER_CONTEXT` with selected indexer capabilities, or the standard-tool fallback.\
+        \ Load\n   relevant project memories where supported.\n"
+  CTX-RES-001:
+    title: Research context and prerequisite failure
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      CTX-RES-001.R01:
+        statement: Separately detect documentation MCP, GitHub/registry lookup, WebFetch/WebSearch; build
+          $RESOURCE_RESEARCH_CONTEXT bound to trusted-source policy.
+      CTX-RES-001.R02:
+        statement: If reliable external research unavailable, record it and require repository-local investigation
+          only.
+      CTX-RES-001.R03:
+        statement: If a critical prerequisite fails, report remediation and stop.
+    source_nuance:
+    - path: SKILL.md
+      lines: 162-167
+      text: "3. Separately detect documentation MCP, GitHub/registry lookup, and WebFetch/WebSearch tools.\
+        \ Build\n   `$RESOURCE_RESEARCH_CONTEXT` and bind it to\n   `policies/trusted-sources.yaml`. If\
+        \ reliable external research is\n   unavailable, record that and require repository-local investigation\
+        \ only.\n\nIf a critical prerequisite fails, report remediation and stop.\n"

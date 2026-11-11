@@ -2,6 +2,10 @@
 
 Generic templates for architecture and design documents. These are codebase-agnostic and adapt to any project.
 
+Disposition: nonnormative template bodies retained as Markdown prose. The normative header fields,
+section lists, producers, and template rules are the `TPL-*` policies in
+`policies/output-templates.yaml`; if a template body here disagrees with that file, the YAML wins.
+
 ## Architecture Overview Document
 
 ```markdown
@@ -172,9 +176,9 @@ sequenceDiagram
 
 ## Resources Investigation Document
 
-Produced by the Technical-Resource-Investigator in Phase 1 (Step 1.5 discovery, Step 1.6 critique).
+Produced by the Technical-Resource-Investigator in feature-design Step 2 (Resource Investigation: discovery pass, then the conditional critique-and-amend pass).
 All external claims and recommendations are governed by
-[trusted-source-policy.md](./trusted-source-policy.md) — every external recommendation and factual
+`policies/trusted-sources.yaml` — every external recommendation and factual
 claim must carry an allowlisted citation (citation-host invariant). The critique pass is
 **append-only / provenance-preserving**: it must not delete or overwrite first-pass evidence.
 
@@ -185,7 +189,7 @@ claim must carry an allowlisted citation (citation-host invariant). The critique
 **Date**: YYYY-MM-DD
 **Investigator**: Technical-Resource-Investigator agent
 **Based on**: [Investigation](./investigation.md)
-**Source policy**: governed by the skill's `references/trusted-source-policy.md`
+**Source policy**: governed by the skill's `policies/trusted-sources.yaml`
 
 ## Research Tools
 
@@ -256,7 +260,7 @@ claim must carry an allowlisted citation (citation-host invariant). The critique
 
 - <candidate> — **rejected/unverified**: <reason; e.g., fails citation-host invariant>
 
-## Critique & Amendments (Step 1.6 — append-only)
+## Critique & Amendments (critique-and-amend pass — append-only)
 
 > If skipped: "No external or material candidates — critique pass skipped. Reason: <reason>."
 
@@ -270,7 +274,7 @@ claim must carry an allowlisted citation (citation-host invariant). The critique
 - **Citation quality**: <candidates demoted to unverified, if any>
 - **Uncertainty**: <what remains unproven>
 
-## Revised Recommendations (Step 1.6 — append-only)
+## Revised Recommendations (critique-and-amend pass — append-only)
 
 - <updated recommendation after critique; original first-pass evidence above is preserved>
 
@@ -375,7 +379,7 @@ graph LR
 
 ## Implementation Interview Document
 
-Transcript and decision evidence for the Implementation Clarification Gate (Phase 2 entry precondition). Decisions captured here are folded into `implementation-plan.md`, which remains the single source of truth for downstream agents.
+Transcript and decision evidence for the Implementation Clarification Gate (feature-implementation Step 1; precondition for implementation planning). Decisions captured here are folded into `implementation-plan.md`, which remains the single source of truth for downstream agents.
 
 ```markdown
 # Implementation Interview: <Feature Name>

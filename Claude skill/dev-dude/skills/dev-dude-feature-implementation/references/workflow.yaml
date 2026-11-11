@@ -1,0 +1,274 @@
+schema_version: '1.0'
+bundle: claude
+domain: workflow
+skill: dev-dude-feature-implementation
+skill_version_ref: policies/metadata.yaml#crews.skills.version
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  FIMP-ENTRY-001:
+    title: Implementation preamble and entry
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FIMP-ENTRY-001.R01:
+        statement: After approved design; owns clarification, planning, implementation, paired testing
+          only.
+      FIMP-ENTRY-001.R02:
+        statement: Standard monitoring paragraph.
+      FIMP-ENTRY-001.R03:
+        statement: Enter with explicitly approved design-options.md; reconcile state; resume first incomplete
+          step; never infer approval or repeat output-backed work.
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 1-16
+      text: '# Feature Implementation Workflow
+
+
+        Detailed functional steps for `DudeWriteMyFeature` after a design option is approved. The root
+
+        orchestrator owns transitions and checkpoints using the orchestration contract supplied at
+
+        invocation; this skill owns clarification, planning, implementation, and paired testing only.
+
+
+        All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+
+        launches and bounded polls apply when supported; otherwise use the runtime''s supported invocation
+
+        and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+
+        Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
+
+        ## Entry Contract
+
+
+        Enter with an explicitly approved `design-options.md`. Reconcile
+
+        `./docs/<feature-slug>/.dev-dude-run-state.md` and resume at the first incomplete step. Do not
+        infer
+
+        approval or repeat output-backed work.
+
+        '
+  FIMP-CLAR-001:
+    title: Step 1 Implementation Clarification Gate
+    kind: gate
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      FIMP-CLAR-001.R01:
+        statement: Run if implementation-interview.md missing or predates approved design.
+      FIMP-CLAR-001.R02:
+        statement: Derive only unresolved implementation-critical questions from spec, design-options.md,
+          ux-review.md, .tmp/architecture-review.md.
+      FIMP-CLAR-001.R03:
+        statement: 'Return blocked handoff with one batched set: source, why blocking, proposed default
+          (accept or waive); root asks; no running invocation while waiting.'
+      FIMP-CLAR-001.R04:
+        statement: Record answers/waivers in implementation-interview.md; root records evidence in gate
+          table.
+      FIMP-CLAR-001.R05:
+        statement: Material scope/approach change -> blocked contract; root supersedes attempt, routes
+          to feature design with new root-produced contract; renewed approval required; blocked handoff
+          alone does not authorize cross-stage transition.
+      FIMP-CLAR-001.R06:
+        statement: Complete only when every question answered or waived; record no-question result; fold
+          decisions into plan; downstream agents do not need transcript.
+    resolutions:
+      CNF-ASK-005: 'Orchestrated: the implementation-plan.md section supplied in the envelope is the approved
+        plan (approved through design approval and the clarification gate). A refactor touching more than
+        5 files or an unresolved convention choice returns `blocked` with the file list/options; the stage
+        returns a blocked handoff and root asks the user (REFACTOR PERMISSION / CONVENTION gates in the
+        run-state gate table).'
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 18-38
+      text: "## Step 1: Implementation Clarification Gate\n\nIf `implementation-interview.md` is missing\
+        \ or predates the approved design:\n\n1. Derive only unresolved, implementation-critical questions\
+        \ from the feature spec,\n   `design-options.md`, `ux-review.md`, and `.tmp/architecture-review.md`.\n\
+        2. Return a `blocked` handoff to root with one batched set. For each question give its source,\n\
+        \   why it blocks implementation, and a proposed default the user may accept or explicitly waive.\n\
+        \   Root records `waiting-for-user`, asks the user, and re-dispatches this stage with the decision\
+        \ in\n   a new validated handoff; do not keep a stage invocation running while waiting.\n3. Record\
+        \ every answer or waiver in `implementation-interview.md`; root records its decision\n   evidence\
+        \ in the run-state gate table.\n4. If a decision materially changes scope or approach, return\
+        \ a `blocked` contract to root with\n   the decision evidence and why the approved design is no\
+        \ longer valid. Root supersedes this\n   implementation attempt and routes to feature design with\
+        \ a new root-produced, validated design\n   input contract; the blocked implementation handoff\
+        \ itself does not authorize a cross-stage\n   transition. Require renewed design approval before\
+        \ returning to implementation.\n\nThe gate is complete only when every derived question is answered\
+        \ or explicitly waived. If no\nquestions remain, record that result. Fold decisions into the implementation\
+        \ plan; downstream\nagents do not need the interview transcript.\n"
+  FIMP-PLAN-001:
+    title: Step 2 implementation plan
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FIMP-PLAN-001.R01:
+        statement: Create/refresh implementation-plan.md with selected design, decisions, ordered tasks,
+          expected file changes, dependencies, validation criteria, remediation attempt.
+      FIMP-PLAN-001.R02:
+        statement: Record stable task IDs per component in stage journal; root reconciles into run state.
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 40-45
+      text: '## Step 2: Implementation Plan
+
+
+        Create or refresh `implementation-plan.md` with the selected design, clarification decisions,
+
+        ordered tasks, expected file changes, dependencies, validation criteria, and remediation attempt.
+
+        Record stable task IDs for every planned component in the stage journal; root reconciles them
+
+        into run state.
+
+        '
+  FIMP-IMPL-001:
+    title: Step 3 implementation dispatch
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+    defaults:
+      max_concurrent_feature_implementers: 3
+    exceptions: []
+    rules:
+      FIMP-IMPL-001.R01:
+        statement: Per dependency-ready component launch feature-implementer with plan section, approved
+          design, investigation context, remediation findings, $INDEXER_CONTEXT, envelope.
+      FIMP-IMPL-001.R02:
+        statement: Require changed paths + summary headed '## Test Specifications for Test-Implementer'.
+      FIMP-IMPL-001.R03:
+        key: max_concurrent_feature_implementers
+        value: 3
+      FIMP-IMPL-001.R04:
+        statement: Complete only when expected repo changes and summary exist.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 47-58
+      text: "## Step 3: Implementation\n\nFor each dependency-ready component, launch `feature-implementer`\
+        \ with:\n\n- its plan section, approved design, investigation context, and current remediation\
+        \ findings;\n- `$INDEXER_CONTEXT`;\n- the orchestration envelope supplied at invocation; and\n\
+        - a requirement to return changed paths plus an implementation summary headed\n  `## Test Specifications\
+        \ for Test-Implementer`.\n\nRun at most three Feature-Implementers concurrently. Mark a task complete\
+        \ only when its expected\nrepository changes and result summary exist.\n"
+  FIMP-TEST-001:
+    title: Step 4 paired test implementation
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FIMP-TEST-001.R01:
+        statement: Every completed FI (incl. remediation) requires a paired test-implementer task before
+          validation.
+      FIMP-TEST-001.R02:
+        statement: 'Pass summary + test specs, approved design, changed paths, remediation context, $INDEXER_CONTEXT,
+          envelope (Copilot: + model alias).'
+        resolution:
+          PCH-MOD-004: Pass the role model ID from the pinned model profile snapshot; for bundled-default
+            it equals the installed frontmatter model, preserving baseline behavior. No fallback when
+            the runtime rejects it (MODEL CAPABILITY GATE).
+      FIMP-TEST-001.R03:
+        statement: Require nearby test patterns, implement specs, run relevant tests, report results.
+      FIMP-TEST-001.R04:
+        statement: Wait for all paired tests with bounded watchdog checks.
+    resolutions:
+      CNF-ASK-003: 'Orchestrated: the feature-implementation stage instruction to run relevant tests is
+        the explicit execution confirmation; no in-invocation question. Standalone keeps the confirmation
+        question.'
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 60-66
+      text: '## Step 4: Test Implementation
+
+
+        Every completed Feature-Implementer or Feature-Implementer remediation requires a corresponding
+
+        `test-implementer` task before validation. Pass its implementation summary and test specifications,
+
+        the approved design, changed paths, remediation context, `$INDEXER_CONTEXT`, and orchestration
+
+        envelope. Require it to follow nearby test patterns, implement the specifications, run relevant
+
+        tests, and report results. Wait for all paired test tasks with bounded watchdog checks.
+
+        '
+  FIMP-EXIT-001:
+    title: Implementation exit contract
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-implementation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FIMP-EXIT-001.R01:
+        statement: Return blocked at clarification gate.
+      FIMP-EXIT-001.R02:
+        statement: Complete only when plan exists, every task has implementation + paired test evidence,
+          targeted checks recorded, changed paths + summaries checkpointed.
+      FIMP-EXIT-001.R03:
+        statement: Next transition dev-dude-validation; never make final SATISFIED decision or own validation
+          loop.
+    source_nuance:
+    - path: skills/dev-dude-feature-implementation/references/workflow.md
+      lines: 68-77
+      text: '## Exit Contract
+
+
+        Return control to root at the clarification gate with a `blocked` handoff. Complete the stage
+        only when:
+
+
+        - the plan exists and every implementation task has implementation and paired test evidence;
+
+        - relevant targeted checks run during implementation are recorded; and
+
+        - changed paths and current implementation/test summaries are checkpointed.
+
+
+        Set the next transition to `dev-dude-validation` and return control. This skill must not make
+        the
+
+        final `SATISFIED` decision or own the bounded validation loop.
+
+        '

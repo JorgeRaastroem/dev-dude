@@ -42,7 +42,8 @@ design review, implementation clarification, and a bounded validation loop.
 /dev-dude feature ./mockups/new-dashboard.png
 ```
 
-Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or image paths.
+Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`, `.docx`), or one or more
+image/spec paths.
 
 **How it works:**
 
@@ -70,7 +71,8 @@ Accepts plain text descriptions, spec file paths (`.md`, `.txt`, `.pdf`), or ima
 /dev-dude update
 ```
 
-Every launch checks the installed root and bundled crew versions against
+Every launch except `update` (which runs its own pinned check) and the offline `models` commands
+checks the installed root and bundled crew versions against
 [JorgeRaastroem/dev-dude](https://github.com/JorgeRaastroem/dev-dude) and reports newer versions.
 The read-only check is bounded to four network requests and 15 seconds, with no retries; offline
 or unavailable checks warn and do not block ordinary workflows. Updates are never automatic.
@@ -102,17 +104,18 @@ cached agents or automatically resumes a workflow in the old session.
 | Requirement | Purpose |
 |------------|---------|
 | [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [GitHub Copilot coding agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent) | Agent runtime |
-| Code-indexing MCP server | Semantic code analysis (symbol lookup, flow tracing) — see [Supported Indexers](#supported-indexers) |
-| Team capability | Agent swarm orchestration (`TeamCreate` tool) |
+| Code-indexing MCP server | Semantic code analysis (symbol lookup, flow tracing) — see [Supported Indexers](#supported-indexers). Required on Claude Code; optional on GitHub Copilot (grep/glob/view fallback) |
+| Team capability (Claude Code only) | Agent swarm orchestration (`TeamCreate` tool); GitHub Copilot has no team prerequisite |
 
 ### Supported Indexers
 
-DevDude auto-detects available code-indexing MCP servers at startup. At least one is required.
+DevDude auto-detects available code-indexing MCP servers at startup. Claude Code requires at least
+one; GitHub Copilot continues without one using grep/glob/view and records reduced confidence.
 
 | Indexer | Repository | Capabilities |
 |---------|-----------|--------------|
 | [Serena](https://github.com/oraios/serena) | `oraios/serena` | list_dir, find_file, search_for_pattern, get_symbols_overview, find_symbol, find_referencing_symbols, symbol editing, project memories |
-| *More indexers* | *Extend the detection table in `SKILL.md`* | — |
+| *More indexers* | *Extend the detection rules (CTX-IDX-001) in `policies/runtime-context.yaml`* | — |
 
 On first run, DevDude probes for known indexers, presents the detected ones to you, and lets you choose which to use. If only one is available it is auto-selected. After selection, indexer-specific onboarding is performed automatically.
 
@@ -120,7 +123,7 @@ On first run, DevDude probes for known indexers, presents the detected ones to y
 
 For feature design, DevDude separately detects available documentation MCP servers, GitHub and
 package-registry lookup options, and web research tools. External claims and recommendations must
-cite authoritative sources permitted by the bundled `trusted-source-policy.md`; unverified
+cite authoritative sources permitted by the bundled `policies/trusted-sources.yaml`; unverified
 candidates cannot be recommended. Advisory checks prefer read-only sources such as GitHub Security
 Advisories and OSV.
 
@@ -162,7 +165,8 @@ claude install-skill /path/to/dev-dude
 
 #### Option 2: Manual installation
 
-Copy the `Claude skill/dev-dude/` directory from this repository into your Claude Code skills folder:
+Copy the complete `Claude skill/dev-dude/` directory (not individual agents or skills) from this
+repository into your Claude Code skills folder:
 
 ```
 # Global (available in all projects)
@@ -185,7 +189,8 @@ alone does not establish these capabilities.
 
 ### GitHub Copilot coding agent
 
-Copy the `Copilot/dev-dude/` directory from this repository into a Copilot skill location:
+Copy the complete `Copilot/dev-dude/` directory (not individual agents or skills) from this
+repository into a Copilot skill location:
 
 ```
 # User-wide
@@ -198,8 +203,8 @@ Copy the `Copilot/dev-dude/` directory from this repository into a Copilot skill
 The root checks bundled agent and functional-skill versions on first run. Agents install under
 `~/.copilot/agents/`; the four functional skills install atomically under `~/.copilot/skills/`.
 
-The host bootstrap dispatches `dev-dude-orchestrator-copilot` explicitly using its installed model
-alias. Its invocation must support Skill, nested specialist delegation, and authorized output
+The host bootstrap dispatches `dev-dude-orchestrator-copilot` explicitly using the orchestrator
+model from the resolved model profile (the installed frontmatter model for `bundled-default`). Its invocation must support Skill, nested specialist delegation, and authorized output
 writes. In either runtime, unsupported or unknown capabilities stop at an **ORCHESTRATOR CAPABILITY
 GATE** with remediation, never a general-purpose fallback. Permission failures require an explicit
 user decision before trying alternative methods or locations. Runtime nesting support is a
@@ -211,8 +216,8 @@ prerequisite, not a capability that these skill documents can grant.
 
 ```
 Claude skill/dev-dude/
-├── SKILL.md                                  # Host bootstrap and root workflow definition
-├── agents/                                   # Bundled agent definitions
+├── SKILL.md                                  # Host/controller loader and step index
+├── agents/                                   # Agent frontmatter + policy loader + examples
 │   ├── dev-dude-orchestrator.md               #   Dedicated root workflow controller
 │   ├── code-flow-analyzer.md                 #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer.md                 #   Reviews UX, existing screens, and layout guidance
@@ -223,33 +228,27 @@ Claude skill/dev-dude/
 │   ├── test-implementer.md                   #   Writes and runs tests
 │   └── feature-validator.md                  #   Gates feature completion with SATISFIED/UNSATISFIED
 ├── skills/                                   # Versioned, auto-installed functional skill crew
-│   ├── dev-dude-architecture/
-│   │   ├── SKILL.md
-│   │   └── references/workflow.md
-│   ├── dev-dude-feature-design/
-│   │   ├── SKILL.md
-│   │   └── references/workflow.md
-│   ├── dev-dude-feature-implementation/
-│   │   ├── SKILL.md
-│   │   └── references/workflow.md
-│   └── dev-dude-validation/
-│       ├── SKILL.md
-│       └── references/workflow.md
-└── references/                               # Root orchestration contracts and shared policies
-    ├── orchestration-state.md
-    ├── stage-workflow.md
-    ├── handoff-contract-schema.md
-    ├── validation-rules.md
-    ├── doc-format-templates.md
-    └── trusted-source-policy.md
+│   ├── dev-dude-architecture/                #   SKILL.md loader, references/workflow.yaml (+ workflow.md examples)
+│   ├── dev-dude-feature-design/              #   SKILL.md loader, references/workflow.yaml
+│   ├── dev-dude-feature-implementation/      #   SKILL.md loader, references/workflow.yaml
+│   └── dev-dude-validation/                  #   SKILL.md loader, references/workflow.yaml (+ workflow.md examples)
+├── policies/                                 # Normative policy YAML (see manifest.yaml)
+│   ├── manifest.yaml                         #   Load sets, actor bindings, policy index
+│   ├── metadata.yaml, commands.yaml, models.yaml, platform.yaml, update.yaml, install.yaml
+│   ├── runtime-context.yaml, bootstrap.yaml, orchestration.yaml, state.yaml, watchdog.yaml
+│   ├── handoff.yaml, stage-workflow.yaml, validation-rules.yaml, trusted-sources.yaml
+│   ├── output-templates.yaml
+│   └── agents/<role>.yaml                    #   One rule file per agent role
+└── references/
+    └── doc-format-templates.md               # Output template bodies (nonnormative)
 ```
 
 ### GitHub Copilot coding agent (`Copilot/dev-dude/`)
 
 ```
 Copilot/dev-dude/
-├── SKILL.md                                  # Host bootstrap and root workflow definition
-├── agents/                                   # Bundled agent definitions
+├── SKILL.md                                  # Host/controller loader and step index
+├── agents/                                   # Agent frontmatter + policy loader + examples
 │   ├── dev-dude-orchestrator-copilot.md       #   Dedicated root workflow controller
 │   ├── code-flow-analyzer-copilot.md         #   Traces code flows, maps dependencies
 │   ├── ux-design-reviewer-copilot.md         #   Reviews UX, existing screens, and layout guidance
@@ -263,15 +262,16 @@ Copilot/dev-dude/
 │   ├── dev-dude-architecture/
 │   ├── dev-dude-feature-design/
 │   ├── dev-dude-feature-implementation/
-│   └── dev-dude-validation/                  # Each contains SKILL.md + references/workflow.md
-└── references/                               # Root orchestration contracts and shared policies
-    ├── argument-parsing.md
-    ├── orchestration-state.md
-    ├── stage-workflow.md
-    ├── handoff-contract-schema.md
-    ├── validation-rules.md
-    ├── doc-format-templates.md
-    └── trusted-source-policy.md
+│   └── dev-dude-validation/                  # Each: SKILL.md loader + references/workflow.yaml
+├── policies/                                 # Normative policy YAML (see manifest.yaml)
+│   ├── manifest.yaml                         #   Load sets, actor bindings, policy index
+│   ├── metadata.yaml, commands.yaml, models.yaml, platform.yaml, update.yaml, install.yaml
+│   ├── runtime-context.yaml, bootstrap.yaml, orchestration.yaml, state.yaml, watchdog.yaml
+│   ├── handoff.yaml, stage-workflow.yaml, validation-rules.yaml, trusted-sources.yaml
+│   ├── output-templates.yaml
+│   └── agents/<role>.yaml                    #   One rule file per agent role
+└── references/
+    └── doc-format-templates.md               # Output template bodies (nonnormative)
 ```
 
 After installation the agent definitions are placed in the runtime-specific agents folder:
@@ -329,7 +329,8 @@ Controller identity and status evidence are recorded in run state. The host veri
 and descendant quiescence before re-entry, including after user approval; stale `active` status
 alone does not prohibit recovery, and a completed status label alone does not prove termination.
 Older state without the controller marker is reconciled against runtime and task evidence rather
-than assumed safe. Phase workflows, output paths, concurrency limits, and retry budgets are unchanged.
+than assumed safe. Phase workflows, output paths and retry budgets are unchanged; architecture investigation and
+verification run at most 6 concurrent agents and batch the rest.
 
 ```
 DudeWhereIsMyArch "all"
@@ -386,6 +387,65 @@ All documents use consistent templates with:
 
 ## Customization
 
+### Model profiles
+
+Model commands are host-only and offline: they make no network request and never install, start,
+or resume a workflow. The exact grammar is in `policies/commands.yaml` (`models_commands`):
+
+```
+/dev-dude models show
+/dev-dude models profiles
+/dev-dude models validate
+/dev-dude models set <role|all> <model-id> --profile <name> --scope <project|user>
+/dev-dude models use <profile|bundled-default> --scope <project|user>
+/dev-dude models reset --scope <project|user>
+```
+
+- Config files: project `<repo>/.dev-dude/models.yaml`, user `~/.config/dev-dude/models.yaml`.
+  Each holds `schema_version: "1.0"` and per-runtime namespaces (`runtimes.claude`,
+  `runtimes.copilot`); a command edits only its own runtime namespace. Unknown keys, wrong types,
+  other versions, aliases (such as `opus`), duplicate keys and anchors are rejected.
+- `set` saves an exact model ID into a draft profile as **unvalidated**; it never activates it.
+  `all` sets the nine agent roles; the `critique` role must be set explicitly. `use` activates a
+  complete profile (nine roles + `critique`) or `bundled-default`.
+- Resolution: an invalid config file blocks launch; otherwise the project's active profile, then the
+  user's active profile, then `bundled-default`. A project file with only drafts does not hide the
+  user selection; `active_profile: bundled-default` does. Profiles never merge.
+- `validate` checks files offline only. Whether a model is actually usable is decided at launch by
+  checking the delegation tool the current host exposes; a custom profile that cannot be verified
+  stops at MODEL CAPABILITY GATE with no fallback. `bundled-default` keeps the shipped frontmatter
+  models (including Claude aliases) and, for the critique pass, the legacy "verified stronger model"
+  rule.
+- `reset` removes only this runtime's namespace from a valid file; an invalid file is renamed to
+  `models.yaml.invalid-N`.
+- The resolved profile is pinned per run (`.dev-dude-model-profile.yaml` in the run output folder)
+  and passed to every stage and agent; resumes use the pinned snapshot.
+- Local models work only if your host runtime has registered that exact model ID and exposes it to
+  the delegation tool with the tools DevDude needs; DevDude never installs, hosts, or proxies models.
+
+### Policy files
+
+Normative behaviour lives in YAML under each root's `policies/` (indexed by
+`policies/manifest.yaml`) and in each functional skill's `references/workflow.yaml`. Markdown files
+are loaders, examples and templates. Loading is instruction-driven, not enforced by a runtime.
+Installation and update treat these files as owned content; model configuration files are never
+touched by update.
+
+Each complete platform bundle (root `SKILL.md`, `policies/`, `agents/`, `skills/`, `references/`) is
+self-contained; individual agents and functional skills are not. They are thin loaders that resolve
+the installed DevDude root and load their manifest load set, so the complete bundle is a prerequisite
+even for standalone specialist use. A missing or ambiguous policy root stops at the **POLICY ROOT
+GATE**; copying or installing agents or skills alone is unsupported. (This replaces the earlier
+self-contained agent bodies; the decision is recorded in `policy-migration-inventory.yaml`
+`migration_record.architecture_decisions`.)
+
+During a run, the host hashes every manifest-indexed policy file with a runtime hashing tool and the
+controller records them in a policy snapshot (`<run-output>/.dev-dude-policy-snapshot.yaml`). Every
+resume, delegated agent and validator re-hashes the files it loads and stops at the **POLICY INTEGRITY
+GATE** if a policy changed mid-run. These are instructions to the agents, not a runtime guarantee.
+
+Check repository consistency after editing policies with `python3 scripts/policy_audit.py`.
+
 ### Agent definitions
 
 Agent files in `.claude/agents/` (Claude Code) or `~/.copilot/agents/` (GitHub Copilot) can be customized after installation. Ordinary bootstrap preserves equal or newer installed crews and replaces missing or older crews. Explicit `update` detects changes using installation hashes and requires approval before replacing customized or unverifiable files.
@@ -399,14 +459,19 @@ Explicit `update` also gates changed files; back up customizations before approv
 
 ### Document templates
 
-Output templates are defined in `references/doc-format-templates.md` and can be modified to match your team's documentation standards.
+Output template bodies are in `references/doc-format-templates.md` and can be adapted to your
+team's documentation standards; their required header fields and sections are the `TPL-*` rules in
+`policies/output-templates.yaml`.
 
 ### Release versions
 
 The root `SKILL.md` frontmatter `version:` is DevDude's user-facing semantic version, separate from
-agent and functional-skill crew versions. Bump it in both platform roots for shipped bundle changes,
-including root/reference changes; bump the affected crew versions for agent or functional-skill
-changes. The existing agent-version workflow still maintains the shared agent crew version.
+agent and functional-skill crew versions. Bump it manually in both platform roots for shipped bundle
+changes, including root/policy changes, and bump the functional-skill crew version manually for
+functional-skill changes. The `bump-agent-versions` workflow maintains only the shared agent crew
+version: a push that changes `agents/*.md`, `policies/agents/*.yaml` or `policies/models.yaml` in
+either bundle bumps every agent frontmatter version, the root "Bundled agent crew version" sentence
+and `policies/metadata.yaml` `crews.agents.version` (declared in `metadata.yaml` `version_bump`).
 Before publishing a stable release, verify both platform roots and bundled crews agree, then tag
 and publish a non-draft, non-prerelease GitHub release. Launch compares numeric version tuples;
 a different commit alone is not evidence of a newer release.
@@ -416,7 +481,7 @@ a different commit alone is not evidence of a newer release.
 | Decision | Rationale |
 |----------|-----------|
 | **Generic, not repo-specific** | Works on any codebase — discovers structure dynamically via the active code indexer |
-| **Configurable indexers** | Not locked to Serena — any MCP code-indexing server can be used; new indexers can be added by extending the detection table in `SKILL.md` |
+| **Configurable indexers** | Not locked to Serena — any MCP code-indexing server can be used; new indexers can be added by extending CTX-IDX-001 in `policies/runtime-context.yaml` |
 | **Dynamic area discovery** | No hardcoded module lists; reads project manifests and directory structure |
 | **Build/test command discovery** | Reads `package.json`, `Makefile`, `Cargo.toml` etc. to find the right commands |
 | **User review gate** | Prevents wasted implementation effort by getting design approval first |
