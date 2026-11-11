@@ -1,0 +1,284 @@
+schema_version: '1.0'
+bundle: claude
+domain: bootstrap
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  META-ROOT-003:
+    title: Root skill authority statement
+    kind: role
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    platform_binding:
+      orchestrator_name: dev-dude-orchestrator
+    rules:
+      META-ROOT-003.R01:
+        statement: Root skill defines setup, routing, durable state, user gates, functional workflow transitions.
+      META-ROOT-003.R02:
+        statement: Dedicated orchestrator agent executes orchestration; host only bootstraps and relays
+          user decisions; neither performs specialist work.
+      META-ROOT-003.R03:
+        statement: Agent definitions supply orchestration expertise; skill + references supply workflow
+          authority.
+      META-ROOT-003.R04:
+        statement: A general-purpose agent must never substitute for the dedicated controller.
+    source_nuance:
+    - path: SKILL.md
+      lines: 19-25
+      text: '# DevDude Root Orchestrator
+
+
+        This root skill defines setup, routing, durable state, user gates, and functional workflow
+
+        transitions. The dedicated `dev-dude-orchestrator` agent executes that orchestration;
+
+        the invoking host only bootstraps and relays user decisions. Neither performs specialist work.
+
+        Agent definitions supply orchestration expertise; the YAML policies indexed by `policies/manifest.yaml`
+        supply workflow
+
+        authority. A general-purpose agent must never substitute for the dedicated controller.
+
+        '
+  BOOT-CAP-001:
+    title: Orchestrator capability gate
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      BOOT-CAP-001.R01:
+        statement: Verify dedicated orchestrator is discoverable as a custom agent.
+      BOOT-CAP-001.R02:
+        statement: 'Verify invocation can access Skill, delegate nested specialist tasks, write authorized
+          run outputs (claude also: use TeamCreate).'
+      BOOT-CAP-001.R03:
+        statement: Host-level tool availability is not evidence of child access; use runtime capability
+          metadata or let the agent self-verify before any workflow action.
+      BOOT-CAP-001.R04:
+        statement: Unsupported/unknown -> ORCHESTRATOR CAPABILITY GATE with exact remediation.
+      BOOT-CAP-001.R05:
+        statement: Permission failures require user approval before alternative method/location; never
+          fall back to general-purpose.
+    planned_changes:
+      PCH-MOD-008: policies/platform.yaml#capabilities
+    source_nuance:
+    - path: SKILL.md
+      lines: 172-179
+      text: '### Transfer Control to the Dedicated Agent
+
+
+        Verify `dev-dude-orchestrator` is discoverable as a custom agent. Verify its invocation can access
+
+        Skill, delegate nested specialist tasks, use TeamCreate, and write the authorized run outputs.
+
+        Host-level tool availability is not evidence of child access; use runtime capability metadata,
+        or
+
+        let the selected agent verify its exposed capabilities before any workflow action. If unsupported
+
+        or unknown, stop at an **ORCHESTRATOR CAPABILITY GATE** with exact remediation. Permission failures
+
+        require user approval before any alternative method or location; never fall back to general-purpose.
+
+        '
+  BOOT-DUP-001:
+    title: Duplicate-dispatch prevention at bootstrap
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      BOOT-DUP-001.R01:
+        statement: Read run state and controller/descendant runtime status only to prevent duplicate dispatch.
+      BOOT-DUP-001.R02:
+        statement: '`active` may be stale; dispatch recovery only with evidence prior controller and descendants
+          completed/verified stopped, regardless of recorded status.'
+      BOOT-DUP-001.R03:
+        statement: Still active -> monitor without replacement; unknown -> report recovery paused and
+          stop.
+      BOOT-DUP-001.R04:
+        statement: Missing outputs, elapsed deadlines, user approval never establish quiescence.
+    source_nuance:
+    - path: SKILL.md
+      lines: 181-185
+      text: 'Read existing run state and controller/descendant runtime status only to prevent duplicate
+
+        dispatch. An `active` checkpoint may be stale: dispatch recovery only with evidence the prior
+
+        controller and descendants completed or are verified stopped, regardless of its recorded status.
+
+        If still active, monitor without replacement; if unknown, report recovery paused and stop.
+
+        Missing output files, elapsed deadlines, and user approval never establish quiescence.
+
+        '
+  BOOT-PKT-001:
+    title: Bootstrap packet (host -> controller)
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      BOOT-PKT-001.R01:
+        statement: Invoke orchestrator via platform delegation (claude Task subagent_type; copilot task
+          agent_type + the dev-dude-orchestrator model ID from the resolved profile, which equals the
+          installed frontmatter model for bundled-default) using supported background or cooperative synchronous
+          execution.
+        amendment:
+          by: PCH-MOD-004
+          reason: Model comes from the resolved profile.
+      BOOT-PKT-001.R02:
+        statement: Pass compact packet, not restated responsibilities.
+      BOOT-PKT-001.R03:
+        field: entry_role
+        value: orchestrator
+      BOOT-PKT-001.R04:
+        field: correlation_id
+        statement: unique controller invocation correlation ID
+      BOOT-PKT-001.R05:
+        field: repository_root
+      BOOT-PKT-001.R06:
+        field: root_skill_path
+        statement: absolute path of root SKILL.md
+      BOOT-PKT-001.R07:
+        field: command
+        statement: original command and input paths
+      BOOT-PKT-001.R08:
+        field: policy_context
+        statement: absolute policy root, absolute policies/manifest.yaml path and its SHA-256 digest for
+          the installed root that launched the controller
+        amendment:
+          by: CNF-STALE-001
+          reason: references/ paths replaced by the policy root locator.
+      BOOT-PKT-001.R09:
+        field: contexts
+        statement: authorized $INDEXER_CONTEXT, $RESOURCE_RESEARCH_CONTEXT, verified runtime capabilities
+      BOOT-PKT-001.R10:
+        field: state_locators
+        statement: run-state/latest-contract locators or `none` for new run
+      BOOT-PKT-001.R11:
+        field: user_decision_evidence
+        statement: quoted verbatim when resuming a gate
+      BOOT-PKT-001.R12:
+        statement: Packet transfers control; not a stage handoff; cannot authorize a stage transition.
+      BOOT-PKT-001.R13:
+        added_by: PCH-MOD-004
+        field: policy_manifest
+        statement: absolute policies/manifest.yaml path of the launching installed root plus its sha256
+          digest, and the policy snapshot values (bundle revision, per-file sha256 for every manifest-indexed
+          file, hashing command) computed by the host with a runtime hashing tool (manifest.yaml integrity);
+          the controller re-hashes and writes the policy snapshot before the first dispatch
+      BOOT-PKT-001.R14:
+        added_by: PCH-MOD-004
+        field: model_profile
+        statement: resolved profile (name, scope, source file, per-role model IDs, critique, launch-validation
+          evidence); the controller pins it to the run snapshot, together with the policy snapshot digest,
+          before the first dispatch
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: SKILL.md
+      lines: 187-198
+      text: 'Invoke Task with `subagent_type: dev-dude-orchestrator` and the controller model ID from
+        the resolved model profile, using supported background execution or
+
+        cooperative synchronous execution. Pass a compact bootstrap packet, not a restatement of the
+
+        agent''s responsibilities:
+
+
+        - `entry_role: orchestrator`, a unique controller invocation correlation ID, and repository root;
+
+        - the absolute path of this root `SKILL.md`, original command and input paths;
+
+        - the absolute `policies/manifest.yaml` locator and digest plus host-computed policy snapshot
+        values (manifest.yaml integrity);
+
+        - authorized `$INDEXER_CONTEXT`, `$RESOURCE_RESEARCH_CONTEXT`, and verified runtime capabilities;
+
+        - existing run-state/latest-contract locators when known, or `none` for a new run;
+
+        - explicit user decision evidence, quoted verbatim, when resuming a gate.
+
+
+        This packet transfers control; it is not a stage handoff and cannot authorize a stage transition.
+
+        '
+  BOOT-RELAY-001:
+    title: Host relay and result handling
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      BOOT-RELAY-001.R01:
+        statement: Controller creates/validates stage contracts after reconciliation; host never writes
+          run outputs, state, journals, handoffs, nor chooses transitions.
+      BOOT-RELAY-001.R02:
+        statement: Monitor controller in verified mode; never claim cancellation without evidence.
+      BOOT-RELAY-001.R03:
+        statement: blocked -> relay exact question/options without deadline; pass verbatim response back
+          via bootstrap only after prior work quiescent.
+      BOOT-RELAY-001.R04:
+        statement: partial -> relay continuation; failed/malformed/missing -> report failure and stop,
+          never take over; complete -> report returned evidence.
+      BOOT-RELAY-001.R05:
+        statement: Every subsequent entry uses the same dedicated agent, reconciling durable evidence
+          instead of conversation history.
+    source_nuance:
+    - path: SKILL.md
+      lines: 199-206
+      text: 'The controller creates and validates normal stage contracts after reconciliation. The host
+        never
+
+        writes run outputs, state, journals, or handoffs and never chooses workflow transitions.
+
+        Monitor the controller using the verified mode; do not claim cancellation without evidence.
+
+        On a `blocked` result, relay its exact question/options to the user without a deadline. Pass the
+
+        verbatim response back through this bootstrap only after prior work is quiescent. On `partial`,
+
+        relay the continuation; on `failed` or malformed/missing results, report the failure and stop,
+        never
+
+        take over. On `complete`, report the returned evidence. Every subsequent entry uses this same
+
+        dedicated agent, reconciling durable evidence rather than passing conversation history.
+
+        '

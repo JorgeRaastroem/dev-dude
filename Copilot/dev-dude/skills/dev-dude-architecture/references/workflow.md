@@ -1,46 +1,11 @@
 # Architecture Investigation Workflow
 
-Detailed steps for the `DudeWhereIsMyArch` command.
+Nonnormative examples only. The normative workflow is `workflow.yaml` (root copy
+`skills/dev-dude-architecture/references/workflow.yaml`, manifest load set `stage.dev-dude-architecture`). Examples show call shapes;
+where they differ from YAML rules (for example model selection, concurrency, or write ownership),
+the YAML rules win.
 
-All execution examples follow the supplied controlled/cooperative monitoring policy. Background
-launches and bounded polls apply when supported; otherwise use the runtime's supported invocation
-and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
-Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
-
-The root orchestrator owns transitions and checkpoints using the orchestration contract supplied at
-invocation. Reconcile
-`./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
-return control when the exit contract is met.
-
-Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
-agent's frontmatter `model` alias, then checkpoint the task before launch and after its result.
-Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
-Return control to root at the Vertical Review Gate; root records and presents the gate and
-re-dispatches this stage only after an explicit decision.
-
-## Phase 0: Codebase Discovery
-
-Before any investigation, dynamically discover the project structure:
-
-1. **Scan project root**: Use the indexer's `list_dir` capability (e.g., `mcp__serena__list_dir(".", recursive=false)`) to see top-level structure
-2. **Read indexer memories/context**: Use the indexer's memory/context tools (e.g., `mcp__serena__list_memories()`) then read relevant ones for existing context
-3. **Identify package/module boundaries**:
-   - Look for `package.json`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `pyproject.toml` etc.
-   - Use `find_file` capability (e.g., `mcp__serena__find_file("package.json", ".")`) or equivalent for the project's language
-   - Scan key directories: `src/`, `packages/`, `libs/`, `modules/`, `apps/`, `services/`
-4. **Identify tech stack**: Read root config files to determine languages, frameworks, build tools
-5. **Build area list**: Create a list of investigation areas from discovered modules/packages/directories
-6. **Identify entry points**: Look for main files, app entry points, server startup, route definitions
-
-Output: A structured list of areas to investigate with paths and brief descriptions.
-
-## Base Investigation (Full Codebase)
-
-Triggered when area is "all"/broad OR `./docs/ArchOverview/` doesn't exist.
-
-### Phase 1: Parallel Investigation
-
-Launch a Code-Flow-Analyzer and UX-Design-Reviewer agent per discovered area, all in parallel:
+## Example: Phase 1: Parallel Investigation
 
 ```
 For each discovered area, launch two task tool calls:
@@ -68,27 +33,10 @@ For each discovered area, launch two task tool calls:
     Expected output:
       - ./docs/ArchOverview/.tmp/ux-<area-slug>.md
 
-Max 4-6 concurrent agents. If more areas, batch them.
+At most 6 concurrent agents in total (CNF-CONC-001). If more areas, batch them.
 ```
 
-Each Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONTEXT`):
-1. Use `get_symbols_overview` (or equivalent) on key files in the area
-2. Trace major flows from entry points using `find_symbol` and `find_referencing_symbols` (or equivalent)
-3. Map internal dependencies and external integration points
-4. Document patterns, conventions, and design decisions
-5. Create mermaid diagrams for major flows
-
-**Wait for all Phase 1 tasks**: Poll each background agent with bounded `read_agent` waits under
-the orchestration watchdog; do not proceed to Phase 2 until all required results are reconciled.
-
-### Phase 2: Documentation (after all Phase 1 tasks complete)
-
-Launch Investigation-Documenter agents:
-
-Every `investigation-documenter-copilot` task must be launched with write permissions.
-
-Capture `git rev-parse HEAD` before writing documents and set that full SHA as `**Source Commit**`
-in the overview and every deep-dive.
+## Example: Phase 2: Documentation (after all Phase 1 tasks complete)
 
 ```
 Task 1: Overview document (needs ALL Phase 1 outputs)
@@ -112,28 +60,10 @@ Tasks 2-N: Deep-dive documents (one per area)
       key interfaces, dependencies, and text-only layout maps when relevant
 ```
 
-**Wait for all Phase 2 tasks** with bounded watchdog checks before proceeding.
-
-### Vertical Review Gate (after Phase 2; before Phase 3)
-
-Return a `blocked` handoff to root with an editable vertical list. For each vertical, include its
-name, brief description, and deep-dive document path. Root validates the handoff, records
-`waiting-for-user`, and asks the operator to confirm the list, exclude named verticals, or add
-verticals (requesting a path or brief description when needed). Do not keep this stage running
-while waiting; root re-dispatches it with the recorded decision in a new validated handoff.
-
-- For exclusions, remove the vertical from the active list and update the overview's summaries,
-  cross-references, and diagrams. Keep its generated deep-dive, but do not include it in Phases 3-5.
-- For additions, run Phases 1 and 2 for each new vertical and update the overview to include it.
-- After any change, return a new `blocked` handoff with the revised list, including newly generated
-  deep-dives, for root to request confirmation again.
-
-### Phase 3: Verification (after the Vertical Review Gate)
-
-Launch Code-Flow-Analyzer agents to verify each document:
+## Example: Phase 3: Verification (after the Vertical Review Gate)
 
 ```
-One task for the overview and one per active vertical document, all in parallel:
+One task for the overview and one per active vertical document, in parallel, at most 6 concurrent (ARCH-P3-001.R05):
   agent_type: "code-flow-analyzer-copilot"
   mode: "background"
   prompt:
@@ -143,11 +73,7 @@ One task for the overview and one per active vertical document, all in parallel:
     - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md
 ```
 
-**Wait for all Phase 3 tasks** with bounded watchdog checks before proceeding.
-
-### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
-
-Launch a single Architecture-Reviewer to critique the mapped architecture:
+## Example: Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)
 
 ```
   agent_type: "architecture-reviewer-copilot"
@@ -160,11 +86,7 @@ Launch a single Architecture-Reviewer to critique the mapped architecture:
     - Require: "Future Considerations" list for the project
 ```
 
-Poll the Architecture-Reviewer with bounded watchdog checks before Phase 5.
-
-### Phase 5: Fix Application (after Phase 4 completes)
-
-Launch a single Investigation-Documenter to apply corrections:
+## Example: Phase 5: Fix Application (after Phase 4 completes)
 
 ```
   agent_type: "investigation-documenter-copilot"
@@ -179,11 +101,7 @@ Launch a single Investigation-Documenter to apply corrections:
     - Cleanup: Remove .tmp/ directory
 ```
 
-Poll the Investigation-Documenter with bounded watchdog checks before proceeding.
-
-## Additive Investigation (Specific Area)
-
-Triggered when a specific area is requested AND `./docs/ArchOverview/` already exists.
+## Example: Additive Investigation (Specific Area)
 
 ```
 Step 1: Parallel investigation
@@ -225,76 +143,3 @@ Step 5: Investigation-Documenter (background, after Step 4; poll with bounded wa
   Apply corrections and fold in architecture review
   Cleanup: Remove .tmp/ directory
 ```
-
-## Delta Refresh (`<scope> refresh`)
-
-Triggered when the request matches `<all|vertical> refresh` and `./docs/ArchOverview/` exists. `all`
-is a repository-wide scope; any other value names one architecture vertical. If the directory does
-not exist, explain that there is nothing to refresh and run the Base Investigation for `all`, or an
-Additive Investigation for the named vertical.
-
-### Step 1: Resolve the Delta
-
-1. Require a clean worktree checked out on `main` or `master`; do not switch branches or include
-   uncommitted changes. Set the target commit to `git rev-parse HEAD`.
-2. Select the current architecture documents in scope: every document for `all`, or the named
-   vertical's deep-dive plus the overview for a vertical refresh. Read each selected document's
-   `**Source Commit**` value. Use it only when it
-   is a commit and an ancestor of the target. If it is absent, invalid, or from divergent history,
-   use the oldest commit that added the file
-   (`git log --diff-filter=A --follow --format=%H -- <document> | tail -1`).
-3. If history is shallow, deepen it before resolving creation commits. If a trustworthy baseline
-   still cannot be resolved, warn that a safe delta is unavailable and ask before falling back to a
-   Base Investigation.
-4. Use `git diff --name-status <document-baseline>..<target>` to collect additions, modifications,
-   renames, and deletions relevant to each document. Use the earliest resolved baseline for the
-   repository-wide new-area check.
-5. For `all`, repeat Phase 0 discovery at the target commit. Compare discovered module, package,
-   service, and domain boundaries with the areas covered by the overview and deep-dives. Treat a new
-   boundary as a candidate vertical even when its files are not under an existing area's path. For a
-   named vertical not yet documented, discover that vertical's boundaries and treat it as new.
-6. Map changed files to affected documented areas within the requested scope using paths, symbols,
-   dependencies, entry points, and cross-area flows. Produce:
-   - affected existing documents and the changes that affect each one;
-   - candidate new verticals and supporting paths/entry points;
-   - changed files that are documentation-neutral, with the reason they need no refresh.
-
-If there are no affected in-scope documents and no in-scope new verticals, report that the requested
-architecture documentation is current and stop without rewriting files.
-
-### Step 2: Investigate Affected and New Areas
-
-Run code-flow-analyzer-copilot and ux-design-reviewer-copilot tasks in parallel only for affected
-existing areas and confirmed new verticals. Give each task the relevant diff, target commit, existing
-document context, and `$INDEXER_CONTEXT`. Existing-area tasks must focus on changed flows and their
-transitive effects; new-vertical tasks perform a complete investigation of that vertical.
-
-### Step 3: Update Documents
-
-Run investigation-documenter-copilot tasks to:
-- launch each task with write permissions;
-- update each affected deep-dive in place without rewriting unaffected sections;
-- create one deep-dive for each confirmed new vertical;
-- update the overview only where affected summaries, relationships, diagrams, cross-references, or
-  the set of verticals changed;
-- preserve existing revision-history rows and prepend one refresh-dated row with a concise summary of
-  the changes made to each updated document; initialize new documents with an `Initial document.` row;
-- set the header `**Date**` to the newest revision-history date and `**Source Commit**` to the full
-  target commit SHA in every document changed or created by this run.
-
-Do not regenerate or touch unaffected deep-dives.
-
-### Step 4: Verify, Review, and Apply Fixes
-
-Verify only changed/new documents and changed overview sections against the target commit. Then run
-architecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot to apply
-corrections and future considerations (with write permissions). Ensure each refresh row summarizes
-the finalized changes.
-Remove `./docs/ArchOverview/.tmp/` after fixes are applied.
-
-## Exit Contract
-
-Return control to the root orchestrator after all active documents are verified and corrected, the
-architecture review is incorporated, and `.tmp/` is removed. Set run status to `complete`, preserve
-`.dev-dude-run-state.md`, and record the final document paths and source commit. A no-change delta
-refresh may also complete after its no-op evidence is recorded.

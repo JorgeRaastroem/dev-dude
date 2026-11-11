@@ -1,0 +1,429 @@
+schema_version: '1.0'
+bundle: copilot
+domain: state
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  STATE-ROLE-001:
+    title: Root/host/stage ownership definitions
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - orchestrator
+      - stages
+    defaults: {}
+    exceptions: []
+    rules:
+      STATE-ROLE-001.R01:
+        statement: Contract applies to every DevDude command; root (= dedicated controller, not host)
+          defines state transitions; functional skills own only work inside their entry/exit states.
+      STATE-ROLE-001.R02:
+        statement: Host installs/verifies prerequisites and relays results; never writes outputs/state/journals/handoffs,
+          reconciles, or selects transitions.
+      STATE-ROLE-001.R03:
+        statement: Root 'asks the user' = checkpoint gate + return structured blocked result with exact
+          question/options; host passes verbatim decision to next controller invocation; only root validates/records
+          it.
+      STATE-ROLE-001.R04:
+        statement: No human wait inside an active controller or stage invocation.
+    resolutions:
+      CNF-ASK-001: 'Orchestrated mode (envelope present): any step that would ask or wait for the user
+        returns `blocked` to the invoking stage with the exact question, options and proposed default;
+        the stage returns a blocked handoff; root records waiting-for-user and asks. Standalone mode (no
+        envelope) keeps interactive asking unchanged.'
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 1-13
+      text: '# Durable Orchestration State
+
+
+        This contract applies to every DevDude command. The root skill defines state transitions, executed
+
+        by the dedicated DevDude orchestrator agent. In all supplied workflow documents, **root** means
+
+        that dedicated controller, not the invoking host. Functional workflow skills own only the work
+
+        inside their declared entry and exit states.
+
+
+        The host installs/verifies prerequisites and relays controller results. It never writes run
+
+        outputs, state, journals, or handoffs, reconciles stage results, or selects transitions. When
+        root
+
+        "asks the user", it checkpoints the gate and returns a structured `blocked` result with the exact
+
+        question/options for the host to relay. The host passes the user''s verbatim decision as evidence
+
+        to the next controller invocation; only root validates and records it. No human wait occurs inside
+
+        an active controller or stage invocation.
+
+        '
+  STATE-LOC-001:
+    title: State file location and lifecycle
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults:
+      file_name: .dev-dude-run-state.md
+    exceptions: []
+    rules:
+      STATE-LOC-001.R01:
+        statement: Architecture ./docs/ArchOverview/.dev-dude-run-state.md; feature ./docs/<feature-slug>/.dev-dude-run-state.md.
+      STATE-LOC-001.R02:
+        statement: Create parent output dir and state file before delegating first task.
+      STATE-LOC-001.R03:
+        statement: Preserve state file when cleaning .tmp/ and after completion.
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 15-22
+      text: '## State Location
+
+
+        - Architecture: `./docs/ArchOverview/.dev-dude-run-state.md`
+
+        - Feature: `./docs/<feature-slug>/.dev-dude-run-state.md`
+
+
+        Create the parent output directory and state file before delegating the first task. Preserve the
+
+        state file when cleaning `.tmp/` artifacts and after completion so a later session can explain
+        or
+
+        resume the run.
+
+        '
+  STATE-SCHEMA-001:
+    title: Run-state document schema
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      STATE-SCHEMA-001.R01:
+        statement: Concise, updated in place.
+      STATE-SCHEMA-001.R02:
+        fields:
+        - Command
+        - Workflow
+        - Workflow version
+        - Run ID
+        - Orchestrator invocation
+        - Status
+        - Current block
+        - Current step
+        - Validated input contract
+        - Latest output contract
+        - Next transition
+        - Source revision
+        - Updated
+      STATE-SCHEMA-001.R03:
+        key: run_status_values
+        value:
+        - active
+        - recovery-paused
+        - waiting-for-user
+        - complete
+        - bounded-unresolved
+      STATE-SCHEMA-001.R04:
+        tables:
+          Gates:
+          - Gate
+          - Status
+          - Decision evidence
+          Tasks:
+          - ID
+          - Owner
+          - Status
+          - Expected output
+          - Evidence
+          Watchdog:
+          - Action ID
+          - Parent invocation
+          - Mode and verified capabilities/limitations
+          - Started
+          - Deadline
+          - Last check
+          - Retries (0-3)
+          - Invocation ID
+          - Execution status and evidence
+          - Outcome
+        sections:
+        - Reconciliation
+      STATE-SCHEMA-001.R05:
+        key: task_status_values
+        value:
+        - pending
+        - running
+        - complete
+        - failed
+        - superseded
+      STATE-SCHEMA-001.R06:
+        statement: Record user decisions by concise quotation or durable document path; do not infer approval.
+      STATE-SCHEMA-001.R07:
+        added_by: PCH-MOD-004
+        fields:
+        - Policy manifest
+        - Policy manifest digest
+        - Policy snapshot
+        - Policy snapshot digest
+        - Model profile snapshot
+        - Model profile digest
+        - Validation attempts
+        statement: 'Policy and model snapshot locators/digests are written once by the controller and
+          changed only by a recorded approved migration (manifest.yaml integrity.migration, models.yaml
+          pinning.repin) that keeps the old values. Validation attempts is recorded as <current>/<max>
+          (source: default|user decision) and changed only from explicit user decision evidence (CNF-LIMIT-001).'
+    resolutions:
+      CNF-LIMIT-001: 'Root owns the validation attempt limit: default 3, changed only by an explicit quoted
+        user decision, recorded as `Validation attempts: <current>/<max> (source: default|user decision)`
+        (STATE-SCHEMA-001.R07).'
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 24-59
+      text: '## Required State
+
+
+        Keep the file concise and update it in place using this structure:
+
+
+        ```markdown
+
+        # DevDude Run State
+
+
+        - **Command**: <normalized command and argument>
+
+        - **Workflow**: <architecture|feature>
+
+        - **Workflow version**: <workflow definition or amendment version>
+
+        - **Run ID**: <stable run identifier>
+
+        - **Orchestrator invocation**: <correlation ID; runtime invocation ID or unavailable; started
+        UTC; last update UTC; execution status and evidence; mode and verified capabilities/limitations>
+
+        - **Status**: <active|recovery-paused|waiting-for-user|complete|bounded-unresolved>
+
+        - **Current block**: <installed functional skill name>
+
+        - **Current step**: <step identifier and name>
+
+        - **Validated input contract**: <path under .dev-dude-handoffs/>
+
+        - **Latest output contract**: <path under .dev-dude-handoffs/ or none>
+
+        - **Next transition**: <one permitted next action>
+
+        - **Source revision**: <git HEAD when last reconciled, or unavailable>
+
+        - **Updated**: <ISO-8601 timestamp>
+
+
+        ## Gates
+
+        | Gate | Status | Decision evidence |
+
+
+        ## Tasks
+
+        | ID | Owner | Status | Expected output | Evidence |
+
+
+        ## Watchdog
+
+        | Action ID (task/step/tool) | Parent invocation | Mode and verified capabilities/limitations
+        | Started (UTC) | Deadline (UTC) | Last check (UTC) | Retries (0-3) | Invocation ID | Execution
+        status and evidence | Outcome |
+
+
+        ## Reconciliation
+
+        - <checks performed and discrepancies found>
+
+        ```
+
+
+        Allowed task statuses are `pending`, `running`, `complete`, `failed`, and `superseded`. Record
+        user
+
+        decisions by concise quotation or by a durable document path; do not infer approval.
+
+        '
+  STATE-CKPT-001:
+    title: Checkpoint rules and contract storage
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults:
+      handoff_dir: .dev-dude-handoffs/
+    exceptions: []
+    rules:
+      STATE-CKPT-001.R01:
+        statement: Checkpoint before delegating (pending then running).
+      STATE-CKPT-001.R02:
+        statement: After every task result incl. failures.
+      STATE-CKPT-001.R03:
+        statement: Before and after every user gate.
+      STATE-CKPT-001.R04:
+        statement: When entering/exiting a functional workflow block.
+      STATE-CKPT-001.R05:
+        statement: After each validation/remediation attempt.
+      STATE-CKPT-001.R06:
+        statement: At each watchdog check, deadline exceeded, execution-status change, cancellation request,
+          retry.
+      STATE-CKPT-001.R07:
+        statement: Before reporting completion or bounded unresolved work.
+      STATE-CKPT-001.R08:
+        statement: Write checkpoint before the next transition; checkpoints hold orchestration facts,
+          not investigation content.
+      STATE-CKPT-001.R09:
+        statement: Every transition contract is YAML under .dev-dude-handoffs/ beside state; validated
+          contracts immutable; remediation creates next sequenced contract; state indexes current input
+          and latest output.
+      STATE-CKPT-001.R10:
+        statement: Read stage-workflow, handoff schema, validation rules before creating/consuming/validating
+          a contract.
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 61-80
+      text: '## Checkpoint Rules
+
+
+        Update state:
+
+
+        1. before delegating a task (`pending` then `running`);
+
+        2. after every task result, including failures;
+
+        3. before and after every user gate;
+
+        4. when entering or exiting a functional workflow block;
+
+        5. after each validation/remediation attempt;
+
+        6. at each watchdog check, deadline exceeded, execution-status change, cancellation request, and
+        retry; and
+
+        7. before reporting completion or bounded unresolved work.
+
+
+        Write the checkpoint before starting the next transition. A checkpoint records orchestration facts,
+
+        not investigation content; detailed findings stay in normal workflow outputs.
+
+
+        Every transition contract is a YAML file under `.dev-dude-handoffs/` beside this state file. Keep
+
+        validated contracts immutable; remediation creates the next sequenced contract. The state file
+
+        indexes the current validated input and latest output. Read
+
+        `policies/stage-workflow.yaml`, `policies/handoff.yaml`, and
+
+        `policies/validation-rules.yaml` before creating, consuming, or validating a contract.
+
+        '
+  STATE-RECON-001:
+    title: Reconciliation and recovery
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      STATE-RECON-001.R01:
+        statement: On controller entry verify identity/capabilities from packet, reconcile prior invocation
+          + descendant quiescence before claiming sole-writer ownership.
+      STATE-RECON-001.R02:
+        statement: Record new controller invocation before dispatching any stage; update at checks and
+          before returning; preserve correlation ID even without runtime IDs.
+      STATE-RECON-001.R03:
+        statement: Legacy state without controller field remains resumable; absence never proves quiescence;
+          inspect task records, journals, runtime evidence.
+      STATE-RECON-001.R04:
+        statement: Host may read marker/results to prevent duplicate dispatch, never writes; stale active
+          is not a permanent lock; waiting-for-user/complete/bounded-unresolved labels are not termination
+          evidence.
+      STATE-RECON-001.R05:
+        statement: Prior active -> monitor without replacement; unknown -> report recovery paused, no
+          second controller; root records recovery-paused when in control.
+      STATE-RECON-001.R06:
+        statement: Controller returns include descendant identities and status evidence; parent return
+          alone cannot establish quiescence; quiescence required even after user approval.
+      STATE-RECON-001.R07:
+        statement: 'Procedure on every command entry/stage entry/resume/compaction: (1) read contract
+          + state, (2) inspect outputs/repo changes/approval docs, (3) reconcile each running/complete
+          task (active->monitor; unknown->execution status unknown + recovery-paused; output-backed complete
+          needs evidence; code-changing needs summary + repo changes; stale->pending only after quiescence
+          + partial-output reconciliation; completed evidence may advance stale checkpoint), (4) never
+          roll back/overwrite/repeat valid work for staleness, (5) validate current contract (invalid
+          does not authorize), (6) determine exactly one next transition and update state, (7) only after
+          quiescence initialize fresh stage within persisted retry budget.'
+      STATE-RECON-001.R08:
+        statement: Filesystem/repo are evidence, state file is index; execution uncertainty alone -> recovery-paused;
+          safety concerns/uncertain side effects/conflicting work/scope changes -> waiting-for-user +
+          gate.
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 82-125
+      text: "## Reconciliation and Recovery\n\nOn controller entry, verify identity and capabilities from\
+        \ the host bootstrap packet, then reconcile\nprior invocation and descendant quiescence before\
+        \ claiming sole-writer ownership. Record the new\ncontroller invocation in run state before dispatching\
+        \ any functional stage; update it at available\nchecks and before returning to the host. Preserve\
+        \ its correlation ID even when runtime IDs are\nunavailable. Existing state without this field\
+        \ remains resumable, but the absence never proves\nquiescence: inspect task records, journals,\
+        \ and available runtime evidence before continuing.\n\nThe host may read this marker and runtime\
+        \ results to prevent duplicate dispatch, but never writes\nit. A stale `active` checkpoint is\
+        \ not a permanent lock, and a `waiting-for-user`, `complete`, or\n`bounded-unresolved` label is\
+        \ not termination evidence. If the prior controller or descendants\nremain active, monitor without\
+        \ replacement; if status is unknown, report recovery paused without\ndispatching another controller.\
+        \ Root records `recovery-paused` when it has control. Controller\nreturns include descendant identities\
+        \ and status evidence; a parent return alone cannot establish\nquiescence. Quiescence must be\
+        \ established before recovery even after user approval.\n\nOn every command entry, stage entry,\
+        \ direct resume, or suspected compaction:\n\n1. Read this contract and the run-state file.\n2.\
+        \ Inspect the expected output paths, current repository changes, and relevant approval or\n  \
+        \ verification documents.\n3. Reconcile every `running` or `complete` task:\n   - Establish whether\
+        \ its invocation and descendants are still active, completed, or verified\n     stopped. Missing\
+        \ outputs, a stale journal, or an elapsed deadline do not establish termination.\n     If active,\
+        \ monitor without redispatch; if unknown, record `execution status unknown`, set\n     `recovery-paused`,\
+        \ and pause recovery until completion or verified termination is established.\n   - An output-backed\
+        \ task is complete only when its expected output exists and contains the\n     completion evidence\
+        \ required by its functional workflow.\n   - A code-changing task also requires its result summary\
+        \ and the expected repository changes.\n   - Missing or stale evidence moves the task to `pending`\
+        \ only after its invocation and descendants\n     are confirmed quiescent; reconcile partial outputs\
+        \ and side effects first and record why.\n   - Evidence of completed work may advance a stale\
+        \ checkpoint; record the discovered evidence.\n4. Never roll back, overwrite, or repeat valid\
+        \ work solely because the checkpoint is stale.\n5. Validate the current contract and reconcile\
+        \ its evidence and artifact references. A stale or\n   invalid contract does not authorize a transition;\
+        \ record structured remediation.\n6. Determine exactly one valid next transition from reconciled\
+        \ evidence and update state.\n7. Only after prior work and descendants are confirmed quiescent,\
+        \ initialize a fresh stage with only\n   its workflow, validated contract, authorized artifacts/tools,\
+        \ and current-stage tool results,\n   then continue from its first incomplete step within the\
+        \ persisted retry budget.\n\nThe filesystem and repository are evidence; the state file is the\
+        \ index. Execution uncertainty\nalone uses `recovery-paused`. If discrepancies reveal safety concerns,\
+        \ uncertain side effects,\nconflicting work, or scope changes, set `waiting-for-user`, record\
+        \ the discrepancy, and ask at a gate.\n"

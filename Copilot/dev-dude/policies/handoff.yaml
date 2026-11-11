@@ -1,0 +1,432 @@
+schema_version: '1.0'
+bundle: copilot
+domain: handoff
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+invocation_modes:
+  orchestrated:
+    detected_when: The prompt contains the `## DevDude Orchestration` envelope (ENV-001) with Policy manifest,
+      Policy snapshot and Model profile snapshot locators.
+    rules:
+    - Never ask or wait for the user; return blocked with question, options and proposed default (CNF-ASK-001).
+    - Envelope write permission + Expected output = approval for exactly those paths (CNF-ASK-002); the
+      Expected output is the storage location (CNF-ASK-004).
+    - Read-only roles return artifact content to the invoking stage, which persists it (CNF-WRITE-001).
+    - Nested delegation only when the envelope authorizes it; pass the same policy manifest, policy snapshot
+      and model snapshot locators and digests (CNF-NEST-001).
+    - Before work, re-hash every file of the loaded load set with a runtime hashing tool and compare with
+      the envelope Policy snapshot (manifest.yaml integrity); a mismatch or unavailable hashing tool returns
+      blocked (POLICY INTEGRITY GATE).
+  standalone:
+    detected_when: No envelope. The agent discovers the policy root per platform.yaml root_discovery.
+    rules:
+    - Interactive behaviour of the role policy applies unchanged (asking for plan approval, locations,
+      confirmations).
+    - No workflow state is created or advanced.
+  envelope_block: '## DevDude Orchestration
+
+    - Run state: <absolute path>
+
+    - Workflow block: <skill> / <step>
+
+    - Task ID: <id>
+
+    - Execution mode: <background|cooperative-sync>
+
+    - Monitoring deadline: <UTC; not a guaranteed stop>
+
+    - Progress reporting: <supported channel or unavailable>
+
+    - In lane: <bounded objective>
+
+    - Expected output: <absolute path(s) or returned content>
+
+    - Completion evidence: <criteria>
+
+    - Input handoff: <path>
+
+    - Output handoff: <path>
+
+    - Next owner: <invoking stage>
+
+    - Policy manifest: <absolute path>
+
+    - Policy manifest digest: sha256:<hex>
+
+    - Policy snapshot: <absolute path>
+
+    - Policy snapshot digest: sha256:<hex>
+
+    - Model profile snapshot: <absolute path>
+
+    - Model profile digest: sha256:<hex>
+
+    - Invocation mode: orchestrated
+
+    '
+policies:
+  ENV-001:
+    title: Orchestration envelope
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - functional skills
+      - agents
+    defaults:
+      next_owner: invoking functional stage (root only for stage output handoff)
+    exceptions: []
+    rules:
+      ENV-001.R01:
+        statement: Every stage/specialist prompt contains the envelope before task context; bootstrap
+          packet is separate.
+      ENV-001.R02:
+        fields:
+        - Run state
+        - Workflow block
+        - Task ID
+        - Execution mode
+        - Monitoring deadline
+        - Progress reporting
+        - In lane
+        - Expected output
+        - Completion evidence
+        - Input handoff
+        - Output handoff
+        - Next owner
+        heading: '## DevDude Orchestration'
+      ENV-001.R03:
+        statement: Include only context blocks authorized by input contract.
+      ENV-001.R04:
+        statement: Specialist must not use prior conversation as state, advance workflow, change gate
+          status, or assume another block's work; returns control and typed evidence to invoking stage.
+      ENV-001.R05:
+        statement: Stage reconciles child results into journal and returns output handoff for root validation.
+      ENV-001.R06:
+        statement: Stay within bounded objective; report partial/blocked with unmet criteria and continuation;
+          report still-active descendants; returned result alone does not prove descendant termination.
+      ENV-001.R07:
+        added_by: PCH-MOD-004
+        fields:
+        - Policy manifest
+        - Policy manifest digest
+        - Policy snapshot
+        - Policy snapshot digest
+        - Model profile snapshot
+        - Model profile digest
+        - Invocation mode
+        statement: Absolute locators and SHA-256 digests of the launching root policies/manifest.yaml,
+          the run policy snapshot (manifest.yaml integrity) and the run pinned model profile snapshot;
+          Invocation mode is `orchestrated`. Every child envelope, including nested feature-implementer
+          -> investigation-documenter, copies them unchanged.
+    resolutions:
+      CNF-NEST-001: Feature-Implementer may delegate the changes summary to investigation-documenter only
+        when its envelope authorizes nested delegation; the child envelope carries the same Policy manifest
+        and Model profile snapshot locators/digests, the documenter model comes from the snapshot role
+        investigation-documenter, write is limited to the changes-summary path, and the child identity/status
+        is reported to the stage. Otherwise Feature-Implementer writes the summary itself.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: references/orchestration-state.md
+      lines: 227-255
+      text: '## Orchestration Envelope
+
+
+        Every stage or specialist task prompt must contain this compact envelope before task-specific
+
+        context. The host-to-controller bootstrap packet is separate: root has not yet initialized or
+
+        reconciled state and cannot supply a validated stage contract until it takes control.
+
+
+        ```markdown
+
+        ## DevDude Orchestration
+
+        - Run state: <path>
+
+        - Workflow block: <installed skill name and step>
+
+        - Task ID: <stable ID matching the state table>
+
+        - Execution mode: <controlled|cooperative; verified capabilities and limitations>
+
+        - Monitoring deadline: <UTC threshold; not a guaranteed stop in cooperative mode>
+
+        - Progress reporting: <return checkpoints/results to stage owner; stage journal path for stages>
+
+        - In lane: <single responsibility for this task>
+
+        - Expected output: <path or result contract>
+
+        - Completion evidence: <specific evidence required>
+
+        - Input handoff: <validated YAML contract path>
+
+        - Output handoff: <next YAML contract path>
+
+        - Next owner: invoking functional stage (root only for a stage output handoff)
+
+        ```
+
+
+        Also include only the context blocks authorized by the input contract. A specialist agent must
+        not use prior
+
+        conversation as workflow state, advance the workflow, change gate status, or assume work owned
+        by
+
+        another block; it returns control and typed evidence to its invoking stage. The stage reconciles
+
+        child results into its journal and returns its output handoff for root to validate.
+
+        Stay within the bounded objective and report partial or blocked results with unmet criteria and
+        a
+
+        continuation point when appropriate. Report any still-active descendants; a returned result alone
+
+        does not prove descendant termination.
+
+        '
+  HOC-SCHEMA-001:
+    title: Handoff contract YAML schema
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - stages
+    defaults:
+      schema_version: '1.0'
+    exceptions: []
+    rules:
+      HOC-SCHEMA-001.R01:
+        statement: Every stage boundary uses a YAML contract; preserve identifiers for same item; new
+          identifier when meaning changes; empty typed lists explicit [].
+      HOC-SCHEMA-001.R02:
+        section: handoff
+        fields:
+        - schema_version "1.0"
+        - workflow_id
+        - workflow_version
+        - run_id
+        - contract_id
+        - producing_stage
+        - receiving_stage
+        - status complete|partial|blocked|failed
+      HOC-SCHEMA-001.R03:
+        section: objective
+        fields:
+        - statement
+        - completion_criteria[id CCnnn, statement, status met|unmet|not_applicable, evidence]
+      HOC-SCHEMA-001.R04:
+        section: verified_facts
+        fields:
+        - id Fnnn
+        - statement
+        - evidence[artifact_id, locator]
+        - verification_status verified
+      HOC-SCHEMA-001.R05:
+        section: assumptions
+        fields:
+        - id Annn
+        - statement
+        - reason
+        - verification_status unverified|partially_verified
+        - impact_if_false
+      HOC-SCHEMA-001.R06:
+        section: constraints
+        fields:
+        - id Cnnn
+        - statement
+        - source
+      HOC-SCHEMA-001.R07:
+        section: decisions
+        fields:
+        - id Dnnn
+        - statement
+        - rationale
+        - based_on
+      HOC-SCHEMA-001.R08:
+        section: rejected_approaches
+        fields:
+        - id Rnnn
+        - approach
+        - reason
+        - based_on
+      HOC-SCHEMA-001.R09:
+        section: artifacts
+        fields:
+        - id ARTnnn
+        - uri_or_path
+        - media_type
+        - digest (optional algorithm:value)
+        - purpose
+        - access required|optional
+      HOC-SCHEMA-001.R10:
+        section: open_questions
+        fields:
+        - id Qnnn
+        - question
+        - owner_stage
+        - blocking
+      HOC-SCHEMA-001.R11:
+        section: blockers
+        fields:
+        - id Bnnn
+        - description
+        - required_resolution
+      HOC-SCHEMA-001.R12:
+        section: failures
+        fields:
+        - id Xnnn
+        - dependency
+        - category
+        - action_attempted
+        - retry_or_escalation
+      HOC-SCHEMA-001.R13:
+        section: continuation
+        fields:
+        - remaining_criteria
+        - next_action
+      HOC-SCHEMA-001.R14:
+        section: next_stage
+        fields:
+        - objective
+        - required_inputs
+        - authorized_artifacts
+        - authorized_tools
+        - 'prohibited_dependencies (defaults: prior conversation history; unreferenced artifacts; unverified
+          assumptions treated as facts)'
+      HOC-SCHEMA-001.R15:
+        section: validation
+        fields:
+        - result pending|pass|fail
+        - validated_by
+        - issues[code, location, message, remediation]
+      HOC-SCHEMA-001.R16:
+        added_by: PCH-MOD-004
+        section: policy_context
+        fields:
+        - policy_root
+        - policy_manifest
+        - manifest_digest
+        - policy_snapshot
+        - policy_snapshot_digest
+        - model_profile_snapshot
+        - model_profile_digest
+        statement: Required in every input and output contract; absolute paths; digests are sha256:<hex>
+          computed with a runtime hashing tool; values must equal the run state.
+    source_nuance:
+    - path: references/handoff-contract-schema.md
+      lines: 1-105
+      text: "# Handoff Contract Schema\n\nEvery stage boundary uses a YAML contract. Preserve identifiers\
+        \ across contracts when referring to\nthe same item; allocate a new identifier when meaning changes.\
+        \ Empty typed lists are explicit (`[]`).\n\n```yaml\nhandoff:\n  schema_version: \"1.0\"\n  workflow_id:\
+        \ \"<architecture|feature>\"\n  workflow_version: \"<workflow definition or amendment version>\"\
+        \n  run_id: \"<stable run identifier>\"\n  contract_id: \"<stable unique contract identifier>\"\
+        \n  producing_stage: \"<stage name or root-initialization>\"\n  receiving_stage: \"<next stage\
+        \ name or null for terminal>\"\n  status: \"complete | partial | blocked | failed\"\n\nobjective:\n\
+        \  statement: \"<bounded objective attempted by the producing stage>\"\n  completion_criteria:\n\
+        \    - id: \"CC001\"\n      statement: \"<measurable criterion>\"\n      status: \"met | unmet\
+        \ | not_applicable\"\n      evidence: [\"ART001#<specific locator>\"]\n\nverified_facts:\n  -\
+        \ id: \"F001\"\n    statement: \"<fact>\"\n    evidence:\n      - artifact_id: \"ART001\"\n  \
+        \      locator: \"<file:line, document section, query, or durable result reference>\"\n    verification_status:\
+        \ \"verified\"\n\nassumptions:\n  - id: \"A001\"\n    statement: \"<provisional claim>\"\n   \
+        \ reason: \"<why it is needed>\"\n    verification_status: \"unverified | partially_verified\"\
+        \n    impact_if_false: \"<impact>\"\n\nconstraints:\n  - id: \"C001\"\n    statement: \"<rule\
+        \ or limitation>\"\n    source: \"<workflow, policy, contract item, or ART001#locator>\"\n\ndecisions:\n\
+        \  - id: \"D001\"\n    statement: \"<selected course>\"\n    rationale: \"<concise, outcome-relevant\
+        \ rationale>\"\n    based_on: [\"F001\", \"C001\"]\n\nrejected_approaches:\n  - id: \"R001\"\n\
+        \    approach: \"<excluded option>\"\n    reason: \"<evidence-based reason>\"\n    based_on: [\"\
+        F001\"]\n\nartifacts:\n  - id: \"ART001\"\n    uri_or_path: \"<durable path or URI>\"\n    media_type:\
+        \ \"<media type>\"\n    digest: \"<optional algorithm:value>\"\n    purpose: \"<downstream need>\"\
+        \n    access: \"required | optional\"\n\nopen_questions:\n  - id: \"Q001\"\n    question: \"<unresolved\
+        \ information>\"\n    owner_stage: \"<responsible stage>\"\n    blocking: true\n\nblockers:\n\
+        \  - id: \"B001\"\n    description: \"<condition preventing safe progression>\"\n    required_resolution:\
+        \ \"<specific action or evidence>\"\n\nfailures:\n  - id: \"X001\"\n    dependency: \"<tool or\
+        \ artifact>\"\n    category: \"<error category>\"\n    action_attempted: \"<action>\"\n    retry_or_escalation:\
+        \ \"<safe condition>\"\n\ncontinuation:\n  remaining_criteria: [\"CC001\"]\n  next_action: \"\
+        <precise restart point or null>\"\n\nnext_stage:\n  objective: \"<bounded next objective or null\
+        \ for terminal>\"\n  required_inputs: [\"F001\", \"ART001\"]\n  authorized_artifacts: [\"ART001\"\
+        ]\n  authorized_tools: [\"<tool or capability>\"]\n  prohibited_dependencies:\n    - \"prior conversation\
+        \ history\"\n    - \"unreferenced artifacts\"\n    - \"unverified assumptions treated as facts\"\
+        \n\nvalidation:\n  result: \"pending | pass | fail\"\n  validated_by: \"<root stage/gate identifier>\"\
+        \n  issues:\n    - code: \"<stable issue code>\"\n      location: \"<field path>\"\n      message:\
+        \ \"<failure>\"\n      remediation: \"<specific corrective action>\"\n```\n"
+  HOC-SEM-001:
+    title: Handoff required semantics
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - stages
+    defaults: {}
+    exceptions: []
+    rules:
+      HOC-SEM-001.R01:
+        statement: All top-level sections required; empty lists/null where permitted; producer sets validation.result
+          pending; only root gate sets pass/fail; receiver accepts only pass.
+      HOC-SEM-001.R02:
+        statement: Nonterminal requires receiving_stage, bounded next_stage.objective, authorized tools/artifacts;
+          terminal sets null/empty.
+      HOC-SEM-001.R03:
+        statement: complete requires all applicable criteria met, no blocking question, blocker, unresolved
+          failure.
+      HOC-SEM-001.R04:
+        statement: partial needs unmet criteria + precise continuation; blocked needs blocker or blocking
+          question; failed needs recorded failure; none authorizes a different next stage.
+      HOC-SEM-001.R05:
+        statement: Every verified fact needs resolvable evidence; confidence wording is not evidence.
+      HOC-SEM-001.R06:
+        statement: Assumptions stay assumptions until new evidence supports a separately recorded fact.
+      HOC-SEM-001.R07:
+        statement: Decisions/rejections reference declared facts/constraints in based_on.
+      HOC-SEM-001.R08:
+        statement: Artifact authorization is least-access for stated purpose; present digest must match
+          before use.
+      HOC-SEM-001.R09:
+        statement: Contradictions recorded as blocking open questions with both claims until resolved.
+      HOC-SEM-001.R10:
+        statement: Never serialize chain-of-thought, scratchpads, tool chatter, transcripts.
+      HOC-SEM-001.R11:
+        statement: 'Cooperative limitations in constraints; unknown execution status in blockers (resolution:
+          completion or verified termination); reference journal/runtime evidence; handoff status != invocation
+          termination; never encode elapsed deadline/cancel request as verified cancellation.'
+      HOC-SEM-001.R12:
+        statement: Root creates initial contract from normalized command and verified runtime state; stage
+          writes all sections with pending validation; root records final outcome after independent validation.
+    source_nuance:
+    - path: references/handoff-contract-schema.md
+      lines: 107-135
+      text: "## Required Semantics\n\n- All top-level sections are required. Use empty lists or `null`\
+        \ where the schema permits. A\n  producing stage sets `validation.result: pending`; only the root\
+        \ gate changes it to `pass` or\n  `fail`. A receiving stage accepts only `pass`.\n- Nonterminal\
+        \ contracts require `receiving_stage`, a bounded `next_stage.objective`, and authorized\n  tools/artifacts.\
+        \ Terminal contracts set those values to `null` or empty lists.\n- `complete` requires every applicable\
+        \ completion criterion to be `met`, no blocking open question,\n  no blocker, and no unresolved\
+        \ failure.\n- `partial` requires unmet criteria and a precise `continuation`; `blocked` requires\
+        \ a blocker or\n  blocking question; `failed` requires a recorded failure. None authorizes a different\
+        \ next stage.\n- Every verified fact requires resolvable evidence. Confidence wording is not evidence.\n\
+        - Assumptions remain assumptions until new evidence supports a separately recorded verified fact.\n\
+        - Decisions and rejections reference declared facts or constraints in `based_on`.\n- Artifact\
+        \ authorization is least-access: listing an artifact permits access only for its stated\n  purpose.\
+        \ A present digest must match before use.\n- Record contradictions as blocking open questions\
+        \ with both claims and evidence references until an\n  allowed resolution stage resolves them.\n\
+        - Never serialize chain-of-thought, raw scratchpads, tool chatter, or whole transcripts.\n- Record\
+        \ cooperative execution limitations in `constraints`; record unknown execution status in\n  `blockers`\
+        \ with completion or verified termination as the required resolution. Reference the\n  authorized\
+        \ stage journal or runtime evidence in `artifacts` and evidence locators. A handoff\n  status\
+        \ describes work results, not invocation termination: even a `complete` result does not\n  prove\
+        \ descendants stopped or authorize overlapping work. Never encode an elapsed deadline or\n  cancellation\
+        \ request as a verified cancellation fact.\n\nThe root creates the initial contract from normalized\
+        \ command input and verified runtime state. A\nstage writes all sections with a pending validation\
+        \ outcome; the root gate records the final outcome\nafter independent validation.\n"

@@ -1,0 +1,550 @@
+schema_version: '1.0'
+bundle: copilot
+domain: workflow
+skill: dev-dude-validation
+skill_version_ref: policies/metadata.yaml#crews.skills.version
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  FVAL-PRE-001:
+    title: Validation workflow preamble and indexer usage
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-validation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FVAL-PRE-001.R01:
+        statement: Generic verification of documentation and feature implementation accuracy against code.
+      FVAL-PRE-001.R02:
+        statement: Root supplies reconciled state, envelope, evidence, permitted transition; skill owns
+          validation decisions and remediation routing; never implements remediations.
+      FVAL-PRE-001.R03:
+        statement: Standard monitoring paragraph.
+      FVAL-PRE-001.R04:
+        statement: Use $INDEXER_CONTEXT tools; examples use Serena names; substitute equivalents.
+        resolution:
+          CNF-IDX-002: 'Serena tool names are illustrative. Without a selected indexer (Copilot fallback)
+            use: list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+            -> grep for the symbol across the repository; search_for_pattern -> grep. Record the substitution
+            and reduced confidence in the evidence.'
+    resolutions:
+      CNF-IDX-002: Validation examples keep Serena names as illustrations with an explicit fallback mapping
+        (list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+        -> grep; search_for_pattern -> grep) recorded as rule resolutions.
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 1-15
+      text: '# Verification Workflow
+
+
+        Generic process for verifying documentation accuracy and feature implementation accuracy against
+        actual code.
+
+
+        The root orchestrator supplies the reconciled run state, orchestration envelope, current evidence,
+
+        and permitted transition. This skill owns validation decisions and remediation routing; it does
+        not
+
+        implement production or test remediations itself.
+
+
+        All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+
+        launches and bounded polls apply when supported; otherwise use the runtime''s supported invocation
+
+        and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+
+        Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
+
+        Use the code indexer tools provided in `$INDEXER_CONTEXT`. The examples below use Serena tool
+        names; substitute the equivalent tool from your active indexer(s).
+
+
+        '
+  FVAL-DOC-001:
+    title: Documentation verification steps
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - code-flow-analyzer
+      - architecture stage
+    defaults:
+      min_examples_for_architecture_claim: 2-3
+    exceptions: []
+    rules:
+      FVAL-DOC-001.R01:
+        check: file_path
+        statement: find_file/list_dir; accurate if exists at path; else inaccurate and search correct
+          path.
+        resolution:
+          CNF-IDX-002: 'Serena tool names are illustrative. Without a selected indexer (Copilot fallback)
+            use: list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+            -> grep for the symbol across the repository; search_for_pattern -> grep. Record the substitution
+            and reduced confidence in the evidence.'
+      FVAL-DOC-001.R02:
+        check: symbol
+        statement: find_symbol include_body=false; accurate if at stated location.
+        resolution:
+          CNF-IDX-002: 'Serena tool names are illustrative. Without a selected indexer (Copilot fallback)
+            use: list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+            -> grep for the symbol across the repository; search_for_pattern -> grep. Record the substitution
+            and reduced confidence in the evidence.'
+      FVAL-DOC-001.R03:
+        check: snippet
+        statement: find_symbol include_body=true; compare; meaningful differences inaccurate.
+        resolution:
+          CNF-IDX-002: 'Serena tool names are illustrative. Without a selected indexer (Copilot fallback)
+            use: list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+            -> grep for the symbol across the repository; search_for_pattern -> grep. Record the substitution
+            and reduced confidence in the evidence.'
+      FVAL-DOC-001.R04:
+        check: dependency
+        statement: find_referencing_symbols; verify consumers; check missing relationships.
+      FVAL-DOC-001.R05:
+        check: architecture_claim
+        key: min_examples
+        value: 2-3
+        statement: search_for_pattern; at least 2-3 concrete examples; none/contradicting -> inaccurate.
+        resolution:
+          CNF-IDX-002: 'Serena tool names are illustrative. Without a selected indexer (Copilot fallback)
+            use: list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+            -> grep for the symbol across the repository; search_for_pattern -> grep. Record the substitution
+            and reduced confidence in the evidence.'
+    resolutions:
+      CNF-IDX-002: Validation examples keep Serena names as illustrations with an explicit fallback mapping
+        (list_dir/find_file -> glob/view; find_symbol/get_symbols_overview -> grep + view; find_referencing_symbols
+        -> grep; search_for_pattern -> grep) recorded as rule resolutions.
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 16-53
+      text: '## Documentation Verification Steps
+
+
+        ### 1. File Path Verification
+
+
+        For every file path mentioned in the document:
+
+        - Use the indexer''s `find_file` / `list_dir` capability (e.g., `mcp__serena__find_file("<filename>",
+        "<directory>")` or `mcp__serena__list_dir("<path>", recursive=false)`)
+
+        - Mark as accurate if file exists at the stated path
+
+        - Mark as inaccurate if file doesn''t exist; search for the correct path
+
+
+        ### 2. Symbol Verification
+
+
+        For every class, function, interface, or type mentioned:
+
+        - Use the indexer''s `find_symbol` capability (e.g., `mcp__serena__find_symbol("<name>", relative_path="<stated-path>")`
+        with `include_body=false`)
+
+        - Mark as accurate if symbol exists in the stated location
+
+        - Mark as inaccurate if symbol doesn''t exist or is in a different location
+
+
+        ### 3. Code Snippet Verification
+
+
+        For code snippets or specific implementation claims:
+
+        - Use the indexer''s `find_symbol` with body inclusion (e.g., `mcp__serena__find_symbol("<name>",
+        relative_path="<path>", include_body=true)`)
+
+        - Compare the actual body with what''s described in the document
+
+        - Mark as accurate if description matches implementation
+
+        - Mark as inaccurate if there are meaningful differences
+
+
+        ### 4. Dependency Verification
+
+
+        For claims about dependencies and relationships:
+
+        - Use the indexer''s `find_referencing_symbols` capability (e.g., `mcp__serena__find_referencing_symbols("<name>",
+        relative_path="<path>")`)
+
+        - Verify that stated consumers/dependents actually reference the symbol
+
+        - Check for missing relationships not mentioned in the document
+
+
+        ### 5. Architecture Claim Verification
+
+
+        For higher-level architecture claims (patterns, conventions, data flow):
+
+        - Use the indexer''s `search_for_pattern` capability (e.g., `mcp__serena__search_for_pattern("<pattern>")`)
+        to find evidence
+
+        - Verify at least 2-3 concrete examples support the claim
+
+        - Mark as inaccurate if no evidence found or evidence contradicts
+
+
+        '
+  FVAL-FEAT-001:
+    title: Feature verification required inputs and criteria
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-validation stage
+      - feature-validator
+    defaults: {}
+    exceptions: []
+    rules:
+      FVAL-FEAT-001.R01:
+        statement: Mandatory completion gate for the feature-implementation stage of DudeWriteMyFeature
+          whether it follows feature design or resumes from an existing plan.
+        amendment:
+          by: CNF-STALE-001
+          reason: Phase 2 label replaced with stage names.
+      FVAL-FEAT-001.R02:
+        required_inputs:
+        - original spec/request
+        - approved design option + document
+        - implementation plan + current state
+        - all FI summaries
+        - all TI summaries/results
+        - changed files
+        - project validation command results
+        - CFA semantic findings when non-trivial
+        - current attempt + max attempts
+      FVAL-FEAT-001.R03:
+        criterion: plan_complete
+        statement: Every planned task has summary or explicit not-needed reason.
+      FVAL-FEAT-001.R04:
+        criterion: tests_paired
+        statement: Every FI result has TI result.
+      FVAL-FEAT-001.R05:
+        criterion: project_validation_run
+        statement: Build/test/lint/type-check run when available; unavailable reported.
+      FVAL-FEAT-001.R06:
+        criterion: spec_design_satisfied
+      FVAL-FEAT-001.R07:
+        criterion: integration_verified
+      FVAL-FEAT-001.R08:
+        criterion: evidence_sufficient
+        statement: Current for latest remediation attempt.
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+      CNF-FV-001: 'Feature-Validator criteria rows use the six validation-workflow criteria: Implementation
+        plan complete; Tests paired with implementation; Project validation run; Spec/design satisfied;
+        Integration verified; Evidence sufficient.'
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 54-80
+      text: '## Feature Implementation Verification
+
+
+        Feature implementation verification is a completion gate for the feature-implementation stage
+        of `DudeWriteMyFeature`. It is not optional and must run whether feature implementation follows
+        feature design or resumes directly from an existing design/implementation plan.
+
+
+        ### Required Inputs
+
+
+        - Original feature spec or user request
+
+        - Approved design option and design document
+
+        - Implementation plan and current feature-implementation state
+
+        - Implementation summaries from all Feature-Implementer tasks
+
+        - Test summaries/results from all Test-Implementer tasks
+
+        - Changed files
+
+        - Project validation command results
+
+        - Code-Flow-Analyzer semantic verification findings when flow/integration behavior is non-trivial
+
+        - Current remediation attempt number and max attempts
+
+
+        ### Verification Criteria
+
+
+        | Criterion | Requirement |
+
+        |-----------|-------------|
+
+        | Implementation plan complete | Every planned task has a completed implementation summary or
+        an explicit reason it is not needed |
+
+        | Tests paired with implementation | Every Feature-Implementer result has a corresponding Test-Implementer
+        result |
+
+        | Project validation run | Build/test/lint/type-check commands are run when available, with unavailable
+        commands explicitly reported |
+
+        | Spec/design satisfied | Implemented behavior matches the original spec and approved design |
+
+        | Integration verified | Affected code flows and integration points are verified against actual
+        code |
+
+        | Evidence sufficient | Changed files, command results, and summaries are current for the latest
+        remediation attempt |
+
+
+        '
+  FVAL-GATE-001:
+    title: Validator gate and verification.md report shape
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - feature-validator
+      - code-flow-analyzer
+    defaults: {}
+    exceptions: []
+    rules:
+      FVAL-GATE-001.R01:
+        statement: Feature-Validator is final read-only gate; CFA may provide semantic evidence; FV owns
+          SATISFIED/UNSATISFIED.
+      FVAL-GATE-001.R02:
+        platform: copilot
+        statement: Invoke code-flow-analyzer-copilot and feature-validator-copilot passing reasoning-agnostic
+          frontmatter model alias.
+        resolution:
+          PCH-MOD-004: Pass the role model ID from the pinned model profile snapshot; for bundled-default
+            it equals the installed frontmatter model, preserving baseline behavior. No fallback when
+            the runtime rejects it (MODEL CAPABILITY GATE).
+      FVAL-GATE-001.R03:
+        statement: The validation stage writes/updates ./docs/<feature-slug>/verification.md from the
+          report returned by the read-only Feature-Validator.
+        amendment:
+          by: CNF-WRITE-001
+          reason: Read-only validator returns content; stage persists.
+      FVAL-GATE-001.R04:
+        sections:
+        - '# Feature Verification Report'
+        - Verification Status SATISFIED|UNSATISFIED
+        - Summary
+        - Evidence Reviewed (spec/design, impl summaries, test results, project commands, code-flow findings,
+          changed files)
+        - Criteria Results (Criterion, Status, Evidence)
+        - Failed Criteria
+        - Required Remediation Tasks (Task, Owner Agent, Input Evidence, Expected Output)
+        - Unresolved Questions
+    resolutions:
+      CNF-WRITE-001: No tool lists are broadened. Read-only roles (code-flow-analyzer, technical-resource-investigator,
+        feature-validator) return artifact content; the invoking functional stage persists it at the envelope
+        Expected output path. Standalone use returns content to the user.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    retained_prose:
+    - path: skills/dev-dude-validation/references/workflow.md
+      content: verification.md report skeleton
+      reason: Template body; sections normative in FVAL-GATE-001.R04.
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 81-121
+      text: '### Validator Gate
+
+
+        Use the Feature-Validator agent as the final read-only gate. Code-Flow-Analyzer can provide semantic
+        flow evidence, but Feature-Validator owns the final `SATISFIED` or `UNSATISFIED` decision.
+
+
+        For Copilot, invoke `code-flow-analyzer-copilot` and `feature-validator-copilot` and pass each
+
+        agent''s reasoning-agnostic frontmatter `model` alias to its task call.
+
+
+        Feature-Validator must write or update `./docs/<feature-slug>/verification.md` using this result
+        shape:
+
+
+        ```markdown
+
+        # Feature Verification Report
+
+
+        ## Verification Status
+
+        SATISFIED | UNSATISFIED
+
+
+        ## Summary
+
+        <concise result>
+
+
+        ## Evidence Reviewed
+
+        - Original spec/design:
+
+        - Implementation summaries:
+
+        - Test summaries/results:
+
+        - Project commands:
+
+        - Code-flow findings:
+
+        - Changed files:
+
+
+        ## Criteria Results
+
+        | Criterion | Status | Evidence |
+
+        |-----------|--------|----------|
+
+
+        ## Failed Criteria
+
+        <None, or each failed criterion with evidence>
+
+
+        ## Required Remediation Tasks
+
+        | Task | Owner Agent | Input Evidence | Expected Output |
+
+        |------|-------------|----------------|-----------------|
+
+
+        ## Unresolved Questions
+
+        <None, or user clarification needed>
+
+        ```
+
+
+        '
+  FVAL-LOOP-001:
+    title: Remediation loop and dispatch boundary
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-validation stage
+      - orchestrator
+    defaults:
+      max_validation_attempts: 3
+    exceptions:
+    - user-set attempt limit
+    rules:
+      FVAL-LOOP-001.R01:
+        key: max_validation_attempts
+        value: 3
+        statement: Default 3 attempts unless user explicitly sets a limit.
+      FVAL-LOOP-001.R02:
+        statement: 'Routing: production gap/spec mismatch -> Feature-Implementer; tests -> Test-Implementer;
+          unclear flow -> CFA then FV rerun; ambiguous requirement -> user clarification gate.'
+      FVAL-LOOP-001.R03:
+        statement: Production remediation followed by Test-Implementer before rerun.
+      FVAL-LOOP-001.R04:
+        statement: Current evidence only; no stale command results/reports.
+      FVAL-LOOP-001.R05:
+        statement: Exit only on SATISFIED or bounded unresolved listing failed criteria, evidence, owners,
+          questions.
+      FVAL-LOOP-001.R06:
+        statement: Skill does not launch FI/TI, change code/tests, increment counter, or rerun itself;
+          returns UNSATISFIED to root; root dispatches implementation, increments only after remediation
+          evidence, re-invokes validation; at limit return bounded-unresolved.
+    resolutions:
+      CNF-LIMIT-001: 'Root owns the validation attempt limit: default 3, changed only by an explicit quoted
+        user decision, recorded as `Validation attempts: <current>/<max> (source: default|user decision)`
+        (STATE-SCHEMA-001.R07).'
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 122-143
+      text: "### Remediation Loop Rules\n\n1. **Bounded loop**: Default to 3 validation attempts unless\
+        \ the user explicitly sets a different limit.\n2. **Correct owner routing**:\n   - Production\
+        \ code gap, incomplete behavior, or spec mismatch: Feature-Implementer\n   - Missing, incorrect,\
+        \ or brittle tests: Test-Implementer\n   - Unclear flow behavior or insufficient semantic evidence:\
+        \ Code-Flow-Analyzer, then Feature-Validator rerun\n   - Ambiguous or conflicting requirement:\
+        \ user clarification gate\n3. **Full loop after remediation**: Production-code remediation must\
+        \ be followed by Test-Implementer before validation reruns.\n4. **Current evidence only**: Do\
+        \ not reuse stale command results or stale verification reports after files change.\n5. **Exit\
+        \ conditions**: The feature implementation/validation loop exits only on `SATISFIED`, or on a\
+        \ bounded unresolved state that lists failed criteria, evidence, owner agents, and remaining questions.\n\
+        \n### Remediation Dispatch Boundary\n\nThis skill owns each validation attempt and emits the decision\
+        \ plus targeted remediation route. It\ndoes not launch Feature-Implementer or Test-Implementer,\
+        \ change production/tests, increment the\nattempt counter, or rerun itself. Return `UNSATISFIED`\
+        \ evidence to the root orchestrator. Root\ncheckpoints the decision, dispatches `dev-dude-feature-implementation`\
+        \ for production or test work,\nincrements the attempt only after current remediation evidence\
+        \ exists, and invokes\n`dev-dude-validation` again. On the limit, return bounded-unresolved evidence\
+        \ instead of another\nroute.\n\n"
+  FVAL-DOCFIX-001:
+    title: Documentation report format, fix rules, accuracy thresholds
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - code-flow-analyzer
+      - investigation-documenter
+    defaults: {}
+    exceptions: []
+    rules:
+      FVAL-DOCFIX-001.R01:
+        fields:
+        - Item
+        - Status Accurate|Inaccurate|Minor correction needed
+        - Evidence
+        - Correction
+      FVAL-DOCFIX-001.R02:
+        statement: One pass only for doc fixes; no re-verify; not applicable to feature validation loop.
+      FVAL-DOCFIX-001.R03:
+        statement: 'Minimal edits: only what report identifies; no section rewrites; no new content; preserve
+          structure/voice.'
+      FVAL-DOCFIX-001.R04:
+        statement: 'Annotate unverifiable: ''> **Note**: This section could not be fully verified. <reason>''.'
+      FVAL-DOCFIX-001.R05:
+        statement: Never modify accurate items.
+      FVAL-DOCFIX-001.R06:
+        key: accuracy_thresholds
+        value:
+          good: '>90% apply minor corrections'
+          significant: 70-90% investigate root causes
+          regenerate: <70% may need regeneration
+    source_nuance:
+    - path: skills/dev-dude-validation/references/workflow.md
+      lines: 144-174
+      text: "## Documentation Verification Report Format\n\nFor each item verified, record:\n- **Item**:\
+        \ What was checked (file path, symbol, claim)\n- **Status**: Accurate / Inaccurate / Minor correction\
+        \ needed\n- **Evidence**: What tool call confirmed/denied it\n- **Correction** (if inaccurate):\
+        \ What the document should say instead\n\n## Documentation Fix Application Rules\n\n1. **One pass\
+        \ only for documentation fixes**: Apply documentation corrections once, do not re-verify after\
+        \ fixing.\n   - This prevents documentation-only verification-fix loops.\n   - This rule does\
+        \ not apply to feature implementation verification, which uses the bounded remediation loop above.\n\
+        \n2. **Minimal edits**: Only change what the verification report identifies.\n   - Do not rewrite\
+        \ entire sections.\n   - Do not add new content during fixes.\n   - Preserve the document's structure\
+        \ and voice.\n\n3. **Annotate uncertainties**: If something can't be verified, add a note:\n \
+        \  ```markdown\n   > **Note**: This section could not be fully verified. <reason>\n   ```\n\n\
+        4. **Preserve accurate content**: Never modify items marked as accurate.\n\n## Documentation Accuracy\
+        \ Thresholds\n\n- **Accuracy > 90%**: Document is good, apply minor corrections\n- **Accuracy\
+        \ 70-90%**: Document needs significant corrections, investigate root causes\n- **Accuracy < 70%**:\
+        \ Document may need to be regenerated from better investigation\n"

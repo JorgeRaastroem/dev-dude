@@ -1,0 +1,254 @@
+schema_version: '1.0'
+bundle: copilot
+domain: output-templates
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  TPL-INTRO-001:
+    title: Template set scope
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - investigation-documenter
+      - code-flow-analyzer
+      - technical-resource-investigator
+    defaults: {}
+    exceptions: []
+    rules:
+      TPL-INTRO-001.R01:
+        statement: Templates are generic, codebase-agnostic, adapt to any project; user-customizable (README
+          Customization).
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-ARCH-001:
+    title: Architecture Overview Document template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - investigation-documenter
+    defaults:
+      initial_revision_row: Initial document.
+    exceptions: []
+    rules:
+      TPL-ARCH-001.R01:
+        header_fields:
+        - Date (latest update)
+        - Source Commit (full SHA)
+        - Scope
+        - Tech Stack
+      TPL-ARCH-001.R02:
+        sections:
+        - Revision History
+        - Table of Contents
+        - 1. Executive Summary
+        - 2. High-Level Architecture (mermaid graph)
+        - N. <Area> (Path, Purpose, Key components, Deep dive link)
+        - Cross-References
+        - Glossary
+        - Future Considerations
+    resolutions:
+      CNF-TPL-002: For DevDude workflow outputs the TPL-* templates take precedence; the documenter generic
+        structure applies only to standalone documents with no TPL template.
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-DEEP-001:
+    title: Deep-Dive Area Document template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - investigation-documenter
+    defaults: {}
+    exceptions: []
+    rules:
+      TPL-DEEP-001.R01:
+        header_fields:
+        - Date
+        - Area
+        - Path
+        - Source Commit
+        - See also
+      TPL-DEEP-001.R02:
+        sections:
+        - Revision History
+        - Overview
+        - Components (File
+        - Type
+        - Purpose
+        - Key methods/exports)
+        - Data Flow (mermaid sequence)
+        - Key Interfaces (Location
+        - Consumers
+        - Contract)
+        - Dependencies (Depends On
+        - Depended On By)
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-VER-001:
+    title: Documentation Verification Report template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - code-flow-analyzer
+    defaults: {}
+    exceptions: []
+    rules:
+      TPL-VER-001.R01:
+        header_fields:
+        - Date
+        - Document verified
+        - 'Verifier: Code-Flow-Analyzer agent'
+      TPL-VER-001.R02:
+        sections:
+        - Summary (Total, Accurate, Inaccurate, Minor corrections)
+        - Verified Items
+        - Inaccuracies Found (Claimed, Actual, Correction)
+        - Action Plan
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-RES-001:
+    title: Resources Investigation Document template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - technical-resource-investigator
+    defaults:
+      critique_skip_text: 'No external or material candidates — critique pass skipped. Reason: <reason>.'
+    exceptions: []
+    rules:
+      TPL-RES-001.R01:
+        statement: Produced by TRI (discovery then critique); governed by trusted-source policy; critique
+          append-only/provenance-preserving.
+      TPL-RES-001.R02:
+        header_fields:
+        - Feature
+        - Date
+        - 'Investigator: Technical-Resource-Investigator agent'
+        - 'Based on: investigation.md'
+        - Source policy
+      TPL-RES-001.R03:
+        sections:
+        - 'Research Tools (Documentation MCP, GitHub/registry lookup, WebFetch/WebSearch: available/unavailable)'
+        - 'Candidate Resources (Internal Reuse table: Resource, Location, Fit High/Medium/Low, Notes;
+          External table: Candidate, Type, Citation, Status recommended/unverified/rejected)'
+        - Facts vs Recommendations
+        - Advisory / Security Notes (GHSA/OSV, not npm audit)
+        - License
+        - Maintenance Signals
+        - Reliability / Operational Notes
+        - Decision Matrix (Fit, Security, Maintenance, License, Supply-chain risk, Operational cost vs
+          build in-repo)
+        - Recommended Resources
+        - Rejected / Unverified Resources
+        - Critique & Amendments (append-only; skip sentence)
+        - Revised Recommendations (append-only)
+        - Unresolved Risks
+        - Inputs for Architecture-Reviewer
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+      CNF-TPL-001: Resources template step labels fixed in references/doc-format-templates.md in both
+        bundles.
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-DES-001:
+    title: Design Options Document template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - investigation-documenter
+    defaults: {}
+    exceptions: []
+    rules:
+      TPL-DES-001.R01:
+        header_fields:
+        - Feature
+        - Date
+        - 'Based on: investigation.md'
+      TPL-DES-001.R02:
+        sections:
+        - Table of Contents
+        - Source References (Investigation, Resource Investigation, additional)
+        - Context
+        - Options (Approach, Affected Modules, UX Guidance, text-only Layout Map, Complexity Low/Medium/High,
+          mermaid graph, Pros, Cons)
+        - Comparison Matrix (Complexity, Risk, Extensibility, UX Clarity, Reusability, Operational Cost)
+        - Recommendation
+        - Architecture Review Notes (Summary, Future Considerations)
+        - Glossary
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.
+  TPL-INT-001:
+    title: Implementation Interview Document template
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - feature-implementation stage
+    defaults: {}
+    exceptions: []
+    rules:
+      TPL-INT-001.R01:
+        statement: Transcript/decision evidence for Implementation Clarification Gate; decisions folded
+          into implementation-plan.md, the single source of truth downstream.
+      TPL-INT-001.R02:
+        header_fields:
+        - Feature
+        - Date
+        - Approved design (Option X)
+        - Sources reviewed
+      TPL-INT-001.R03:
+        sections:
+        - Open Questions & Proposed Defaults (#, Question, Source artifact, Why implementation-critical,
+          Proposed default)
+        - Decisions (Answered | Waiver)
+        - Waivers
+        - Scope/Approach Impact (Material change? Yes -> back to USER REVIEW GATE)
+        - Plan Integration
+      TPL-INT-001.R04:
+        statement: No open questions -> state `Gate completed with no open questions.`
+    retained_prose:
+    - path: references/doc-format-templates.md
+      content: template body
+      reason: Template bodies are output skeletons, retained as nonnormative Markdown; header fields/sections/rules
+        are the YAML rules.

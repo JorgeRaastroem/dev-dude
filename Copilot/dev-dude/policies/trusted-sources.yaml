@@ -1,0 +1,180 @@
+schema_version: '1.0'
+bundle: copilot
+domain: trusted-sources
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  TSP-SCOPE-001:
+    title: Trusted-source policy nature
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - technical-resource-investigator
+      - feature-design
+    defaults: {}
+    exceptions: []
+    platform_binding:
+      lines_8_9: In Copilot agents
+    rules:
+      TSP-SCOPE-001.R01:
+        statement: Governs which sources may be cited for external resource recommendations and how factual
+          claims are grounded.
+      TSP-SCOPE-001.R02:
+        statement: Behavioral/source-quality enforcement, not domain-restricted tool gating; tools cannot
+          be technically locked.
+      TSP-SCOPE-001.R03:
+        statement: Single enforceable rule is the citation-host invariant; recommendations failing it
+          must not be made.
+    source_nuance:
+    - path: references/trusted-source-policy.md
+      lines: 1-12
+      text: '# Trusted Source Policy
+
+
+        Shared policy reference for technical resource investigation. It governs **which sources may be
+
+        cited** when recommending external packages, services, platforms, or other resources, and how
+
+        factual claims must be grounded.
+
+
+        This policy is **behavioral / source-quality enforcement**, not domain-restricted tool gating.
+        In
+
+        Copilot agents, web and research tools cannot be technically locked to specific domains — source
+
+        restriction is a prompt/behavioral policy. The single enforceable rule is the **citation-host
+
+        invariant**: every external recommendation must carry an allowlisted, authoritative citation,
+        and
+
+        any external factual claim must be traceable to an allowlisted source. Recommendations that cannot
+
+        satisfy the citation-host invariant must not be made.
+
+        '
+  TSP-INV-001:
+    title: Citation-host invariant
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - technical-resource-investigator
+    defaults: {}
+    exceptions: []
+    rules:
+      TSP-INV-001.R01:
+        statement: Every recommended external resource has >=1 citation on an allowlisted host or documentation-MCP
+          document reference.
+      TSP-INV-001.R02:
+        statement: Every external factual claim (versions, license, maintenance, advisories, capabilities)
+          traceable to allowlisted source by URL or MCP reference.
+      TSP-INV-001.R03:
+        statement: Facts and recommendations separated; recommendation may not smuggle uncited facts.
+      TSP-INV-001.R04:
+        statement: Failing candidate cannot be recommended; record as unverified.
+    source_nuance:
+    - path: references/trusted-source-policy.md
+      lines: 14-23
+      text: "## Citation-Host Invariant (Enforceable Rule)\n\n1. Every recommended external resource **must**\
+        \ include at least one citation whose host is on the\n   allowlist below (or a documentation MCP\
+        \ document reference).\n2. Every external **factual** claim (versions, license, maintenance status,\
+        \ advisories, capabilities)\n   **must** be traceable to an allowlisted source via an explicit\
+        \ URL or MCP document reference.\n3. **Facts and recommendations are separated.** Recommendations\
+        \ are the agent's judgment; facts are\n   cited evidence. A recommendation may not silently smuggle\
+        \ in an uncited factual assertion.\n4. A candidate that cannot satisfy this invariant **cannot\
+        \ be recommended** — record it as\n   `unverified` instead.\n"
+  TSP-LIST-001:
+    title: Allowlisted and prohibited sources
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - technical-resource-investigator
+    defaults: {}
+    exceptions:
+    - leads from prohibited sources allowed if re-verified
+    rules:
+      TSP-LIST-001.R01:
+        key: allowlist
+        value:
+        - documentation MCP servers (cite as MCP document reference)
+        - official vendor/framework docs (canonical domain)
+        - GitHub repo/release/Security Advisory pages (github.com/<org>/<repo>, /releases, github.com/advisories)
+        - 'official registries: npmjs.com, pypi.org, crates.io, pkg.go.dev, nuget.org, rubygems.org, Maven
+          Central'
+        - official package docs linked from registry or project GitHub repo
+        - OSV (osv.dev) and GHSA for advisories
+      TSP-LIST-001.R02:
+        key: prohibited
+        value:
+        - random blogs, personal sites, Medium/Dev.to opinion posts
+        - SEO best-X/comparison/listicle pages
+        - Stack Overflow/forum snippets as authoritative facts
+        - uncited model-generated lists/summaries
+        - search-result summaries not backed by allowlisted page
+      TSP-LIST-001.R03:
+        statement: Prohibited sources may surface leads only; leads must be re-verified on allowlisted
+          source before citing/recommending.
+    source_nuance:
+    - path: references/trusted-source-policy.md
+      lines: 25-49
+      text: "## Allowlisted Authoritative Sources\n\n- **Documentation MCP servers** available in the\
+        \ session (e.g., a docs/context MCP server). Cite as\n  an MCP document reference.\n- **Official\
+        \ vendor / framework documentation** sites (the project's own canonical docs domain).\n- **GitHub**\
+        \ repository, release, and **Security Advisory** (GHSA) pages\n  (`github.com/<org>/<repo>`, `github.com/.../releases`,\
+        \ `github.com/advisories`).\n- **Official package registries** — e.g., `npmjs.com`, `pypi.org`,\
+        \ `crates.io`, `pkg.go.dev`,\n  `nuget.org`, `rubygems.org`, Maven Central.\n- **Official package\
+        \ documentation** linked directly from the registry page or the project's GitHub\n  repository.\n\
+        - **OSV** (`osv.dev`) and **GitHub Security Advisories** for vulnerability / advisory lookups.\n\
+        \n## Prohibited Sources\n\nDo **not** cite or rely on:\n\n- Random blogs, personal websites, or\
+        \ Medium/Dev.to-style opinion posts.\n- SEO \"best X libraries\" / comparison / listicle pages.\n\
+        - Stack Overflow / forum answer snippets as authoritative facts.\n- Uncited, model-generated lists\
+        \ or summaries presented as fact.\n- Arbitrary search-result summaries not backed by an allowlisted\
+        \ page.\n\nThese may occasionally surface a lead, but a lead is not a citation. Any candidate\
+        \ they surface must\nbe re-verified against an allowlisted source before it can be cited or recommended.\n"
+  TSP-ADV-001:
+    title: Advisory lookup preferences and graceful degradation
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - technical-resource-investigator
+    defaults: {}
+    exceptions: []
+    rules:
+      TSP-ADV-001.R01:
+        statement: Prefer read-only advisory sources GHSA and OSV.
+      TSP-ADV-001.R02:
+        statement: Do not rely on tools assuming installed dependency tree (npm audit, local pip-audit);
+          investigation never installs, fetch-and-executes, or builds third-party code.
+      TSP-ADV-001.R03:
+        statement: When reliable tooling unavailable, do not substitute low-quality sources; no docs MCP
+          and no reliable lookup -> external research unavailable; repository-local only.
+      TSP-ADV-001.R04:
+        statement: Record every unavailable source and gap explicitly in the investigation document.
+      TSP-ADV-001.R05:
+        statement: Unverifiable external candidate stays unverified and cannot be recommended.
+    source_nuance:
+    - path: references/trusted-source-policy.md
+      lines: 51-71
+      text: "## Advisory Lookup Preferences\n\nPrefer **read-only advisory sources** that do not require\
+        \ an installed dependency tree:\n\n- **GitHub Security Advisories** (`github.com/advisories`,\
+        \ GHSA identifiers).\n- **OSV** (`osv.dev`).\n\nDo **not** rely on tools that assume an installed\
+        \ dependency tree (e.g., `npm audit`,\n`pip-audit` against a local environment). Investigation\
+        \ is read-only and must not install,\nfetch-and-execute, or build third-party code.\n\n## Graceful\
+        \ Degradation (Unavailable Research Tools)\n\nWhen reliable research tooling is unavailable, **do\
+        \ not substitute low-quality sources**:\n\n- If no documentation MCP server and no reliable web/registry\
+        \ lookup is available, mark external\n  research as **unavailable** and fall back to **repository-local\
+        \ discovery and validation only**.\n- Record every unavailable source and research gap explicitly\
+        \ in the investigation document rather\n  than filling the gap with prohibited sources.\n- An\
+        \ external candidate that cannot be verified through an allowlisted source remains `unverified`\n\
+        \  and cannot be recommended, regardless of how promising it appears.\n"

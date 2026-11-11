@@ -1,0 +1,301 @@
+schema_version: '1.0'
+bundle: claude
+domain: validation-rules
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  VAL-PASS-001:
+    title: Contract validation passes
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults:
+      validated_by: root-contract-gate
+    exceptions: []
+    rules:
+      VAL-PASS-001.R01:
+        statement: Root validates every input/output contract independently of producer assertions; four
+          passes.
+      VAL-PASS-001.R02:
+        pass: structural
+        statement: YAML parses; all sections; schema 1.0; valid enums; stable workflow/run identity; unique
+          ids and contract id; all references resolve; receiving-stage fields required for nonterminal,
+          prohibited for terminal; receiving stage/objective permitted by workflow version.
+      VAL-PASS-001.R03:
+        pass: evidence
+        statement: '>=1 specific resolvable locator per verified fact and met criterion; artifacts exist/accessible/declared;
+          recompute digests; downgrade unsupported claims or fail; elapsed deadline/cancel request/missing
+          artifact/stale journal not termination evidence -> UNVERIFIED_TERMINATION.'
+      VAL-PASS-001.R04:
+        pass: epistemic
+        statement: Types separate; decisions/rejections reference support; conflicts as blocking questions;
+          reject confidence-as-evidence and unsupported promotion; reject transcripts/CoT/scratchpads/tool
+          chatter/irrelevant context.
+      VAL-PASS-001.R05:
+        pass: workflow
+        statement: Producer stayed in scope and evaluated all criteria; complete cannot have unmet criteria/blockers/blocking
+          questions/unresolved failures; partial/blocked/failed cannot advance; downstream inputs present;
+          least-context authorization; workflow prevails unless authorized amendment; user approval has
+          durable evidence; quiescence before recovery/advancement (EXECUTION_NOT_QUIESCENT); unknown
+          pauses recovery; missing cancellation does not block initial dispatch.
+      VAL-PASS-001.R06:
+        added_by: PCH-MOD-004
+        pass: policy_context
+        statement: policy_context present; manifest path is absolute, inside the launching installed root
+          and matches the run-state locator and digest; policy snapshot locator/digest equal run state
+          and a runtime re-hash of the policy files matches the snapshot; model profile snapshot exists,
+          its digest matches, and its policy_snapshot_digest equals run state; otherwise fail with POLICY_CONTEXT_MISMATCH
+          and do not dispatch.
+    source_nuance:
+    - path: references/validation-rules.md
+      lines: 1-51
+      text: "# Handoff Validation Rules\n\nThe root orchestrator validates every input and output contract\
+        \ before transition. Validation is\nindependent of the producing stage's assertions and has four\
+        \ passes.\n\n## Structural Pass\n\n- Parse the contract as YAML and require every schema section.\n\
+        - Require schema version `1.0`, valid status/enumeration values, stable workflow/run identity,\
+        \ unique\n  identifiers, and a unique contract identifier.\n- Resolve every `based_on`, evidence,\
+        \ required-input, continuation, and authorization reference to a\n  declared item.\n- Require\
+        \ receiving-stage fields for nonterminal work and prohibit them for terminal work.\n- Confirm\
+        \ the declared receiving stage and next objective are permitted by the workflow version.\n\n##\
+        \ Evidence Pass\n\n- Require at least one specific, resolvable evidence locator for every verified\
+        \ fact and every\n  completion criterion marked `met`.\n- Confirm referenced artifacts exist,\
+        \ are accessible, and are declared.\n- When an artifact has a digest, recompute and compare it\
+        \ before accepting the contract.\n- Downgrade unsupported claims to assumptions/open questions\
+        \ or fail validation; never preserve a\n  false `verified` label.\n- An elapsed deadline, cancellation\
+        \ request, missing artifact, or stale journal is not termination\n  evidence. Reject unsupported\
+        \ stopped/cancelled claims with `UNVERIFIED_TERMINATION`.\n\n## Epistemic Pass\n\n- Keep facts,\
+        \ assumptions, constraints, decisions, rejected approaches, questions, blockers,\n  failures,\
+        \ and artifacts separate.\n- Require decisions and rejections to reference their supporting facts\
+        \ or constraints.\n- Detect conflicting claims. They must be explicitly represented as blocking\
+        \ questions until\n  resolved.\n- Reject confidence language used in place of evidence and assumption-to-fact\
+        \ promotion without new\n  evidence.\n- Reject raw transcripts, chain-of-thought, scratchpads,\
+        \ tool chatter, or irrelevant context.\n\n## Workflow Pass\n\n- Confirm the producing stage stayed\
+        \ in its declared scope and evaluated all completion criteria.\n- A `complete` contract cannot\
+        \ contain unmet applicable criteria, blockers, blocking questions, or\n  unresolved failures.\n\
+        - `partial`, `blocked`, and `failed` contracts cannot advance to a different stage.\n- Confirm\
+        \ required downstream inputs are present and artifact/tool authorization is least-context.\n-\
+        \ The workflow definition prevails over a conflicting handoff unless a referenced, authorized,\n\
+        \  versioned amendment exists.\n- Confirm any user approval has durable evidence; never infer\
+        \ it from status or conversation.\n- Before recovery dispatch or stage advancement, establish\
+        \ completion or verified termination of\n  prior invocations and descendants and reconcile partial\
+        \ outputs and side effects. Active or\n  unknown execution blocks retry, replacement work, and\
+        \ overlapping writes (`EXECUTION_NOT_QUIESCENT`).\n  Pause recovery on unknown status; missing\
+        \ cancellation alone does not block initial dispatch.\n"
+  VAL-OUT-001:
+    title: Validation outcome recording and issue codes
+    kind: schema
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      VAL-OUT-001.R01:
+        statement: Record pass (issues []) or fail with issues; example MISSING_EVIDENCE at verified_facts[F003].
+      VAL-OUT-001.R02:
+        statement: Each issue requires stable code, exact field location, message, actionable remediation.
+      VAL-OUT-001.R03:
+        statement: No dispatch on failure; return issues to producer or stop at gate when user action
+          needed.
+      VAL-OUT-001.R04:
+        key: issue_codes
+        value:
+        - MISSING_EVIDENCE
+        - DIGEST_MISMATCH
+        - SCOPE_VIOLATION
+        - INCOMPLETE_STAGE
+        - EXCESS_CONTEXT
+        - WORKFLOW_CONFLICT
+        - UNVERIFIED_TERMINATION
+        - EXECUTION_NOT_QUIESCENT
+    source_nuance:
+    - path: references/validation-rules.md
+      lines: 53-77
+      text: "## Outcome\n\nRecord one of:\n\n```yaml\nvalidation:\n  result: \"pass\"\n  validated_by:\
+        \ \"root-contract-gate\"\n  issues: []\n```\n\n```yaml\nvalidation:\n  result: \"fail\"\n  validated_by:\
+        \ \"root-contract-gate\"\n  issues:\n    - code: \"MISSING_EVIDENCE\"\n      location: \"verified_facts[F003]\"\
+        \n      message: \"The claim has no resolvable evidence reference.\"\n      remediation: \"Add\
+        \ specific evidence or reclassify the claim as an assumption.\"\n```\n\nEvery failure issue requires\
+        \ a stable code, exact field location, message, and actionable\nremediation. Do not dispatch work\
+        \ on failure. Return the issues to the producing stage, or stop at a\ngate when remediation requires\
+        \ user action.\n"
+  VAL-ADV-001:
+    title: Adversarial check matrix and independent replay
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - workflow maintainers
+    defaults: {}
+    exceptions: []
+    rules:
+      VAL-ADV-001.R01:
+        statement: Use matrix to evaluate stage-workflow changes and suspicious handoffs.
+      VAL-ADV-001.R02:
+        scenario: verified claim no evidence
+        result: MISSING_EVIDENCE or reclassify
+      VAL-ADV-001.R03:
+        scenario: later stage promotes assumption
+        result: preserve type; verify or block
+      VAL-ADV-001.R04:
+        scenario: info only in chat
+        result: unavailable
+      VAL-ADV-001.R05:
+        scenario: digested artifact changed
+        result: DIGEST_MISMATCH; revalidate
+      VAL-ADV-001.R06:
+        scenario: contradictory claims
+        result: record both; block or route
+      VAL-ADV-001.R07:
+        scenario: stage does later-stage work
+        result: SCOPE_VIOLATION
+      VAL-ADV-001.R08:
+        scenario: unmet criterion but complete
+        result: INCOMPLETE_STAGE
+      VAL-ADV-001.R09:
+        scenario: transcript/raw reasoning
+        result: EXCESS_CONTEXT
+      VAL-ADV-001.R10:
+        scenario: handoff conflicts with workflow
+        result: WORKFLOW_CONFLICT; workflow wins
+      VAL-ADV-001.R11:
+        scenario: fresh agent with allowed inputs
+        result: can restate objective, knowledge, limits
+      VAL-ADV-001.R12:
+        scenario: no cancellation/enforced timeout, valid input, no active work
+        result: cooperative dispatch; record limitations; no capability-only gate
+      VAL-ADV-001.R13:
+        scenario: verified background polls + cancellation or enforced timeout
+        result: controlled mode; checks, deadlines, termination verification, three-retry limit
+      VAL-ADV-001.R14:
+        scenario: cancellation advertised but invocation sync/unpollable without timeout
+        result: cooperative; record limitation; no capability-only gate
+      VAL-ADV-001.R15:
+        scenario: background polls but no cancellation/timeout
+        result: cooperative; retain polls; wrapper alone not control
+      VAL-ADV-001.R16:
+        scenario: cooperative active after deadline
+        result: deadline exceeded; active; monitor; no cancel claim/retry
+      VAL-ADV-001.R17:
+        scenario: sync cooperative prevents live checks
+        result: record before launch; reconcile on return; no interruption/bounded-return promise
+      VAL-ADV-001.R18:
+        scenario: stopped/cancelled claimed without evidence
+        result: UNVERIFIED_TERMINATION
+      VAL-ADV-001.R19:
+        scenario: unknown status on resume, missing outputs/stale journal
+        result: execution status unknown + recovery-paused; no reset/duplicate
+      VAL-ADV-001.R20:
+        scenario: parent returned, descendant active/unknown
+        result: EXECUTION_NOT_QUIESCENT
+      VAL-ADV-001.R21:
+        scenario: user approves retry while work may be active
+        result: recovery stays paused
+      VAL-ADV-001.R22:
+        scenario: completion confirmed after deadline, criteria met
+        result: validate normally, no replay
+      VAL-ADV-001.R23:
+        scenario: verified stopped, partial output
+        result: reconcile; retry safe incomplete work under same action ID/budget
+      VAL-ADV-001.R24:
+        scenario: three retries exhausted or unsafe repeat
+        result: bounded-unresolved or safety gate; never reset/infer approval
+      VAL-ADV-001.R25:
+        statement: 'Independent replay: receiver can initialize and explain permitted knowledge from workflow,
+          contract, authorized artifacts, current tool results only.'
+    source_nuance:
+    - path: references/validation-rules.md
+      lines: 79-110
+      text: '## Adversarial Checks
+
+
+        Use this matrix to evaluate changes to stage workflows and when a suspicious handoff is received:
+
+
+        | Scenario | Required result |
+
+        |---|---|
+
+        | Verified claim has no evidence | Fail with `MISSING_EVIDENCE` or reclassify before resubmission
+        |
+
+        | A later stage promotes an assumption | Preserve the type; verify independently or block |
+
+        | Required information exists only in chat | Treat it as unavailable |
+
+        | A digested artifact changed | Fail with `DIGEST_MISMATCH` and revalidate |
+
+        | Artifacts support contradictory claims | Record both and block or route to resolution |
+
+        | Stage performs later-stage work | Fail with `SCOPE_VIOLATION` |
+
+        | A criterion is unmet but status is complete | Fail with `INCOMPLETE_STAGE` |
+
+        | Contract contains transcript or raw reasoning | Fail with `EXCESS_CONTEXT` |
+
+        | Handoff conflicts with workflow | Fail with `WORKFLOW_CONFLICT`; workflow wins |
+
+        | Fresh agent receives only allowed inputs | It can restate objective, allowed knowledge, and
+        limits |
+
+        | Neither cancellation nor enforced timeout is available; input is valid and no prior work is
+        active | Dispatch cooperatively through the supported mechanism, record limitations and bounded
+        objective/checkpoint instructions; no capability-only approval gate |
+
+        | Invocation supports verified background execution with bounded status polls and callable cancellation,
+        or an enforced timeout returning control within the check interval | Select controlled mode; retain
+        watchdog checks, deadline handling, termination verification, and three-retry limit |
+
+        | Runtime advertises cancellation but this invocation is synchronous, prevents bounded status
+        polls or cancellation calls, and has no suitable enforced timeout | Select cooperative mode, record
+        the invocation-specific limitation, and dispatch without a capability-only approval gate |
+
+        | Background invocation supports bounded polls but cancellation is unavailable for it and no suitable
+        enforced timeout exists | Select cooperative mode and retain supported polls; a background wrapper
+        alone does not establish usable control |
+
+        | Cooperative action is active after its deadline | Record `deadline exceeded`, keep execution
+        status active, monitor without claiming cancellation or retrying |
+
+        | Synchronous cooperative invocation prevents live checks | Record monitoring limitation before
+        launch; reconcile on return/resume; promise neither interruption nor bounded return time |
+
+        | Deadline elapsed or cancellation was requested, but stopped/cancelled is claimed without evidence
+        | Fail with `UNVERIFIED_TERMINATION`; keep deadline and execution status separate |
+
+        | Status is unknown on resume and outputs are missing or journal is stale | Checkpoint `execution
+        status unknown` and `recovery-paused`; do not reset to pending or launch duplicate/replacement
+        work |
+
+        | Parent returned but a descendant is active or unknown | Block retry, stage advancement, and
+        overlapping writes/cleanup with `EXECUTION_NOT_QUIESCENT` |
+
+        | User approves a retry while prior work may remain active | Approval cannot substitute for termination
+        evidence; recovery stays paused |
+
+        | Completion and descendant quiescence are confirmed after a deadline; output satisfies criteria
+        | Reconcile outputs, validate normally, and continue without replaying completed work |
+
+        | Prior invocation and descendants are verified stopped; output is partial | Reconcile partial
+        outputs and side effects, retry only safe incomplete work under the same action ID and persisted
+        budget |
+
+        | Three retries are exhausted, or a repeat has uncertain side effects/conflicting work/scope change
+        | Preserve exhaustion as bounded-unresolved, or use the existing safety/approval gate; never reset
+        budgets or infer approval |
+
+
+        For independent replay, the receiving stage must be able to initialize and explain its permitted
+
+        knowledge using only the workflow, contract, authorized artifacts, and current-stage tool results.
+
+        '

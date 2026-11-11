@@ -1,0 +1,187 @@
+schema_version: '1.0'
+bundle: claude
+domain: commands
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+usage_text: "DevDude - Architecture Investigation & Feature Implementation\n\nUsage:\n  /dev-dude update\n\
+  \  /dev-dude models <show|profiles|validate|set|use|reset> ...\n  /dev-dude DudeWhereIsMyArch [area|all]\n\
+  \  /dev-dude <all|vertical> refresh\n  /dev-dude DudeWriteMyFeature <description|spec-path|image-paths>\n\
+  \nAliases:\n  arch, where  → DudeWhereIsMyArch\n  feature, write → DudeWriteMyFeature\n\nExamples:\n\
+  \  /dev-dude update                      # Update DevDude; reload or start a fresh session\n  /dev-dude\
+  \ models show                 # Show the resolved model profile (offline)\n  /dev-dude arch all    \
+  \                # Full codebase architecture investigation\n  /dev-dude all refresh               \
+  \  # Refresh all affected docs and discover new verticals\n  /dev-dude authentication refresh      #\
+  \ Refresh one architecture vertical\n  /dev-dude arch authentication         # Deep-dive into auth area\n\
+  \  /dev-dude where src/services/         # Investigate a specific directory\n  /dev-dude feature Add\
+  \ user caching    # Implement from a feature description\n  /dev-dude write ./specs/my-feature.md #\
+  \ Implement from a spec document\n"
+models_commands:
+  scope: 'Host-only, offline: no update check, network, crew install, indexer onboarding, Mermaid setup,
+    run state or dispatch (PCH-UPD-001).'
+  grammar:
+  - form: models show
+    effect: Print resolution (files, scope, selected profile, per-role configured/loaded/effective, last
+      validation evidence if any). Read-only.
+  - form: models profiles
+    effect: List profiles per scope with completeness and which is active. Read-only.
+  - form: models validate
+    effect: Validate both config files (schema, syntax, completeness of the active profile) offline; report
+      that runtime availability is determined only at launch validation. Read-only.
+  - form: models set <role|all> <model-id> --profile <name> --scope <project|user>
+    effect: Create or update a draft profile entry saved as unvalidated; never changes active_profile;
+      refuses if the existing file is invalid; atomic write preserving other namespaces and keys; role
+      all sets the nine dispatch roles, critique must be set explicitly.
+  - form: models use <profile|bundled-default> --scope <project|user>
+    effect: Set runtimes.<bundle>.active_profile in that scope; the profile must exist in that scope and
+      be complete (nine roles + critique); bundled-default always allowed. Effective only after launch
+      validation.
+  - form: models reset --scope <project|user>
+    effect: 'Valid file: remove only runtimes.<bundle> (delete the file if nothing remains). Invalid or
+      unknown-version file: rename to <file>.invalid-<N> (first unused N) and report; never edit in place.
+      Absent file: no-op.'
+  routing:
+  - '`models refresh` (exactly two tokens) is an architecture refresh of vertical `models` (CMD-ROUTE-001.R02,
+    order 1).'
+  - '`feature models ...` / `DudeWriteMyFeature models ...` is feature input.'
+  - Any other first token `models` with invalid syntax prints models usage and changes nothing.
+  - Arguments are matched exactly; flags are required, appear once, and take one value.
+  usage_text: "DevDude models (offline, host-only)\n\nUsage:\n  /dev-dude models show\n  /dev-dude models\
+    \ profiles\n  /dev-dude models validate\n  /dev-dude models set <role|all> <model-id> --profile <name>\
+    \ --scope <project|user>\n  /dev-dude models use <profile|bundled-default> --scope <project|user>\n\
+    \  /dev-dude models reset --scope <project|user>\n\nRoles: dev-dude-orchestrator, architecture-reviewer,\
+    \ ux-design-reviewer, code-flow-analyzer, technical-resource-investigator, investigation-documenter,\
+    \ feature-implementer, test-implementer, feature-validator, critique\n"
+planned_changes:
+  PCH-MOD-002: policies/commands.yaml#models_commands
+policies:
+  CMD-ROUTE-001:
+    title: Command normalization and routing
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - host
+    defaults:
+      refresh_scope_all_meaning: refresh every affected vertical and discover new verticals
+    exceptions:
+    - '`update refresh` is a refresh, not maintenance'
+    platform_binding:
+      routing_rules: policies/commands.yaml
+    amendment:
+      by: CNF-ROOT-002
+      reason: argument-parsing.md removed; routing rules live in commands.yaml for both bundles.
+      changed:
+      - platform_binding
+    rules:
+      CMD-ROUTE-001.R01:
+        statement: Exact single token `update` is host-only; reaching the controller returns `blocked`
+          for host maintenance.
+      CMD-ROUTE-001.R02:
+        statement: Exactly two tokens with second token `refresh` route to Architecture Delta Refresh;
+          first token is scope (`all` or a vertical); multi-token refresh scopes are rejected with usage.
+        order: 1
+      CMD-ROUTE-001.R03:
+        statement: '`DudeWhereIsMyArch`|`arch`|`where` route to Architecture Investigation.'
+        order: 2
+      CMD-ROUTE-001.R04:
+        statement: '`DudeWriteMyFeature`|`feature`|`write` route to Feature Design & Implementation.'
+        order: 3
+      CMD-ROUTE-001.R05:
+        statement: Otherwise print usage and stop.
+        order: 4
+      CMD-ROUTE-001.R06:
+        statement: 'Remaining tokens after the command are the argument (arch: area|all|directory; feature:
+          text|spec path|image paths).'
+      CMD-ROUTE-001.R07:
+        statement: '`update refresh` remains a refresh scope; `feature update` remains feature input;
+          extra args after standalone `update` are rejected with usage.'
+      CMD-ROUTE-001.R08:
+        added_by: PCH-MOD-002
+        statement: First token `models` (except the exact refresh form `models refresh`) routes to host-only
+          offline models commands (commands.yaml models_commands) before update check, crew install, indexer
+          onboarding, Mermaid setup, state, or dispatch; invalid models syntax prints models usage.
+        order: 0
+    resolutions:
+      CNF-ROOT-002: One shared usage definition (CMD-USAGE-001 + commands.yaml usage_text) ships in both
+        bundles; Claude prints the same usage text Copilot printed from argument-parsing.md.
+    planned_changes:
+      PCH-MOD-002: policies/commands.yaml#models_commands
+    source_nuance:
+    - path: SKILL.md
+      lines: 216-224
+      text: "Normalize arguments in this order:\n\n`update` is host-only; if it reaches the controller,\
+        \ return `blocked` for host maintenance.\n\n1. Exactly two tokens ending in `refresh` route to\
+        \ Architecture Delta Refresh; reject multi-token\n   refresh scopes.\n2. `DudeWhereIsMyArch`,\
+        \ `arch`, or `where` route to Architecture Investigation.\n3. `DudeWriteMyFeature`, `feature`,\
+        \ or `write` route to Feature Design & Implementation.\n4. Otherwise print usage and stop.\n"
+  CMD-USAGE-001:
+    title: Usage text and examples
+    kind: template
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    amendment:
+      by: CNF-ROOT-002
+      reason: Shared usage applies to both bundles.
+      changed:
+      - scope.platforms
+    rules:
+      CMD-USAGE-001.R01:
+        statement: 'Usage lists: update; DudeWhereIsMyArch [area|all]; <all|vertical> refresh; DudeWriteMyFeature
+          <description|spec-path|image-paths>.'
+      CMD-USAGE-001.R02:
+        statement: 'Aliases: arch, where -> DudeWhereIsMyArch; feature, write -> DudeWriteMyFeature.'
+      CMD-USAGE-001.R03:
+        statement: Eight annotated examples (update, arch all, all refresh, authentication refresh, arch
+          authentication, where src/services/, feature Add user caching, write ./specs/my-feature.md).
+      CMD-USAGE-001.R04:
+        added_by: PCH-MOD-002
+        statement: Usage also lists the models commands (show, profiles, validate, set, use, reset) exactly
+          as commands.yaml usage_text.
+    resolutions:
+      CNF-ROOT-002: One shared usage definition (CMD-USAGE-001 + commands.yaml usage_text) ships in both
+        bundles; Claude prints the same usage text Copilot printed from argument-parsing.md.
+    planned_changes:
+      PCH-MOD-002: policies/commands.yaml#models_commands
+  CMD-INPUT-001:
+    title: Command arguments, accepted inputs, feature slug
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults:
+      slug_max_length: 40
+    exceptions: []
+    rules:
+      CMD-INPUT-001.R01:
+        statement: Architecture accepts all, an area, a directory, or <all|vertical> refresh.
+      CMD-INPUT-001.R02:
+        statement: Feature accepts text, .md, .txt, .docx, .pdf, image paths, or multiple paths.
+      CMD-INPUT-001.R03:
+        statement: 'Feature slug: lowercase, hyphenated, max 40 characters; used for feature state and
+          outputs.'
+    resolutions:
+      CNF-DRIFT-002: README command docs list .docx and multiple-path feature inputs (CMD-INPUT-001.R02).
+    planned_changes:
+      PCH-MOD-002: policies/commands.yaml#models_commands
+    source_nuance:
+    - path: SKILL.md
+      lines: 226-228
+      text: 'Architecture accepts `all`, an area, a directory, or `<all|vertical> refresh`. Feature accepts
+        text,
+
+        `.md`, `.txt`, `.docx`, `.pdf`, image paths, or multiple paths. Derive a lowercase, hyphenated
+
+        feature slug of at most 40 characters.
+
+        '

@@ -1,0 +1,313 @@
+schema_version: '1.0'
+bundle: claude
+domain: workflow
+skill: dev-dude-feature-design
+skill_version_ref: policies/metadata.yaml#crews.skills.version
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  FDES-ENTRY-001:
+    title: Feature design preamble and entry contract
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FDES-ENTRY-001.R01:
+        statement: Covers DudeWriteMyFeature from input gathering to explicit design approval; root owns
+          transitions; this skill does not plan or implement code.
+      FDES-ENTRY-001.R02:
+        statement: Standard controlled/cooperative monitoring paragraph (same as ARCH-PRE-001.R02).
+      FDES-ENTRY-001.R03:
+        statement: Reconcile ./docs/<feature-slug>/.dev-dude-run-state.md; resume at first incomplete
+          step.
+      FDES-ENTRY-001.R04:
+        statement: Check ./docs/ArchOverview/; warn without blocking when absent.
+      FDES-ENTRY-001.R05:
+        statement: Parse text, document, image, or combined inputs; read project context; derive feature
+          slug.
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 1-17
+      text: '# Feature Design Workflow
+
+
+        Detailed functional steps for `DudeWriteMyFeature` from input gathering through explicit design
+
+        approval. The root orchestrator owns transitions and checkpoints using the orchestration contract
+
+        supplied at invocation; this skill does not plan or implement code.
+
+
+        All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+
+        launches and bounded polls apply when supported; otherwise use the runtime''s supported invocation
+
+        and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+
+        Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
+
+        ## Entry Contract
+
+
+        Reconcile `./docs/<feature-slug>/.dev-dude-run-state.md` and resume at the first incomplete step.
+
+        Check `./docs/ArchOverview/` and warn, without blocking, when architecture documents are absent.
+
+        Parse text, document, image, or combined inputs; read relevant project context; and derive the
+
+        feature slug.
+
+        '
+  FDES-INV-001:
+    title: Step 1 investigation
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FDES-INV-001.R01:
+        platform: claude
+        statement: Create the feature team.
+      FDES-INV-001.R02:
+        statement: 'In parallel: code-flow-analyzer -> investigation.md (flows, integration points, constraints,
+          conventions, reuse candidates); ux-design-reviewer -> ux-review.md (journeys, screens, UX, accessibility,
+          text layout).'
+      FDES-INV-001.R03:
+        statement: Include architecture docs, $INDEXER_CONTEXT, envelope; checkpoint each result.
+    resolutions:
+      CNF-TEAM-001: 'Claude feature design follows the ARCH-TEAM-001 lifecycle: create the team at Step
+        1, assign tasks with dependencies, reconcile and checkpoint each result, and shut down members
+        and delete the team before returning any handoff, including the blocked User Review Gate handoff.'
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 19-29
+      text: "## Step 1: Investigation\n\nCreate the feature team. In parallel, launch:\n\n- `code-flow-analyzer`\
+        \ to trace related flows, integration points, constraints, conventions, and\n  reuse candidates\
+        \ into `investigation.md`;\n- `ux-design-reviewer` to inspect journeys and screens and write UX,\
+        \ accessibility, and text layout\n  guidance into `ux-review.md`.\n\nInclude relevant architecture\
+        \ documents, `$INDEXER_CONTEXT`, and the orchestration envelope in both\ntasks. Checkpoint each\
+        \ result independently.\n"
+  FDES-RES-001:
+    title: Step 2 resource investigation and critique pass
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+      - technical-resource-investigator
+    defaults:
+      critique_model: unspecified 'stronger model'
+    exceptions: []
+    rules:
+      FDES-RES-001.R01:
+        statement: Launch TRI in discovery mode with feature input, investigation.md, UX + architecture
+          context, $INDEXER_CONTEXT, $RESOURCE_RESEARCH_CONTEXT, envelope.
+      FDES-RES-001.R02:
+        statement: Validates internal reuse without retracing flows; external only per trusted-source
+          policy; every external fact/recommendation needs allowlisted citation; unsupported stay unverified.
+      FDES-RES-001.R03:
+        statement: TRI is read-only; it returns resources-investigation.md content and the feature-design
+          stage persists it at the envelope Expected output.
+        amendment:
+          by: CNF-WRITE-001
+          reason: Read-only role returns content; stage persists.
+      FDES-RES-001.R04:
+        statement: When external candidates exist or choice is architecturally material run critique-and-amend
+          pass using a stronger model; critique security, reliability, maintenance, licensing, ecosystem
+          health, supply-chain risk, operational cost, citation quality, uncertainty.
+        resolution:
+          PCH-MOD-005: 'Use the pinned snapshot role `critique` when non-null. When null (bundled-default)
+            apply the legacy rule: the stage selects a model it can verify through the runtime as stronger
+            than the technical-resource-investigator model; if that cannot be verified, stop at MODEL
+            CAPABILITY GATE.'
+      FDES-RES-001.R05:
+        statement: Append amendments without deleting first-pass evidence; otherwise record why skipped.
+    resolutions:
+      CNF-WRITE-001: No tool lists are broadened. Read-only roles (code-flow-analyzer, technical-resource-investigator,
+        feature-validator) return artifact content; the invoking functional stage persists it at the envelope
+        Expected output path. Standalone use returns content to the user.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+      PCH-MOD-005: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 31-45
+      text: '## Step 2: Resource Investigation
+
+
+        After investigation, launch `technical-resource-investigator` in `discovery` mode with the feature
+
+        input, `investigation.md`, relevant UX and architecture context, `$INDEXER_CONTEXT`,
+
+        `$RESOURCE_RESEARCH_CONTEXT`, and the orchestration envelope.
+
+
+        It validates internal reuse candidates without retracing flows and considers external resources
+        only
+
+        from the trusted-source policy supplied by the root orchestrator. Every external fact and recommendation
+
+        requires an allowlisted citation; unsupported candidates remain unverified. It is read-only and
+
+        writes `resources-investigation.md`.
+
+
+        When external candidates exist or the resource choice is architecturally material, run a second
+
+        `critique-and-amend` pass using a stronger model. It critiques security, reliability, maintenance,
+
+        licensing, ecosystem health, supply-chain risk, operational cost, citation quality, and uncertainty.
+
+        Append amendments without deleting first-pass evidence. Otherwise record why the pass was skipped.
+
+        '
+  FDES-OPT-001:
+    title: Step 3 design options
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+    defaults:
+      option_count: 2-3
+    exceptions: []
+    rules:
+      FDES-OPT-001.R01:
+        statement: Launch investigation-documenter with write permission, all prior outputs, architecture
+          docs, $INDEXER_CONTEXT, envelope.
+      FDES-OPT-001.R02:
+        key: option_count
+        value: 2-3
+        statement: design-options.md with two or three approaches, affected modules, complexity, trade-offs,
+          diagrams, UX guidance.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 47-51
+      text: '## Step 3: Design Options
+
+
+        Launch `investigation-documenter` with write permission, all prior outputs, relevant architecture
+
+        documents, `$INDEXER_CONTEXT`, and the orchestration envelope. Create `design-options.md` with
+        two or
+
+        three approaches, affected modules, complexity, trade-offs, diagrams, and UX guidance.
+
+        '
+  FDES-CRIT-001:
+    title: Step 4 architecture critique and refinement
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+    defaults: {}
+    exceptions: []
+    rules:
+      FDES-CRIT-001.R01:
+        statement: architecture-reviewer critiques reuse, performance, scalability, operational cost,
+          resource risk, unresolved criteria -> .tmp/architecture-review.md.
+      FDES-CRIT-001.R02:
+        statement: investigation-documenter (write) folds critique + UX into design-options.md without
+          hiding open questions.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 53-58
+      text: '## Step 4: Architecture Critique and Refinement
+
+
+        Launch `architecture-reviewer` with the spec and design evidence. Critique reuse, performance,
+
+        scalability, operational cost, resource risk, and unresolved criteria into
+
+        `.tmp/architecture-review.md`. Then launch `investigation-documenter` with write permission to
+        fold
+
+        the critique and UX guidance into `design-options.md` without hiding open questions.
+
+        '
+  FDES-GATE-001:
+    title: User Review Gate and design exit contract
+    kind: gate
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-feature-design stage
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      FDES-GATE-001.R01:
+        statement: Return blocked handoff with refined options + blocking approval question; root validates,
+          records waiting-for-user, presents; no running invocation while waiting.
+      FDES-GATE-001.R02:
+        statement: Feedback returns via new validated handoff to relevant design step.
+      FDES-GATE-001.R03:
+        statement: Only explicit selection recorded by root approves; root records evidence and approved
+          design then re-dispatches.
+      FDES-GATE-001.R04:
+        statement: Complete only when investigation.md, ux-review.md, resources-investigation.md, refined
+          design-options.md have reconciled evidence and explicit approval.
+      FDES-GATE-001.R05:
+        statement: Next permitted skill dev-dude-feature-implementation; never create plan, modify production
+          code, implement tests, or final validation.
+    source_nuance:
+    - path: skills/dev-dude-feature-design/references/workflow.md
+      lines: 60-77
+      text: '## User Review Gate
+
+
+        Return a `blocked` handoff with the refined options and a blocking approval question to root.
+
+        Root validates the handoff, records `waiting-for-user`, and presents the options to the user.
+
+        Do not keep a stage invocation running while waiting for a decision.
+
+
+        - Feedback returns via a new validated handoff to the relevant design step.
+
+        - Only an explicit selection recorded by root marks the gate approved.
+
+        - Root records decision evidence and approved design in run state, then re-dispatches this stage.
+
+
+        ## Exit Contract
+
+
+        Return control to root at the user gate with a `blocked` handoff. Complete the stage only when
+
+        `investigation.md`, `ux-review.md`, `resources-investigation.md`, and refined `design-options.md`
+
+        have reconciled evidence and the gate contains an explicit approval.
+
+
+        The next permitted skill is `dev-dude-feature-implementation`. This design skill must not
+
+        create an implementation plan, modify production code, implement tests, or perform final validation.
+
+        '

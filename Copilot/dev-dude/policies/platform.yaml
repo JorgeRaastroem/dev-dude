@@ -1,0 +1,93 @@
+schema_version: '1.0'
+bundle: copilot
+domain: platform
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+root_locations:
+  project: <repo>/.github/skills/dev-dude
+  user: ~/.copilot/skills/dev-dude
+  agents:
+    user: ~/.copilot/agents
+  functional_skills:
+    user: ~/.copilot/skills
+root_discovery:
+  consumers: host, controller, stages and specialists (agent and stage loader stubs follow these rules)
+  rules:
+  - If a Policy manifest locator is supplied (bootstrap packet or envelope), accept it only if it is an
+    absolute path to a regular file (not a symlink) named policies/manifest.yaml directly inside one of
+    root_locations (project/user), and its bundle equals this bundle; then use it and verify its sha256
+    when a digest is supplied.
+  - If no locator is supplied, check root_locations in order project, user; exactly one root containing
+    a regular policies/manifest.yaml with bundle copilot -> use it.
+  - Zero candidates, or more than one (shared user and project copies), -> stop at POLICY ROOT GATE listing
+    the candidates; never silently choose a shared user or project root.
+  - A supplied locator outside the supported roots, a symlink, a digest mismatch, or a bundle mismatch
+    -> POLICY ROOT GATE.
+  - The host resolves the root that contains the SKILL.md it is executing; a source checkout (not under
+    root_locations) is refused for launch.
+  - Functional stages run only from a root-validated handoff whose policy_context names this root; an
+    installed sibling skill whose version differs from the root copy blocks (STAGE VERSION GATE).
+  - 'Root discovery establishes which root to load, not that its files are unchanged: orchestrated consumers
+    also verify every loaded file against the run policy snapshot (manifest.yaml integrity).'
+capabilities:
+  evidence_baseline: '2026-11-10: Claude sub-agent docs unreachable; GitHub custom-agents docs URL 404.
+    No documentation citation available, so registry states stay unknown.'
+  registry:
+    dispatch_model_override: unknown
+    exact_model_id_validation: unknown
+    hot_reload_agent_frontmatter: unknown (treat as requiring restart)
+  rule: unknown is handled like unsupported for custom profiles unless launch validation (models.yaml
+    launch_validation) records session evidence that the current dispatch tool accepts the exact ID; that
+    evidence applies only to the run that recorded it. Bundled defaults keep working through the legacy
+    frontmatter path.
+planned_changes:
+  PCH-MOD-008: policies/platform.yaml#capabilities
+policies:
+  INST-RT-001:
+    title: Runtime prerequisites (team capability, model alias passing, Mermaid CLI)
+    kind: platform-binding
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - all stages
+    defaults:
+      mermaid_install: npm install --global @mermaid-js/mermaid-cli
+    exceptions:
+    - parser fallback allowed if reported
+    rules:
+      INST-RT-001.R02:
+        platform: copilot
+        statement: Every `task` call must pass the selected agent's reasoning-agnostic frontmatter `model`
+          alias.
+        resolution:
+          PCH-MOD-004: Pass the role model ID from the pinned model profile snapshot; for bundled-default
+            that is the installed frontmatter `model` alias, unchanged. No fallback when the runtime rejects
+            it (MODEL CAPABILITY GATE).
+      INST-RT-001.R03:
+        statement: Install Mermaid CLI (`npm install --global @mermaid-js/mermaid-cli`) or require the
+          documenter to report use of an available parser fallback.
+    resolutions:
+      CNF-IDX-001: 'Platform-specific prerequisites are authoritative: Claude requires at least one code
+        indexer and TeamCreate; Copilot permits zero indexers with grep/glob/view fallback and has no
+        TeamCreate prerequisite. README prerequisites now state the difference.'
+      CNF-RT-001: Host setup prefers the global Mermaid CLI install; the documenter `npm install --no-save`
+        + `npx mmdc` sequence is an accepted alternative when the global CLI is absent. The documenter
+        reports which tool or fallback was used.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+      PCH-MOD-008: policies/platform.yaml#capabilities
+      PCH-MOD-007: policies/models.yaml#reasoning_effort
+    source_nuance:
+    - path: SKILL.md
+      lines: 151-153
+      text: 'Every `task` call must pass the role model ID from the pinned model profile snapshot (bundled-default:
+        the agent''s reasoning-agnostic frontmatter `model` alias).
+
+        Install Mermaid CLI (`npm install --global @mermaid-js/mermaid-cli`) or require the documenter
+        to
+
+        report use of an available parser fallback.
+
+        '

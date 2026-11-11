@@ -1,0 +1,1325 @@
+schema_version: '1.0'
+bundle: claude
+domain: metadata
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+crews:
+  agents:
+    version: 1.0.8
+    names:
+    - dev-dude-orchestrator
+    - architecture-reviewer
+    - ux-design-reviewer
+    - code-flow-analyzer
+    - technical-resource-investigator
+    - investigation-documenter
+    - feature-implementer
+    - test-implementer
+    - feature-validator
+  skills:
+    version: 1.1.4
+    names:
+    - dev-dude-architecture
+    - dev-dude-feature-design
+    - dev-dude-feature-implementation
+    - dev-dude-validation
+root:
+  name: dev-dude
+  version: 1.1.0
+  argument_hint_display:
+  - '"update" — Update DevDude and reload its skills and agents'
+  - '"models show" — Show the resolved model profile and its sources'
+  - '"models profiles" — List profiles per scope and which is active'
+  - '"models validate" — Validate model configuration files offline'
+  - '"models set <role|all> <model-id> --profile <name> --scope <project|user>" — Save an unvalidated
+    draft profile entry'
+  - '"models use <profile|bundled-default> --scope <project|user>" — Select the active model profile'
+  - '"models reset --scope <project|user>" — Remove this runtime''s model configuration in a scope'
+  - '"DudeWhereIsMyArch all" — Full architecture investigation'
+  - '"all refresh" — Refresh affected architecture docs'
+  - '"authentication refresh" — Refresh one architecture vertical'
+  - '"DudeWhereIsMyArch authentication" — Investigate one area'
+  - '"DudeWriteMyFeature Add user caching" — Design and implement a feature'
+version_bump:
+  tool: TOOL-CI-001 (.github/workflows/bump-agent-versions.yml)
+  trigger_paths:
+  - Copilot/dev-dude/agents/*.md
+  - Claude skill/dev-dude/agents/*.md
+  - Copilot/dev-dude/policies/agents/*.yaml
+  - Claude skill/dev-dude/policies/agents/*.yaml
+  - Copilot/dev-dude/policies/models.yaml
+  - Claude skill/dev-dude/policies/models.yaml
+  reason: Agent role policy (policies/agents/*.yaml) and model defaults (policies/models.yaml) are agent-crew
+    content since agent bodies became loaders, so changing them bumps the shared agent crew version (PCH-MOD-006).
+  filter: The workflow bumps only when a changed path in the push matches trigger_paths (same globs; `*`
+    does not cross `/`).
+  writes:
+  - every agent frontmatter `version:` line (both bundles)
+  - root SKILL.md sentence `Bundled agent crew version:` (both bundles)
+  - policies/metadata.yaml crews.agents.version (both bundles)
+  never_writes:
+  - metadata.yaml root.version
+  - metadata.yaml crews.skills.version
+  - functional skill frontmatter versions
+  - policies/agents/*.yaml
+  - policies/models.yaml
+  manual: root.version, crews.skills.version and skill frontmatter versions are bumped manually in both
+    bundles (README Release versions).
+  loop_guard: Bot commits carry `[skip agent-version-bump]` and the job skips github-actions[bot]; the
+    bot writes no file under policies/agents/ or models.yaml.
+policies:
+  META-ROOT-001:
+    title: Root skill frontmatter identity
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - runtime-loader
+      - host
+      - update-check
+    defaults: {}
+    exceptions: []
+    platform_binding:
+      description_word: swarms
+    rules:
+      META-ROOT-001.R01:
+        key: name
+        value: dev-dude
+      META-ROOT-001.R02:
+        key: version
+        note: user-facing semantic release version; compared numerically by update check
+        value_ref: root.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Version kept once in metadata root.version (bumped root release 1.1.0).
+      META-ROOT-001.R03:
+        key: description
+        value: '...using agent swarms...'
+        note: otherwise identical 5-line folded description listing arch/where, feature/write, update
+        frontmatter_exact: 'Resumable architecture investigation and feature implementation using agent
+          swarms. DudeWhereIsMyArch (arch/where) writes architecture docs to ./docs/ArchOverview/. DudeWriteMyFeature
+          (feature/write) accepts descriptions, specs, or images and writes design, implementation, and
+          verification outputs to ./docs/<feature-slug>/. update fetches the latest DevDude bundle and
+          reloads supported runtimes.
+
+          '
+    planned_changes:
+      PCH-MOD-006: policies/metadata.yaml#crews, policies/metadata.yaml#version_bump; .github/workflows/bump-agent-versions.yml
+    source_nuance:
+    - path: SKILL.md
+      lines: 1-10
+      text: "---\nname: dev-dude\nversion: <current value: installed frontmatter, see policies/metadata.yaml\
+        \ crews>\ndescription: >\n  Resumable architecture investigation and feature implementation using\
+        \ agent swarms.\n  DudeWhereIsMyArch (arch/where) writes architecture docs to ./docs/ArchOverview/.\n\
+        \  DudeWriteMyFeature (feature/write) accepts descriptions, specs, or images and writes design,\n\
+        \  implementation, and verification outputs to ./docs/<feature-slug>/.\n  update fetches the latest\
+        \ DevDude bundle and reloads supported runtimes.\n---\n"
+  META-ROOT-002:
+    title: Root argument hints
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - runtime-loader
+      - user
+    defaults: {}
+    exceptions: []
+    rules:
+      META-ROOT-002.R01:
+        statement: 'Hints: update; models show; models profiles; models validate; models set <role|all>
+          <model-id> --profile <name> --scope <project|user>; models use <profile|bundled-default> --scope
+          <project|user>; models reset --scope <project|user>; DudeWhereIsMyArch all; all refresh; authentication
+          refresh; DudeWhereIsMyArch authentication; DudeWriteMyFeature Add user caching'
+        amendment:
+          by: PCH-MOD-002
+          reason: Models hints (every models grammar form) added to the displayed argument hints.
+    resolutions:
+      CNF-ROOT-001: argument-hint stays derived display text immediately after the root frontmatter; the
+        authoritative list is META-ROOT-002 (metadata.yaml derived_display). It is not moved into frontmatter
+        because no host documentation verified `argument-hint` as an accepted skill frontmatter key.
+    source_nuance:
+    - path: SKILL.md
+      lines: 11-17
+      text: "argument-hint:\n  - \"update\" — Update DevDude and reload its skills and agents\n  - \"\
+        DudeWhereIsMyArch all\" — Full architecture investigation\n  - \"all refresh\" — Refresh affected\
+        \ architecture docs\n  - \"authentication refresh\" — Refresh one architecture vertical\n  - \"\
+        DudeWhereIsMyArch authentication\" — Investigate one area\n  - \"DudeWriteMyFeature Add user caching\"\
+        \ — Design and implement a feature\n"
+  META-CREW-001:
+    title: Bundled agent crew version and membership
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - update
+      - TOOL-CI-001
+    defaults: {}
+    exceptions: []
+    rules:
+      META-CREW-001.R01:
+        key: agent_crew_version
+        note: 'sentence `Bundled agent crew version: `x.y.z`` in root SKILL.md and metadata.yaml crews.agents.version
+          are both rewritten by TOOL-CI-001'
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Single bump-workflow target crews.agents.version (1.0.7); sentence in root SKILL.md
+            also maintained by TOOL-CI-001.
+      META-CREW-001.R02:
+        key: agents
+        value:
+        - dev-dude-orchestrator
+        - code-flow-analyzer
+        - ux-design-reviewer
+        - architecture-reviewer
+        - technical-resource-investigator
+        - investigation-documenter
+        - feature-implementer
+        - test-implementer
+        - feature-validator
+        note: copilot names add -copilot suffix
+      META-CREW-001.R03:
+        statement: Claude lists them as required Task subagent_type values; Copilot as required custom
+          agent types.
+    planned_changes:
+      PCH-MOD-006: policies/metadata.yaml#crews, policies/metadata.yaml#version_bump; .github/workflows/bump-agent-versions.yml
+    source_nuance:
+    - path: SKILL.md
+      lines: 108-122
+      text: 'Bundled agent crew version: `<policies/metadata.yaml crews.agents.version>`. Compare the
+        `version:` frontmatter of all bundled agents with
+
+        project-local and global `.claude/agents/` installs. Missing version is `0`. If any agent is missing
+
+        or older, update the complete crew atomically; preserve an equal or newer installed crew.
+
+
+        Required Task `subagent_type` values:
+
+
+        - `dev-dude-orchestrator`
+
+        - `code-flow-analyzer`
+
+        - `ux-design-reviewer`
+
+        - `architecture-reviewer`
+
+        - `technical-resource-investigator`
+
+        - `investigation-documenter`
+
+        - `feature-implementer`
+
+        - `test-implementer`
+
+        - `feature-validator`
+
+        '
+  META-CREW-002:
+    title: Bundled functional skill crew version and membership
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+      - update
+    defaults: {}
+    exceptions: []
+    rules:
+      META-CREW-002.R01:
+        key: skill_crew_version
+        value_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Single source crews.skills.version (1.1.4).
+      META-CREW-002.R02:
+        key: skills
+        value:
+        - dev-dude-architecture
+        - dev-dude-feature-design
+        - dev-dude-feature-implementation
+        - dev-dude-validation
+    source_nuance:
+    - path: SKILL.md
+      lines: 124-131
+      text: '### Install and Verify the Functional Skill Crew
+
+
+        Bundled skill crew version: `<policies/metadata.yaml crews.skills.version>`. Bundled directories
+        under `skills/`:
+
+
+        - `dev-dude-architecture`
+
+        - `dev-dude-feature-design`
+
+        - `dev-dude-feature-implementation`
+
+        - `dev-dude-validation`
+
+        '
+  META-SKL-001:
+    title: Functional skill frontmatter (4 skills)
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - runtime-loader
+      - INST-SKL-001
+    defaults: {}
+    exceptions: []
+    rules:
+      META-SKL-001.R01:
+        skill: dev-dude-architecture
+        description: Internal DevDude functional skill for architecture discovery, investigation, documentation,
+          operator vertical review, verification, architecture critique, and correction.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for architecture discovery, investigation,
+          documentation, operator vertical review, verification, architecture critique, and correction.
+
+          '
+      META-SKL-001.R02:
+        skill: dev-dude-feature-design
+        description: Internal DevDude functional skill for feature investigation, trusted resource research,
+          design options, architecture critique, refinement, and explicit user design selection.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for feature investigation, trusted resource
+          research, design options, architecture critique, refinement, and explicit user design selection.
+
+          '
+      META-SKL-001.R03:
+        skill: dev-dude-feature-implementation
+        description: Internal DevDude functional skill for implementation clarification, planning, production
+          changes, and mandatory paired test implementation from an approved design.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for implementation clarification, planning,
+          production changes, and mandatory paired test implementation from an approved design.
+
+          '
+      META-SKL-001.R04:
+        skill: dev-dude-validation
+        description: Internal DevDude functional skill for project checks, semantic verification, final
+          validator decisions, and bounded remediation routing.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for project checks, semantic verification,
+          final validator decisions, and bounded remediation routing.
+
+          '
+    source_nuance:
+    - path: skills/dev-dude-architecture/SKILL.md
+      lines: 1-7
+      text: "---\nname: dev-dude-architecture\ndescription: >\n  Internal DevDude functional skill for\
+        \ architecture discovery, investigation, documentation,\n  operator vertical review, verification,\
+        \ architecture critique, and correction.\nversion: <current value: installed frontmatter, see\
+        \ policies/metadata.yaml crews>\n---\n"
+    - path: skills/dev-dude-feature-design/SKILL.md
+      lines: 1-7
+      text: "---\nname: dev-dude-feature-design\ndescription: >\n  Internal DevDude functional skill for\
+        \ feature investigation, trusted resource research, design\n  options, architecture critique,\
+        \ refinement, and explicit user design selection.\nversion: <current value: installed frontmatter,\
+        \ see policies/metadata.yaml crews>\n---\n"
+    - path: skills/dev-dude-feature-implementation/SKILL.md
+      lines: 1-7
+      text: "---\nname: dev-dude-feature-implementation\ndescription: >\n  Internal DevDude functional\
+        \ skill for implementation clarification, planning, production\n  changes, and mandatory paired\
+        \ test implementation from an approved design.\nversion: <current value: installed frontmatter,\
+        \ see policies/metadata.yaml crews>\n---\n"
+    - path: skills/dev-dude-validation/SKILL.md
+      lines: 1-7
+      text: "---\nname: dev-dude-validation\ndescription: >\n  Internal DevDude functional skill for project\
+        \ checks, semantic verification, final validator\n  decisions, and bounded remediation routing.\n\
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>\n---\n"
+  FSK-META-001:
+    title: Functional skill frontmatter metadata
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - installer
+      - root
+    defaults:
+      version_ref: crews.skills.version
+    exceptions: []
+    amendment:
+      by: PCH-MOD-006
+      reason: Default version derived from crews.skills.version.
+      changed:
+      - defaults
+    rules:
+      FSK-META-001.R01:
+        skill: dev-dude-architecture
+        description: Internal DevDude functional skill for architecture discovery, investigation, documentation,
+          operator vertical review, verification, architecture critique, and correction.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for architecture discovery, investigation,
+          documentation, operator vertical review, verification, architecture critique, and correction.
+
+          '
+      FSK-META-001.R02:
+        skill: dev-dude-feature-design
+        description: Internal DevDude functional skill for feature investigation, trusted resource research,
+          design options, architecture critique, refinement, and explicit user design selection.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for feature investigation, trusted resource
+          research, design options, architecture critique, refinement, and explicit user design selection.
+
+          '
+      FSK-META-001.R03:
+        skill: dev-dude-feature-implementation
+        description: Internal DevDude functional skill for implementation clarification, planning, production
+          changes, and mandatory paired test implementation from an approved design.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for implementation clarification, planning,
+          production changes, and mandatory paired test implementation from an approved design.
+
+          '
+      FSK-META-001.R04:
+        skill: dev-dude-validation
+        description: Internal DevDude functional skill for project checks, semantic verification, final
+          validator decisions, and bounded remediation routing.
+        version_ref: crews.skills.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Functional skill version derived from crews.skills.version (1.1.4).
+        frontmatter_exact: 'Internal DevDude functional skill for project checks, semantic verification,
+          final validator decisions, and bounded remediation routing.
+
+          '
+      FSK-META-001.R05:
+        statement: 'Body entry: apply the policy loader for manifest load set stage.<skill> and execute
+          references/workflow.yaml (root copy); references/workflow.md holds only nonnormative examples.'
+        amendment:
+          by: CNF-STALE-001
+          reason: Markdown workflow no longer normative.
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+    source_nuance:
+    - path: skills/dev-dude-architecture/SKILL.md
+      lines: 1-11
+      text: "---\nname: dev-dude-architecture\ndescription: >\n  Internal DevDude functional skill for\
+        \ architecture discovery, investigation, documentation,\n  operator vertical review, verification,\
+        \ architecture critique, and correction.\nversion: <current value: installed frontmatter, see\
+        \ policies/metadata.yaml crews>\n---\n\n# DevDude Architecture\n\nExecute the architecture run\
+        \ described in `references/workflow.yaml` (manifest load set `stage.<skill>`).\n"
+    - path: skills/dev-dude-feature-design/SKILL.md
+      lines: 1-11
+      text: "---\nname: dev-dude-feature-design\ndescription: >\n  Internal DevDude functional skill for\
+        \ feature investigation, trusted resource research, design\n  options, architecture critique,\
+        \ refinement, and explicit user design selection.\nversion: <current value: installed frontmatter,\
+        \ see policies/metadata.yaml crews>\n---\n\n# DevDude Feature Design\n\nExecute `references/workflow.yaml`\
+        \ (manifest load set `stage.<skill>`).\n"
+    - path: skills/dev-dude-feature-implementation/SKILL.md
+      lines: 1-11
+      text: "---\nname: dev-dude-feature-implementation\ndescription: >\n  Internal DevDude functional\
+        \ skill for implementation clarification, planning, production\n  changes, and mandatory paired\
+        \ test implementation from an approved design.\nversion: <current value: installed frontmatter,\
+        \ see policies/metadata.yaml crews>\n---\n\n# DevDude Feature Implementation\n\nExecute `references/workflow.yaml`\
+        \ (manifest load set `stage.<skill>`).\n"
+    - path: skills/dev-dude-validation/SKILL.md
+      lines: 1-11
+      text: "---\nname: dev-dude-validation\ndescription: >\n  Internal DevDude functional skill for project\
+        \ checks, semantic verification, final validator\n  decisions, and bounded remediation routing.\n\
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>\n---\n\n# DevDude\
+        \ Validation\n\nExecute `references/workflow.yaml` (manifest load set `stage.<skill>`).\n"
+  AGT-ORC-META-001:
+    title: dev-dude-orchestrator frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-ORC-META-001.R01:
+        key: name
+        value: dev-dude-orchestrator
+      AGT-ORC-META-001.R02:
+        key: description
+        value: Dedicated DevDude workflow controller. Invoke only from the DevDude root skill's host bootstrap
+          to coordinate a new run or reconcile a resumed run. Not a specialist worker or a general-purpose
+          implementation agent.
+        frontmatter_exact: Dedicated DevDude workflow controller. Invoke only from the DevDude root skill's
+          host bootstrap to coordinate a new run or reconcile a resumed run. Not a specialist worker or
+          a general-purpose implementation agent.
+      AGT-ORC-META-001.R03:
+        key: model
+        value: opus
+      AGT-ORC-META-001.R04:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-ORC-META-001.R05:
+        key: color
+        value: null
+      AGT-ORC-META-001.R06:
+        key: tools
+        value: unrestricted (inherits)
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/dev-dude-orchestrator.md
+      lines: 1-6
+      text: '---
+
+        name: dev-dude-orchestrator
+
+        description: "Dedicated DevDude workflow controller. Invoke only from the DevDude root skill''s
+        host bootstrap to coordinate a new run or reconcile a resumed run. Not a specialist worker or
+        a general-purpose implementation agent."
+
+        model: opus
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-AR-META-001:
+    title: architecture-reviewer frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-AR-META-001.R01:
+        key: name
+        value: architecture-reviewer
+      AGT-AR-META-001.R02:
+        key: description
+        value: Use when architecture/design needs critical review; after mapping, documentation, or design
+          options; challenge reusability, performance, scalability, operational cost; if criteria missing
+          interview user and define criteria.
+        note: verbatim text identical across bundles; migrate verbatim
+        frontmatter_exact: Use this agent when architecture or design work needs a critical review. Trigger
+          it after architecture mapping, documentation, or feature design options are produced. This agent
+          should challenge designs for reusability, performance, scalability, and operational cost. If
+          review criteria are missing, interview the user and define project-appropriate criteria before
+          proceeding.
+      AGT-AR-META-001.R03:
+        key: model
+        value: opus
+      AGT-AR-META-001.R04:
+        key: color
+        value: red
+      AGT-AR-META-001.R05:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-AR-META-001.R06:
+        key: tools
+        value: unrestricted
+    resolutions:
+      CNF-MODEL-001: 'Bundled Copilot defaults are preserved exactly. Availability is never claimed: if
+        the runtime rejects a bundled default at dispatch, or launch validation cannot verify a custom
+        profile ID, the run stops at MODEL CAPABILITY GATE with no fallback (models.yaml launch_validation).'
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+      PCH-MOD-005: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+    source_nuance:
+    - path: agents/architecture-reviewer.md
+      lines: 1-7
+      text: '---
+
+        name: architecture-reviewer
+
+        description: "Use this agent when architecture or design work needs a critical review. Trigger
+        it after architecture mapping, documentation, or feature design options are produced. This agent
+        should challenge designs for reusability, performance, scalability, and operational cost. If review
+        criteria are missing, interview the user and define project-appropriate criteria before proceeding."
+
+        model: opus
+
+        color: red
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-UX-META-001:
+    title: ux-design-reviewer frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-UX-META-001.R01:
+        key: name
+        value: ux-design-reviewer
+      AGT-UX-META-001.R02:
+        key: description
+        value: UX analysis of existing product, visual spec, or proposed design; inspect flows, screenshots/image
+          specs, create UX guidance; if no UX principles interview user and establish lightweight guidelines.
+        note: verbatim identical across bundles
+        frontmatter_exact: Use this agent when the user needs UX analysis grounded in an existing product,
+          a visual spec, or a proposed feature design. Trigger it to inspect current UX flows, review
+          screenshots or image-based specs, or create UX guidance before a design is finalized. If the
+          project has no explicit UX principles, interview the user and establish a lightweight set of
+          project UX guidelines before continuing.
+      AGT-UX-META-001.R03:
+        key: model
+        value: opus
+      AGT-UX-META-001.R04:
+        key: color
+        value: orange
+      AGT-UX-META-001.R05:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-UX-META-001.R06:
+        key: tools
+        value: unrestricted
+    resolutions:
+      CNF-COLOR-001: Cosmetic color difference recorded and preserved unchanged.
+      CNF-MODEL-001: 'Bundled Copilot defaults are preserved exactly. Availability is never claimed: if
+        the runtime rejects a bundled default at dispatch, or launch validation cannot verify a custom
+        profile ID, the run stops at MODEL CAPABILITY GATE with no fallback (models.yaml launch_validation).'
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+      PCH-MOD-005: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+    source_nuance:
+    - path: agents/ux-design-reviewer.md
+      lines: 1-7
+      text: '---
+
+        name: ux-design-reviewer
+
+        description: "Use this agent when the user needs UX analysis grounded in an existing product,
+        a visual spec, or a proposed feature design. Trigger it to inspect current UX flows, review screenshots
+        or image-based specs, or create UX guidance before a design is finalized. If the project has no
+        explicit UX principles, interview the user and establish a lightweight set of project UX guidelines
+        before continuing."
+
+        model: opus
+
+        color: orange
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-CFA-META-001:
+    title: code-flow-analyzer frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-CFA-META-001.R01:
+        key: name
+        value: code-flow-analyzer
+      AGT-CFA-META-001.R02:
+        key: description
+        value: Understand code execution flows in medium/large repos; with 4 <example> blocks.
+        examples:
+        - auth request flow
+        - debugging complex feature sequence
+        - PR review of critical component
+        - undocumented code
+        encoding: escaped \\n
+        frontmatter_exact: 'Use this agent when the user needs to understand how code execution flows
+          through a codebase, particularly in medium to large repositories. Examples include:\n\n<example>\nContext:
+          User is exploring an unfamiliar codebase and wants to understand request handling.\nuser: "Can
+          you show me how a user authentication request flows through this system?"\nassistant: "I''m
+          going to use the Task tool to launch the code-flow-analyzer agent to trace the authentication
+          flow through the codebase."\n<commentary>\nThe user is asking to understand a specific execution
+          path through the system. The code-flow-analyzer agent specializes in tracing code flows, analyzing
+          test files to validate understanding, and creating visual diagrams, making it the perfect tool
+          for this request.\n</commentary>\n</example>\n\n<example>\nContext: User is debugging a complex
+          feature and needs to understand the sequence of operations.\nuser: "I''m trying to fix a bug
+          in the payment processing. Can you help me understand the flow from when a user clicks ''Pay''
+          to when the transaction completes?"\nassistant: "I''ll use the code-flow-analyzer agent to trace
+          the payment processing flow and identify all the components involved."\n<commentary>\nThis requires
+          understanding execution sequences across multiple files and components. The code-flow-analyzer
+          will examine the code, consult related tests to validate the flow, and provide a clear visualization
+          of the process.\n</commentary>\n</example>\n\n<example>\nContext: User is reviewing a pull request
+          with changes to a critical system component.\nuser: "These changes modify the order fulfillment
+          system. Can you help me understand what the current flow is and how these changes affect it?"\nassistant:
+          "I''m going to launch the code-flow-analyzer agent to map out the existing order fulfillment
+          flow and analyze how the proposed changes impact it."\n<commentary>\nUnderstanding the impact
+          of changes requires clear visibility into existing execution paths. The code-flow-analyzer will
+          document the current flow and highlight how modifications alter the sequence.\n</commentary>\n</example>\n\n<example>\nContext:
+          User encounters code without clear documentation.\nuser: "I found this EventProcessor class
+          but I''m not sure how events move through the system. Can you explain it?"\nassistant: "Let
+          me use the code-flow-analyzer agent to trace how events are processed through the EventProcessor
+          and related components."\n<commentary>\nWhen code lacks documentation, the code-flow-analyzer
+          can reverse-engineer the flow by examining the implementation and associated tests, then present
+          it in an understandable format.\n</commentary>\n</example>'
+      AGT-CFA-META-001.R03:
+        key: tools
+        value:
+        - Glob
+        - Grep
+        - Read
+        - WebFetch
+        - WebSearch
+        - ListMcpResourcesTool
+        - ReadMcpResourceTool
+        - Bash
+        - Skill
+        - TaskCreate
+        - TaskGet
+        - TaskUpdate
+        - TaskList
+        - ToolSearch
+      AGT-CFA-META-001.R04:
+        key: model
+        value: opus
+      AGT-CFA-META-001.R05:
+        key: color
+        value: purple
+      AGT-CFA-META-001.R06:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+    resolutions:
+      CNF-WRITE-001: No tool lists are broadened. Read-only roles (code-flow-analyzer, technical-resource-investigator,
+        feature-validator) return artifact content; the invoking functional stage persists it at the envelope
+        Expected output path. Standalone use returns content to the user.
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/code-flow-analyzer.md
+      lines: 1-8
+      text: '---
+
+        name: code-flow-analyzer
+
+        description: "Use this agent when the user needs to understand how code execution flows through
+        a codebase, particularly in medium to large repositories. Examples include:\\n\\n<example>\\nContext:
+        User is exploring an unfamiliar codebase and wants to understand request handling.\\nuser: \"Can
+        you show me how a user authentication request flows through this system?\"\\nassistant: \"I''m
+        going to use the Task tool to launch the code-flow-analyzer agent to trace the authentication
+        flow through the codebase.\"\\n<commentary>\\nThe user is asking to understand a specific execution
+        path through the system. The code-flow-analyzer agent specializes in tracing code flows, analyzing
+        test files to validate understanding, and creating visual diagrams, making it the perfect tool
+        for this request.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User is debugging a complex
+        feature and needs to understand the sequence of operations.\\nuser: \"I''m trying to fix a bug
+        in the payment processing. Can you help me understand the flow from when a user clicks ''Pay''
+        to when the transaction completes?\"\\nassistant: \"I''ll use the code-flow-analyzer agent to
+        trace the payment processing flow and identify all the components involved.\"\\n<commentary>\\nThis
+        requires understanding execution sequences across multiple files and components. The code-flow-analyzer
+        will examine the code, consult related tests to validate the flow, and provide a clear visualization
+        of the process.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User is reviewing a pull
+        request with changes to a critical system component.\\nuser: \"These changes modify the order
+        fulfillment system. Can you help me understand what the current flow is and how these changes
+        affect it?\"\\nassistant: \"I''m going to launch the code-flow-analyzer agent to map out the existing
+        order fulfillment flow and analyze how the proposed changes impact it.\"\\n<commentary>\\nUnderstanding
+        the impact of changes requires clear visibility into existing execution paths. The code-flow-analyzer
+        will document the current flow and highlight how modifications alter the sequence.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        User encounters code without clear documentation.\\nuser: \"I found this EventProcessor class
+        but I''m not sure how events move through the system. Can you explain it?\"\\nassistant: \"Let
+        me use the code-flow-analyzer agent to trace how events are processed through the EventProcessor
+        and related components.\"\\n<commentary>\\nWhen code lacks documentation, the code-flow-analyzer
+        can reverse-engineer the flow by examining the implementation and associated tests, then present
+        it in an understandable format.\\n</commentary>\\n</example>"
+
+        tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash,
+        Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
+
+        model: opus
+
+        color: purple
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-TRI-META-001:
+    title: technical-resource-investigator frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-TRI-META-001.R01:
+        key: name
+        value: technical-resource-investigator
+      AGT-TRI-META-001.R02:
+        key: description
+        value: Investigate technical resources (external packages/services/platforms/APIs + reusable internal
+          components) in 'DudeWriteMyFeature feature-design Step 2 (Resource Investigation)' after code-flow
+          investigation; modes discovery and critique-and-amend (stronger model); read-only; allowlisted
+          sources.
+        examples: []
+        amendment:
+          by: CNF-STALE-001
+          reason: Stale phase label replaced.
+        frontmatter_exact: 'Use this agent to investigate technical resources — external packages, services,
+          platforms, APIs, and reusable internal components — that could inform design and architecture
+          decisions for a feature. Trigger it in DudeWriteMyFeature feature-design Step 2 (Resource Investigation)
+          after code-flow investigation, to produce a cited resources-investigation.md before design options
+          are drafted. The agent runs in two modes: ''discovery'' (surface and validate candidate resources
+          from authoritative, allowlisted sources only) and ''critique-and-amend'' (a second, stronger-model
+          pass that critiques the draft for security, reliability, maintenance, licensing, supply-chain
+          risk, and operational cost, appending amendments without deleting original evidence). It is
+          strictly read-only: it never fetches or executes third-party code and never makes dependency
+          or code changes.'
+      AGT-TRI-META-001.R03:
+        key: tools
+        value:
+        - Glob
+        - Grep
+        - Read
+        - WebFetch
+        - WebSearch
+        - ListMcpResourcesTool
+        - ReadMcpResourceTool
+        - Bash
+        - Skill
+        - TaskCreate
+        - TaskGet
+        - TaskUpdate
+        - TaskList
+        - ToolSearch
+      AGT-TRI-META-001.R04:
+        key: model
+        value: haiku
+      AGT-TRI-META-001.R05:
+        key: color
+        value: yellow
+      AGT-TRI-META-001.R06:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+      CNF-DRIFT-001: Intentional baseline platform variance (Claude-only FI/TI scope text and example;
+        Copilot-only TRI examples) is preserved in platform-scoped rules; harmonizing would change agent
+        selection without approval.
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/technical-resource-investigator.md
+      lines: 1-8
+      text: '---
+
+        name: technical-resource-investigator
+
+        description: "Use this agent to investigate technical resources — external packages, services,
+        platforms, APIs, and reusable internal components — that could inform design and architecture
+        decisions for a feature. Trigger it in DudeWriteMyFeature feature-design Step 2 (Resource Investigation)
+        after code-flow investigation, to produce a cited resources-investigation.md before design options
+        are drafted. The agent runs in two modes: ''discovery'' (surface and validate candidate resources
+        from authoritative, allowlisted sources only) and ''critique-and-amend'' (a second, stronger-model
+        pass that critiques the draft for security, reliability, maintenance, licensing, supply-chain
+        risk, and operational cost, appending amendments without deleting original evidence). It is strictly
+        read-only: it never fetches or executes third-party code and never makes dependency or code changes."
+
+        tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash,
+        Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
+
+        model: haiku
+
+        color: yellow
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-FI-META-001:
+    title: feature-implementer frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-FI-META-001.R01:
+        key: name
+        value: feature-implementer
+      AGT-FI-META-001.R02:
+        key: description
+        value: Implement features from design docs/PRDs/verbal descriptions with examples.
+        examples:
+        - auth design doc
+        - PRD upload
+        - verbal feature
+        - fix broken tests after refactor -> redirect to test-implementer
+        extra: includes production-only scope boundary text
+        frontmatter_exact: 'Use this agent when you need to implement a feature based on a design document
+          or specification. Do NOT use for test-only changes (adding, fixing, or updating tests) — use
+          test-implementer instead, even when fixing tests broken by your own code changes. This agent
+          should be launched proactively when:\n\n<example>\nContext: User provides a design document
+          for a new authentication feature.\nuser: "Here''s the design doc for implementing OAuth2 authentication.
+          Please implement this feature."\nassistant: "I''m going to use the Task tool to launch the feature-implementer
+          agent to analyze the design document and implement the OAuth2 authentication feature."\n<commentary>\nSince
+          the user has provided a design document and requested feature implementation, use the feature-implementer
+          agent to handle the complete implementation workflow including validation, coding, testing summary
+          generation, and build verification.\n</commentary>\n</example>\n\n<example>\nContext: User has
+          uploaded a PRD (Product Requirements Document) and wants it implemented.\nuser: "I''ve added
+          the PRD for the user profile management feature to the project. Can you implement it?"\nassistant:
+          "I''ll use the Task tool to launch the feature-implementer agent to implement the user profile
+          management feature based on the PRD."\n<commentary>\nThe user has provided a requirements document
+          and is asking for implementation. The feature-implementer agent should handle ingesting the
+          document, validating assumptions, implementing changes, and generating the necessary summaries.\n</commentary>\n</example>\n\n<example>\nContext:
+          User describes a feature verbally that needs implementation.\nuser: "We need to add a caching
+          layer to our API endpoints to improve performance. It should cache GET requests for 5 minutes
+          and invalidate on any POST/PUT/DELETE to the same resource."\nassistant: "Let me use the Task
+          tool to launch the feature-implementer agent to design and implement the caching layer for the
+          API endpoints."\n<commentary>\nEven though no formal design document was provided, the user
+          has described a feature that needs implementation. The feature-implementer agent should create
+          an implicit design from the requirements, validate assumptions, and implement the feature following
+          the standard workflow.\n</commentary>\n</example>\n\n<example>\nContext: User asks to fix broken
+          tests after a refactor.\nuser: "I refactored the PaymentService and now the unit tests are failing.
+          Can you fix the tests?"\nassistant: "I''ll use the Task tool to launch the test-implementer
+          agent to update the failing tests to match the new PaymentService implementation."\n<commentary>\nEven
+          though the broken tests are a direct consequence of a code change, the work required is purely
+          test-related (updating assertions, mocks, and signatures). Use test-implementer — not feature-implementer
+          — for this task.\n</commentary>\n</example>'
+      AGT-FI-META-001.R03:
+        key: model
+        value: opus
+      AGT-FI-META-001.R04:
+        key: color
+        value: green
+      AGT-FI-META-001.R05:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-FI-META-001.R06:
+        key: tools
+        value: unrestricted
+    resolutions:
+      CNF-DRIFT-001: Intentional baseline platform variance (Claude-only FI/TI scope text and example;
+        Copilot-only TRI examples) is preserved in platform-scoped rules; harmonizing would change agent
+        selection without approval.
+      CNF-MODEL-001: 'Bundled Copilot defaults are preserved exactly. Availability is never claimed: if
+        the runtime rejects a bundled default at dispatch, or launch validation cannot verify a custom
+        profile ID, the run stops at MODEL CAPABILITY GATE with no fallback (models.yaml launch_validation).'
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+      PCH-MOD-005: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+    source_nuance:
+    - path: agents/feature-implementer.md
+      lines: 1-7
+      text: '---
+
+        name: feature-implementer
+
+        description: "Use this agent when you need to implement a feature based on a design document or
+        specification. Do NOT use for test-only changes (adding, fixing, or updating tests) — use test-implementer
+        instead, even when fixing tests broken by your own code changes. This agent should be launched
+        proactively when:\\n\\n<example>\\nContext: User provides a design document for a new authentication
+        feature.\\nuser: \"Here''s the design doc for implementing OAuth2 authentication. Please implement
+        this feature.\"\\nassistant: \"I''m going to use the Task tool to launch the feature-implementer
+        agent to analyze the design document and implement the OAuth2 authentication feature.\"\\n<commentary>\\nSince
+        the user has provided a design document and requested feature implementation, use the feature-implementer
+        agent to handle the complete implementation workflow including validation, coding, testing summary
+        generation, and build verification.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User
+        has uploaded a PRD (Product Requirements Document) and wants it implemented.\\nuser: \"I''ve added
+        the PRD for the user profile management feature to the project. Can you implement it?\"\\nassistant:
+        \"I''ll use the Task tool to launch the feature-implementer agent to implement the user profile
+        management feature based on the PRD.\"\\n<commentary>\\nThe user has provided a requirements document
+        and is asking for implementation. The feature-implementer agent should handle ingesting the document,
+        validating assumptions, implementing changes, and generating the necessary summaries.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        User describes a feature verbally that needs implementation.\\nuser: \"We need to add a caching
+        layer to our API endpoints to improve performance. It should cache GET requests for 5 minutes
+        and invalidate on any POST/PUT/DELETE to the same resource.\"\\nassistant: \"Let me use the Task
+        tool to launch the feature-implementer agent to design and implement the caching layer for the
+        API endpoints.\"\\n<commentary>\\nEven though no formal design document was provided, the user
+        has described a feature that needs implementation. The feature-implementer agent should create
+        an implicit design from the requirements, validate assumptions, and implement the feature following
+        the standard workflow.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User asks to fix
+        broken tests after a refactor.\\nuser: \"I refactored the PaymentService and now the unit tests
+        are failing. Can you fix the tests?\"\\nassistant: \"I''ll use the Task tool to launch the test-implementer
+        agent to update the failing tests to match the new PaymentService implementation.\"\\n<commentary>\\nEven
+        though the broken tests are a direct consequence of a code change, the work required is purely
+        test-related (updating assertions, mocks, and signatures). Use test-implementer — not feature-implementer
+        — for this task.\\n</commentary>\\n</example>"
+
+        model: opus
+
+        color: green
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-TI-META-001:
+    title: test-implementer frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-TI-META-001.R01:
+        key: name
+        value: test-implementer
+      AGT-TI-META-001.R02:
+        key: description
+        value: Implement tests from feature-implementer test specs or requests.
+        examples:
+        - test summary from FI
+        - tests for recent code
+        - review found missing coverage
+        - tests broken by refactor
+        extra: includes all-test-work scope boundary text
+        frontmatter_exact: 'Use this agent when you need to implement unit tests or functional tests based
+          on test specifications or summaries, OR when existing tests break due to code changes and need
+          their assertions, mocks, or signatures updated to match new production code. This is the ONLY
+          agent to use for any test-related changes — do NOT use feature-implementer for test fixes. Specifically:\n\n<example>\nContext:
+          The user has just completed implementing a new feature and has a test summary file from the
+          feature-implementer agent.\nuser: "I''ve finished implementing the authentication feature. Here''s
+          the test summary file from feature-implementer: [file content]"\nassistant: "I''ll use the Task
+          tool to launch the test-implementer agent to implement the required tests based on this summary."\n<commentary>\nSince
+          test specifications have been provided after feature implementation, use the test-implementer
+          agent to create the actual test implementations.\n</commentary>\n</example>\n\n<example>\nContext:
+          The user mentions they need tests written for recently added code.\nuser: "Can you add tests
+          for the new UserService class I just created?"\nassistant: "I''m going to use the Task tool
+          to launch the test-implementer agent to analyze the UserService class and implement appropriate
+          unit and functional tests."\n<commentary>\nSince the user is requesting test implementation
+          for new code, use the test-implementer agent to handle the complete test creation workflow.\n</commentary>\n</example>\n\n<example>\nContext:
+          A code review identified missing test coverage.\nuser: "The code review flagged that our payment
+          processing module needs better test coverage"\nassistant: "I''ll use the Task tool to launch
+          the test-implementer agent to analyze the payment processing module and implement comprehensive
+          tests to improve coverage."\n<commentary>\nSince test coverage improvements are needed, use
+          the test-implementer agent to identify gaps and implement missing tests.\n</commentary>\n</example>\n\n<example>\nContext:
+          Production code was refactored and existing tests now fail due to changed method signatures
+          or updated logic.\nuser: "I renamed and restructured the OrderProcessor class and now several
+          unit tests are failing with compilation errors and assertion mismatches."\nassistant: "I''ll
+          use the Task tool to launch the test-implementer agent to update the broken tests so their assertions,
+          mocks, and signatures align with the new OrderProcessor implementation."\n<commentary>\nWhen
+          tests break because production code changed — not because the tests themselves are wrong — use
+          test-implementer to bring the test suite back in line with the new code. Do NOT use feature-implementer
+          for this; it is scoped to production code changes only.\n</commentary>\n</example>'
+      AGT-TI-META-001.R03:
+        key: model
+        value: opus
+      AGT-TI-META-001.R04:
+        key: color
+        value: pink
+      AGT-TI-META-001.R05:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-TI-META-001.R06:
+        key: tools
+        value: unrestricted
+    resolutions:
+      CNF-DRIFT-001: Intentional baseline platform variance (Claude-only FI/TI scope text and example;
+        Copilot-only TRI examples) is preserved in platform-scoped rules; harmonizing would change agent
+        selection without approval.
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/test-implementer.md
+      lines: 1-7
+      text: '---
+
+        name: test-implementer
+
+        description: "Use this agent when you need to implement unit tests or functional tests based on
+        test specifications or summaries, OR when existing tests break due to code changes and need their
+        assertions, mocks, or signatures updated to match new production code. This is the ONLY agent
+        to use for any test-related changes — do NOT use feature-implementer for test fixes. Specifically:\\n\\n<example>\\nContext:
+        The user has just completed implementing a new feature and has a test summary file from the feature-implementer
+        agent.\\nuser: \"I''ve finished implementing the authentication feature. Here''s the test summary
+        file from feature-implementer: [file content]\"\\nassistant: \"I''ll use the Task tool to launch
+        the test-implementer agent to implement the required tests based on this summary.\"\\n<commentary>\\nSince
+        test specifications have been provided after feature implementation, use the test-implementer
+        agent to create the actual test implementations.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        The user mentions they need tests written for recently added code.\\nuser: \"Can you add tests
+        for the new UserService class I just created?\"\\nassistant: \"I''m going to use the Task tool
+        to launch the test-implementer agent to analyze the UserService class and implement appropriate
+        unit and functional tests.\"\\n<commentary>\\nSince the user is requesting test implementation
+        for new code, use the test-implementer agent to handle the complete test creation workflow.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        A code review identified missing test coverage.\\nuser: \"The code review flagged that our payment
+        processing module needs better test coverage\"\\nassistant: \"I''ll use the Task tool to launch
+        the test-implementer agent to analyze the payment processing module and implement comprehensive
+        tests to improve coverage.\"\\n<commentary>\\nSince test coverage improvements are needed, use
+        the test-implementer agent to identify gaps and implement missing tests.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        Production code was refactored and existing tests now fail due to changed method signatures or
+        updated logic.\\nuser: \"I renamed and restructured the OrderProcessor class and now several unit
+        tests are failing with compilation errors and assertion mismatches.\"\\nassistant: \"I''ll use
+        the Task tool to launch the test-implementer agent to update the broken tests so their assertions,
+        mocks, and signatures align with the new OrderProcessor implementation.\"\\n<commentary>\\nWhen
+        tests break because production code changed — not because the tests themselves are wrong — use
+        test-implementer to bring the test suite back in line with the new code. Do NOT use feature-implementer
+        for this; it is scoped to production code changes only.\\n</commentary>\\n</example>"
+
+        model: opus
+
+        color: pink
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-FV-META-001:
+    title: feature-validator frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-FV-META-001.R01:
+        key: name
+        value: feature-validator
+      AGT-FV-META-001.R02:
+        key: description
+        value: Read-only final validation gate after FI/TI tasks and project commands; synthesizes evidence
+          into strict SATISFIED/UNSATISFIED with targeted remediation.
+        note: verbatim identical
+        frontmatter_exact: Use this agent as the read-only final validation gate for implemented features.
+          Trigger it after Feature-Implementer and Test-Implementer tasks complete and after project build/test/lint
+          commands have run. It synthesizes command results, implementation summaries, test summaries,
+          changed files, design/spec requirements, and Code-Flow-Analyzer findings into a strict SATISFIED
+          or UNSATISFIED decision with targeted remediation tasks.
+      AGT-FV-META-001.R03:
+        key: tools
+        value:
+        - Glob
+        - Grep
+        - Read
+        - WebFetch
+        - WebSearch
+        - ListMcpResourcesTool
+        - ReadMcpResourceTool
+        - Bash
+        - Skill
+        - TaskCreate
+        - TaskGet
+        - TaskUpdate
+        - TaskList
+        - ToolSearch
+      AGT-FV-META-001.R04:
+        key: model
+        value: opus
+      AGT-FV-META-001.R05:
+        key: color
+        value: orange
+      AGT-FV-META-001.R06:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+    resolutions:
+      CNF-WRITE-001: No tool lists are broadened. Read-only roles (code-flow-analyzer, technical-resource-investigator,
+        feature-validator) return artifact content; the invoking functional stage persists it at the envelope
+        Expected output path. Standalone use returns content to the user.
+      CNF-COLOR-001: Cosmetic color difference recorded and preserved unchanged.
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/feature-validator.md
+      lines: 1-8
+      text: '---
+
+        name: feature-validator
+
+        description: "Use this agent as the read-only final validation gate for implemented features.
+        Trigger it after Feature-Implementer and Test-Implementer tasks complete and after project build/test/lint
+        commands have run. It synthesizes command results, implementation summaries, test summaries, changed
+        files, design/spec requirements, and Code-Flow-Analyzer findings into a strict SATISFIED or UNSATISFIED
+        decision with targeted remediation tasks."
+
+        tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash,
+        Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
+
+        model: opus
+
+        color: orange
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '
+  AGT-ID-META-001:
+    title: investigation-documenter frontmatter
+    kind: metadata
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - host
+    defaults: {}
+    exceptions: []
+    rules:
+      AGT-ID-META-001.R01:
+        key: name
+        value: investigation-documenter
+      AGT-ID-META-001.R02:
+        key: description
+        value: Document findings from code investigations, system analysis, technical research.
+        examples:
+        - auth flow investigation
+        - data pipeline trace
+        - bug analysis resolution
+        frontmatter_exact: 'Use this agent when you need to document findings from code investigations,
+          system analysis, or technical research. Trigger this agent after:\n\n<example>\nContext: User
+          has been investigating a complex authentication flow in the codebase.\nuser: "I''ve been looking
+          through the auth system. Can you help me document how the JWT validation works?"\nassistant:
+          "I''ll use the Task tool to launch the investigation-documenter agent to create a comprehensive
+          engineering design document of the JWT validation flow."\n<commentary>\nThe user has completed
+          an investigation and needs documentation. The investigation-documenter agent should be used
+          to structure the findings into a proper engineering design doc with sequence diagrams.\n</commentary>\n</example>\n\n<example>\nContext:
+          User has traced through a data processing pipeline and wants to create documentation.\nuser:
+          "I''ve traced the entire order processing flow from API to database. This needs to be documented."\nassistant:
+          "Let me launch the investigation-documenter agent to create a structured engineering design
+          document with sequence diagrams showing the order processing flow."\n<commentary>\nThe user
+          has completed tracing a system flow and explicitly wants documentation. Use the investigation-documenter
+          agent to convert the investigation findings into a well-structured design document.\n</commentary>\n</example>\n\n<example>\nContext:
+          User finishes analyzing a bug and its resolution path.\nuser: "I found the root cause of the
+          race condition in the cache layer. We should document this."\nassistant: "I''ll use the Task
+          tool to launch the investigation-documenter agent to document the race condition investigation,
+          including the root cause analysis and resolution path."\n<commentary>\nThe user has completed
+          an investigation and identified the need for documentation. The investigation-documenter agent
+          should create a design doc capturing the analysis.\n</commentary>\n</example>'
+      AGT-ID-META-001.R03:
+        key: model
+        value: haiku
+      AGT-ID-META-001.R04:
+        key: color
+        value: cyan
+      AGT-ID-META-001.R05:
+        key: version
+        value_ref: crews.agents.version
+        amendment:
+          by: PCH-MOD-006
+          reason: Agent version derived from crews.agents.version (1.0.7).
+      AGT-ID-META-001.R06:
+        key: tools
+        value: unrestricted
+    planned_changes:
+      PCH-MOD-001: policies/models.yaml#bundled_default
+    source_nuance:
+    - path: agents/investigation-documenter.md
+      lines: 1-7
+      text: '---
+
+        name: investigation-documenter
+
+        description: "Use this agent when you need to document findings from code investigations, system
+        analysis, or technical research. Trigger this agent after:\\n\\n<example>\\nContext: User has
+        been investigating a complex authentication flow in the codebase.\\nuser: \"I''ve been looking
+        through the auth system. Can you help me document how the JWT validation works?\"\\nassistant:
+        \"I''ll use the Task tool to launch the investigation-documenter agent to create a comprehensive
+        engineering design document of the JWT validation flow.\"\\n<commentary>\\nThe user has completed
+        an investigation and needs documentation. The investigation-documenter agent should be used to
+        structure the findings into a proper engineering design doc with sequence diagrams.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        User has traced through a data processing pipeline and wants to create documentation.\\nuser:
+        \"I''ve traced the entire order processing flow from API to database. This needs to be documented.\"\\nassistant:
+        \"Let me launch the investigation-documenter agent to create a structured engineering design document
+        with sequence diagrams showing the order processing flow.\"\\n<commentary>\\nThe user has completed
+        tracing a system flow and explicitly wants documentation. Use the investigation-documenter agent
+        to convert the investigation findings into a well-structured design document.\\n</commentary>\\n</example>\\n\\n<example>\\nContext:
+        User finishes analyzing a bug and its resolution path.\\nuser: \"I found the root cause of the
+        race condition in the cache layer. We should document this.\"\\nassistant: \"I''ll use the Task
+        tool to launch the investigation-documenter agent to document the race condition investigation,
+        including the root cause analysis and resolution path.\"\\n<commentary>\\nThe user has completed
+        an investigation and identified the need for documentation. The investigation-documenter agent
+        should create a design doc capturing the analysis.\\n</commentary>\\n</example>"
+
+        model: haiku
+
+        color: cyan
+
+        version: <current value: installed frontmatter, see policies/metadata.yaml crews>
+
+        ---
+
+        '

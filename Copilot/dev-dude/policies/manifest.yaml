@@ -1,0 +1,742 @@
+schema_version: '1.0'
+bundle: copilot
+domain: manifest
+authority: DevDude normative policy lives in the YAML files indexed here. Markdown (SKILL.md, agent bodies,
+  workflow.md, doc-format-templates.md, README) is loader instructions, examples, templates and explanation
+  only.
+loading:
+  mode: instruction-driven
+  enforcement: Hosts, the controller, stages and agents load these files because their Markdown loader
+    instructions tell them to. No runtime component enforces loading; scripts/policy_audit.py checks repository
+    consistency only and is not proof of host execution.
+  root_discovery: policies/platform.yaml#root_discovery
+  rules:
+  - Resolve the policy root per platform.yaml root_discovery; never guess between installed roots.
+  - Load every file of the selected load set with a YAML safe loader. A missing file, parse error, duplicate
+    key, alias/anchor, or bundle value other than this bundle stops at POLICY LOAD GATE with the failing
+    path; never fall back to deleted Markdown or memory.
+  - Load additional files only when a loaded rule names them.
+  - A policy whose scope.platforms excludes this bundle is absent here (see not_applicable).
+  - Before applying any loaded file, verify it against the run policy snapshot per integrity (orchestrated
+    runs); a mismatch stops at POLICY INTEGRITY GATE.
+  precedence:
+  - rule resolution entries (a recorded conflict or planned-change decision attached to a rule supersedes
+    the legacy wording of that rule)
+  - rule fields (including amendments)
+  - policy resolutions
+  - policy defaults/exceptions
+  - 'source_nuance text (verbatim baseline excerpt with declared substitutions): binding only where it
+    adds detail that the rule fields do not contradict; file names it mentions resolve through reference_map;
+    version literals and stale paths are replaced by the declared substitutions'
+  - nonnormative Markdown examples/templates
+integrity:
+  purpose: 'The manifest digest alone cannot detect edits to other policy files during a run. Run identity
+    is therefore the full policy set: an immutable bundle revision plus a per-file SHA-256 for every file
+    in `files` and this manifest.'
+  hashing:
+    tool: A runtime hashing command over exact file bytes, for example `sha256sum <file>`, `shasum -a
+      256 <file>`, or PowerShell `Get-FileHash -Algorithm SHA256 <file>`. Record the command used.
+    honesty: A model never estimates, recalls, or invents a hash. If no hashing tool is available, stop
+      at POLICY INTEGRITY GATE before dispatch (no unverified continuation).
+  policy_snapshot:
+    computed_by: host at launch (load set host.launch), after root discovery and before bootstrap; passed
+      in the bootstrap packet (BOOT-PKT-001.R13). The host writes no run outputs.
+    written_by: controller, once before the first dispatch, after re-hashing every listed file and confirming
+      the host values
+    file: <run-output>/.dev-dude-policy-snapshot.yaml
+    contents:
+    - schema_version 1.0
+    - bundle copilot
+    - policy_root (absolute)
+    - 'bundle_revision: metadata.yaml root.version, crews.agents.version, crews.skills.version, and the
+      install marker commit SHA from <root>/.dev-dude-install.json when present (else unknown)'
+    - 'files: every path in `files` plus policies/manifest.yaml, each with sha256:<hex>'
+    - hashing command used
+    digest: sha256 of the snapshot file bytes = Policy snapshot digest in run state, envelopes, handoffs
+      and the model profile snapshot
+  verification:
+  - 'Controller entry and every resume (re-entry, recovery, gate relay): re-hash every file listed in
+    the snapshot plus any file now present in `files`; any added, removed or changed file, or a snapshot
+    digest that differs from run state, blocks at POLICY INTEGRITY GATE with the changed paths. No dispatch
+    and no rebuild of the snapshot from current files.'
+  - 'Stage and specialist load: re-hash every file of the load set being loaded and compare with the snapshot
+    entries before applying it; mismatch returns blocked (POLICY INTEGRITY GATE).'
+  - Root validation of every handoff (VAL-PASS-001.R06) compares policy_context with run state, including
+    the policy snapshot digest.
+  - The model profile snapshot records the policy snapshot digest it was validated under (models.yaml
+    pinning); a difference blocks at MODEL PIN GATE.
+  migration: An installed-bundle change during a run (for example a completed `update`) is never adopted
+    silently and is not equivalent to tampering. Continuing under the new policy set requires verified
+    quiescence of every invocation, an explicit quoted user decision, a new policy snapshot, model launch
+    revalidation and re-pin (models.yaml pinning.repin), and a run-state amendment recording old and new
+    digests. A missing or altered snapshot file is never migrated; it stays blocked.
+  standalone: A standalone specialist (no envelope) has no run snapshot; it verifies only root discovery
+    and the manifest, and creates no workflow state.
+  limits: 'Instruction-driven: hashes detect changes only when the loader runs the hashing tool. scripts/policy_audit.py
+    checks repository consistency, not runtime behaviour.'
+files:
+  policies/metadata.yaml:
+    policies:
+    - META-ROOT-001
+    - META-ROOT-002
+    - META-CREW-001
+    - META-CREW-002
+    - META-SKL-001
+    - FSK-META-001
+    - AGT-ORC-META-001
+    - AGT-AR-META-001
+    - AGT-UX-META-001
+    - AGT-CFA-META-001
+    - AGT-TRI-META-001
+    - AGT-FI-META-001
+    - AGT-TI-META-001
+    - AGT-FV-META-001
+    - AGT-ID-META-001
+  policies/bootstrap.yaml:
+    policies:
+    - META-ROOT-003
+    - BOOT-CAP-001
+    - BOOT-DUP-001
+    - BOOT-PKT-001
+    - BOOT-RELAY-001
+  policies/commands.yaml:
+    policies:
+    - CMD-ROUTE-001
+    - CMD-USAGE-001
+    - CMD-INPUT-001
+  policies/update.yaml:
+    policies:
+    - UPD-CHECK-001
+    - UPD-CMD-001
+  policies/install.yaml:
+    policies:
+    - INST-LOCK-001
+    - INST-AGT-001
+    - INST-SKL-001
+  policies/platform.yaml:
+    policies:
+    - INST-RT-001
+  policies/runtime-context.yaml:
+    policies:
+    - CTX-IDX-001
+    - CTX-RES-001
+  policies/orchestration.yaml:
+    policies:
+    - ORCH-ENTRY-001
+    - ORCH-STATE-001
+    - DISP-TABLE-001
+    - DISP-STEP-001
+    - INV-GLOBAL-001
+    - OUT-STABLE-001
+    - FSK-CONTRACT-001
+  policies/watchdog.yaml:
+    policies:
+    - DISP-WD-001
+    - WD-MODE-001
+    - WD-JOURNAL-001
+    - WD-DEADLINE-001
+    - WD-RETRY-001
+    - FSK-MON-001
+  policies/state.yaml:
+    policies:
+    - STATE-ROLE-001
+    - STATE-LOC-001
+    - STATE-SCHEMA-001
+    - STATE-CKPT-001
+    - STATE-RECON-001
+  policies/handoff.yaml:
+    policies:
+    - ENV-001
+    - HOC-SCHEMA-001
+    - HOC-SEM-001
+  policies/stage-workflow.yaml:
+    policies:
+    - STG-FW-001
+    - STG-DECL-001
+    - STG-LIFE-001
+    - STG-STORE-001
+    - STG-FAIL-001
+  policies/validation-rules.yaml:
+    policies:
+    - VAL-PASS-001
+    - VAL-OUT-001
+    - VAL-ADV-001
+  policies/trusted-sources.yaml:
+    policies:
+    - TSP-SCOPE-001
+    - TSP-INV-001
+    - TSP-LIST-001
+    - TSP-ADV-001
+  policies/output-templates.yaml:
+    policies:
+    - TPL-INTRO-001
+    - TPL-ARCH-001
+    - TPL-DEEP-001
+    - TPL-VER-001
+    - TPL-RES-001
+    - TPL-DES-001
+    - TPL-INT-001
+  skills/dev-dude-architecture/references/workflow.yaml:
+    policies:
+    - ARCH-PRE-001
+    - ARCH-P0-001
+    - ARCH-BASE-001
+    - ARCH-P1-001
+    - ARCH-P2-001
+    - ARCH-GATE-001
+    - ARCH-P3-001
+    - ARCH-P4-001
+    - ARCH-P5-001
+    - ARCH-ADD-001
+    - ARCH-DELTA-001
+    - ARCH-DELTA-002
+    - ARCH-EXIT-001
+  skills/dev-dude-feature-design/references/workflow.yaml:
+    policies:
+    - FDES-ENTRY-001
+    - FDES-INV-001
+    - FDES-RES-001
+    - FDES-OPT-001
+    - FDES-CRIT-001
+    - FDES-GATE-001
+  skills/dev-dude-feature-implementation/references/workflow.yaml:
+    policies:
+    - FIMP-ENTRY-001
+    - FIMP-CLAR-001
+    - FIMP-PLAN-001
+    - FIMP-IMPL-001
+    - FIMP-TEST-001
+    - FIMP-EXIT-001
+  skills/dev-dude-validation/references/workflow.yaml:
+    policies:
+    - FVAL-PRE-001
+    - FVAL-DOC-001
+    - FVAL-FEAT-001
+    - FVAL-GATE-001
+    - FVAL-LOOP-001
+    - FVAL-DOCFIX-001
+  policies/agents/dev-dude-orchestrator.yaml:
+    policies:
+    - AGT-ORC-001
+    - AGT-ORC-002
+    - AGT-ORC-003
+  policies/agents/architecture-reviewer.yaml:
+    policies:
+    - AGT-AR-001
+  policies/agents/ux-design-reviewer.yaml:
+    policies:
+    - AGT-UX-001
+  policies/agents/code-flow-analyzer.yaml:
+    policies:
+    - AGT-CFA-001
+    - AGT-CFA-002
+    - AGT-CFA-003
+  policies/agents/technical-resource-investigator.yaml:
+    policies:
+    - AGT-TRI-001
+    - AGT-TRI-002
+    - AGT-TRI-003
+  policies/agents/feature-implementer.yaml:
+    policies:
+    - AGT-FI-001
+    - AGT-FI-002
+    - AGT-FI-003
+  policies/agents/test-implementer.yaml:
+    policies:
+    - AGT-TI-001
+    - AGT-TI-002
+    - AGT-TI-003
+    - AGT-TI-004
+  policies/agents/feature-validator.yaml:
+    policies:
+    - AGT-FV-001
+    - AGT-FV-002
+  policies/agents/investigation-documenter.yaml:
+    policies:
+    - AGT-ID-001
+    - AGT-ID-002
+    - AGT-ID-003
+    - AGT-ID-MERMAID-001
+    - AGT-ID-004
+  policies/models.yaml:
+    policies: []
+load_sets:
+  host.models:
+    description: Host-only offline `models` commands.
+    files:
+    - policies/metadata.yaml
+    - policies/commands.yaml
+    - policies/models.yaml
+    - policies/platform.yaml
+  host.update:
+    description: Host-only `update` command.
+    files:
+    - policies/metadata.yaml
+    - policies/commands.yaml
+    - policies/update.yaml
+    - policies/install.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+  host.launch:
+    description: 'Host launch: update check, crew install, runtime/context setup, model resolution and
+      launch validation, controller bootstrap and relay.'
+    files:
+    - policies/metadata.yaml
+    - policies/commands.yaml
+    - policies/update.yaml
+    - policies/install.yaml
+    - policies/platform.yaml
+    - policies/runtime-context.yaml
+    - policies/models.yaml
+    - policies/bootstrap.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/agents/dev-dude-orchestrator.yaml
+    - policies/trusted-sources.yaml
+  controller:
+    description: Dedicated dev-dude-orchestrator controller (entry_role orchestrator).
+    files:
+    - policies/metadata.yaml
+    - policies/commands.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/bootstrap.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/stage-workflow.yaml
+    - policies/handoff.yaml
+    - policies/validation-rules.yaml
+    - policies/trusted-sources.yaml
+    - policies/output-templates.yaml
+    - policies/runtime-context.yaml
+    - policies/agents/dev-dude-orchestrator.yaml
+    - skills/dev-dude-architecture/references/workflow.yaml
+    - skills/dev-dude-feature-design/references/workflow.yaml
+    - skills/dev-dude-feature-implementation/references/workflow.yaml
+    - skills/dev-dude-validation/references/workflow.yaml
+  stage.dev-dude-architecture:
+    description: Functional stage dev-dude-architecture (requires a root-validated handoff carrying policy_context).
+    files:
+    - skills/dev-dude-architecture/references/workflow.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/stage-workflow.yaml
+    - policies/handoff.yaml
+    - policies/validation-rules.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+    - skills/dev-dude-validation/references/workflow.yaml
+    - policies/runtime-context.yaml
+  stage.dev-dude-feature-design:
+    description: Functional stage dev-dude-feature-design (requires a root-validated handoff carrying
+      policy_context).
+    files:
+    - skills/dev-dude-feature-design/references/workflow.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/stage-workflow.yaml
+    - policies/handoff.yaml
+    - policies/validation-rules.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+    - policies/trusted-sources.yaml
+    - skills/dev-dude-architecture/references/workflow.yaml
+  stage.dev-dude-feature-implementation:
+    description: Functional stage dev-dude-feature-implementation (requires a root-validated handoff carrying
+      policy_context).
+    files:
+    - skills/dev-dude-feature-implementation/references/workflow.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/stage-workflow.yaml
+    - policies/handoff.yaml
+    - policies/validation-rules.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+  stage.dev-dude-validation:
+    description: Functional stage dev-dude-validation (requires a root-validated handoff carrying policy_context).
+    files:
+    - skills/dev-dude-validation/references/workflow.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+    - policies/watchdog.yaml
+    - policies/stage-workflow.yaml
+    - policies/handoff.yaml
+    - policies/validation-rules.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+  specialist.architecture-reviewer:
+    description: Specialist agent architecture-reviewer (orchestrated or standalone).
+    files:
+    - policies/agents/architecture-reviewer.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/state.yaml
+  specialist.ux-design-reviewer:
+    description: Specialist agent ux-design-reviewer (orchestrated or standalone).
+    files:
+    - policies/agents/ux-design-reviewer.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/state.yaml
+  specialist.code-flow-analyzer:
+    description: Specialist agent code-flow-analyzer (orchestrated or standalone).
+    files:
+    - policies/agents/code-flow-analyzer.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+    - skills/dev-dude-validation/references/workflow.yaml
+    - policies/state.yaml
+  specialist.technical-resource-investigator:
+    description: Specialist agent technical-resource-investigator (orchestrated or standalone).
+    files:
+    - policies/agents/technical-resource-investigator.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/trusted-sources.yaml
+    - policies/output-templates.yaml
+    - skills/dev-dude-feature-design/references/workflow.yaml
+    - policies/state.yaml
+  specialist.investigation-documenter:
+    description: Specialist agent investigation-documenter (orchestrated or standalone).
+    files:
+    - policies/agents/investigation-documenter.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/output-templates.yaml
+    - skills/dev-dude-validation/references/workflow.yaml
+    - policies/orchestration.yaml
+    - policies/state.yaml
+  specialist.feature-implementer:
+    description: Specialist agent feature-implementer (orchestrated or standalone).
+    files:
+    - policies/agents/feature-implementer.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/state.yaml
+  specialist.test-implementer:
+    description: Specialist agent test-implementer (orchestrated or standalone).
+    files:
+    - policies/agents/test-implementer.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - policies/state.yaml
+  specialist.feature-validator:
+    description: Specialist agent feature-validator (orchestrated or standalone).
+    files:
+    - policies/agents/feature-validator.yaml
+    - policies/handoff.yaml
+    - policies/watchdog.yaml
+    - policies/platform.yaml
+    - policies/models.yaml
+    - skills/dev-dude-validation/references/workflow.yaml
+    - policies/state.yaml
+actor_bindings:
+  host:
+  - host.launch
+  update:
+  - host.update
+  update-check:
+  - host.launch
+  installer:
+  - host.launch
+  INST-SKL-001:
+  - host.launch
+  orchestrator:
+  - controller
+  dev-dude-orchestrator:
+  - controller
+  root:
+  - controller
+  all stages:
+  - stage.dev-dude-architecture
+  - stage.dev-dude-feature-design
+  - stage.dev-dude-feature-implementation
+  - stage.dev-dude-validation
+  stages:
+  - stage.dev-dude-architecture
+  - stage.dev-dude-feature-design
+  - stage.dev-dude-feature-implementation
+  - stage.dev-dude-validation
+  functional skills:
+  - stage.dev-dude-architecture
+  - stage.dev-dude-feature-design
+  - stage.dev-dude-feature-implementation
+  - stage.dev-dude-validation
+  agents:
+  - specialist.architecture-reviewer
+  - specialist.ux-design-reviewer
+  - specialist.code-flow-analyzer
+  - specialist.technical-resource-investigator
+  - specialist.investigation-documenter
+  - specialist.feature-implementer
+  - specialist.test-implementer
+  - specialist.feature-validator
+  dev-dude-architecture stage:
+  - stage.dev-dude-architecture
+  architecture stage:
+  - stage.dev-dude-architecture
+  dev-dude-feature-design stage:
+  - stage.dev-dude-feature-design
+  feature-design:
+  - stage.dev-dude-feature-design
+  dev-dude-feature-implementation stage:
+  - stage.dev-dude-feature-implementation
+  feature-implementation stage:
+  - stage.dev-dude-feature-implementation
+  dev-dude-validation stage:
+  - stage.dev-dude-validation
+  documenter:
+  - specialist.investigation-documenter
+  architecture-reviewer:
+  - specialist.architecture-reviewer
+  ux-design-reviewer:
+  - specialist.ux-design-reviewer
+  code-flow-analyzer:
+  - specialist.code-flow-analyzer
+  technical-resource-investigator:
+  - specialist.technical-resource-investigator
+  investigation-documenter:
+  - specialist.investigation-documenter
+  feature-implementer:
+  - specialist.feature-implementer
+  test-implementer:
+  - specialist.test-implementer
+  feature-validator:
+  - specialist.feature-validator
+unbound_actors:
+  runtime-loader: Host runtime reads frontmatter only; it never loads policy YAML.
+  user: Humans read README/argument hints; not a policy consumer.
+  TOOL-CI-001: GitHub workflow .github/workflows/bump-agent-versions.yml; reads/writes version lines with
+    regexes per metadata.yaml version_bump (trigger and write set), not load sets.
+  workflow maintainers: Maintainers edit and audit files; not a runtime consumer.
+informative_references:
+  CNF-STALE-001->FVAL-FEAT-001: Changelog of relabelled rules; names the rule that was relabelled, not
+    a dependency.
+  CNF-STALE-001->AGT-TRI-META-001: Changelog of relabelled rules; names the rule that was relabelled,
+    not a dependency.
+  CNF-DRIFT-003->AGT-AR-001: Notes the dispatched reviewer behaviour; the reviewer loads its own role
+    file (specialist.architecture-reviewer).
+  CNF-CONC-002->ARCH-P3-001: Concurrency cap applies only to architecture verification batches, which
+    load the architecture workflow.
+  CNF-ASK-004->OUT-STABLE-001: Orchestrated agents receive the concrete storage paths in the envelope
+    Expected output; standalone agents ask. The agent never resolves OUT-STABLE-001 itself.
+  AGT-ID-002->ARCH-P2-001: Provenance of the write-permission exception; the envelope write permission
+    is the operative evidence.
+  CNF-STALE-001->UPD-CMD-001: Changelog of relabelled rules; names the update staging rule that was amended,
+    not a dependency.
+policy_index:
+  META-ROOT-001: policies/metadata.yaml
+  META-ROOT-002: policies/metadata.yaml
+  META-CREW-001: policies/metadata.yaml
+  META-CREW-002: policies/metadata.yaml
+  META-SKL-001: policies/metadata.yaml
+  FSK-META-001: policies/metadata.yaml
+  AGT-ORC-META-001: policies/metadata.yaml
+  AGT-AR-META-001: policies/metadata.yaml
+  AGT-UX-META-001: policies/metadata.yaml
+  AGT-CFA-META-001: policies/metadata.yaml
+  AGT-TRI-META-001: policies/metadata.yaml
+  AGT-FI-META-001: policies/metadata.yaml
+  AGT-TI-META-001: policies/metadata.yaml
+  AGT-FV-META-001: policies/metadata.yaml
+  AGT-ID-META-001: policies/metadata.yaml
+  META-ROOT-003: policies/bootstrap.yaml
+  BOOT-CAP-001: policies/bootstrap.yaml
+  BOOT-DUP-001: policies/bootstrap.yaml
+  BOOT-PKT-001: policies/bootstrap.yaml
+  BOOT-RELAY-001: policies/bootstrap.yaml
+  CMD-ROUTE-001: policies/commands.yaml
+  CMD-USAGE-001: policies/commands.yaml
+  CMD-INPUT-001: policies/commands.yaml
+  UPD-CHECK-001: policies/update.yaml
+  UPD-CMD-001: policies/update.yaml
+  INST-LOCK-001: policies/install.yaml
+  INST-AGT-001: policies/install.yaml
+  INST-SKL-001: policies/install.yaml
+  INST-RT-001: policies/platform.yaml
+  CTX-IDX-001: policies/runtime-context.yaml
+  CTX-RES-001: policies/runtime-context.yaml
+  ORCH-ENTRY-001: policies/orchestration.yaml
+  ORCH-STATE-001: policies/orchestration.yaml
+  DISP-TABLE-001: policies/orchestration.yaml
+  DISP-STEP-001: policies/orchestration.yaml
+  INV-GLOBAL-001: policies/orchestration.yaml
+  OUT-STABLE-001: policies/orchestration.yaml
+  FSK-CONTRACT-001: policies/orchestration.yaml
+  DISP-WD-001: policies/watchdog.yaml
+  WD-MODE-001: policies/watchdog.yaml
+  WD-JOURNAL-001: policies/watchdog.yaml
+  WD-DEADLINE-001: policies/watchdog.yaml
+  WD-RETRY-001: policies/watchdog.yaml
+  FSK-MON-001: policies/watchdog.yaml
+  STATE-ROLE-001: policies/state.yaml
+  STATE-LOC-001: policies/state.yaml
+  STATE-SCHEMA-001: policies/state.yaml
+  STATE-CKPT-001: policies/state.yaml
+  STATE-RECON-001: policies/state.yaml
+  ENV-001: policies/handoff.yaml
+  HOC-SCHEMA-001: policies/handoff.yaml
+  HOC-SEM-001: policies/handoff.yaml
+  STG-FW-001: policies/stage-workflow.yaml
+  STG-DECL-001: policies/stage-workflow.yaml
+  STG-LIFE-001: policies/stage-workflow.yaml
+  STG-STORE-001: policies/stage-workflow.yaml
+  STG-FAIL-001: policies/stage-workflow.yaml
+  VAL-PASS-001: policies/validation-rules.yaml
+  VAL-OUT-001: policies/validation-rules.yaml
+  VAL-ADV-001: policies/validation-rules.yaml
+  TSP-SCOPE-001: policies/trusted-sources.yaml
+  TSP-INV-001: policies/trusted-sources.yaml
+  TSP-LIST-001: policies/trusted-sources.yaml
+  TSP-ADV-001: policies/trusted-sources.yaml
+  TPL-INTRO-001: policies/output-templates.yaml
+  TPL-ARCH-001: policies/output-templates.yaml
+  TPL-DEEP-001: policies/output-templates.yaml
+  TPL-VER-001: policies/output-templates.yaml
+  TPL-RES-001: policies/output-templates.yaml
+  TPL-DES-001: policies/output-templates.yaml
+  TPL-INT-001: policies/output-templates.yaml
+  ARCH-PRE-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P0-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-BASE-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P1-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P2-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-GATE-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P3-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P4-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-P5-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-ADD-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-DELTA-001: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-DELTA-002: skills/dev-dude-architecture/references/workflow.yaml
+  ARCH-EXIT-001: skills/dev-dude-architecture/references/workflow.yaml
+  FDES-ENTRY-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FDES-INV-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FDES-RES-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FDES-OPT-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FDES-CRIT-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FDES-GATE-001: skills/dev-dude-feature-design/references/workflow.yaml
+  FIMP-ENTRY-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FIMP-CLAR-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FIMP-PLAN-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FIMP-IMPL-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FIMP-TEST-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FIMP-EXIT-001: skills/dev-dude-feature-implementation/references/workflow.yaml
+  FVAL-PRE-001: skills/dev-dude-validation/references/workflow.yaml
+  FVAL-DOC-001: skills/dev-dude-validation/references/workflow.yaml
+  FVAL-FEAT-001: skills/dev-dude-validation/references/workflow.yaml
+  FVAL-GATE-001: skills/dev-dude-validation/references/workflow.yaml
+  FVAL-LOOP-001: skills/dev-dude-validation/references/workflow.yaml
+  FVAL-DOCFIX-001: skills/dev-dude-validation/references/workflow.yaml
+  AGT-ORC-001: policies/agents/dev-dude-orchestrator.yaml
+  AGT-ORC-002: policies/agents/dev-dude-orchestrator.yaml
+  AGT-ORC-003: policies/agents/dev-dude-orchestrator.yaml
+  AGT-AR-001: policies/agents/architecture-reviewer.yaml
+  AGT-UX-001: policies/agents/ux-design-reviewer.yaml
+  AGT-CFA-001: policies/agents/code-flow-analyzer.yaml
+  AGT-CFA-002: policies/agents/code-flow-analyzer.yaml
+  AGT-CFA-003: policies/agents/code-flow-analyzer.yaml
+  AGT-TRI-001: policies/agents/technical-resource-investigator.yaml
+  AGT-TRI-002: policies/agents/technical-resource-investigator.yaml
+  AGT-TRI-003: policies/agents/technical-resource-investigator.yaml
+  AGT-FI-001: policies/agents/feature-implementer.yaml
+  AGT-FI-002: policies/agents/feature-implementer.yaml
+  AGT-FI-003: policies/agents/feature-implementer.yaml
+  AGT-TI-001: policies/agents/test-implementer.yaml
+  AGT-TI-002: policies/agents/test-implementer.yaml
+  AGT-TI-003: policies/agents/test-implementer.yaml
+  AGT-TI-004: policies/agents/test-implementer.yaml
+  AGT-FV-001: policies/agents/feature-validator.yaml
+  AGT-FV-002: policies/agents/feature-validator.yaml
+  AGT-ID-001: policies/agents/investigation-documenter.yaml
+  AGT-ID-002: policies/agents/investigation-documenter.yaml
+  AGT-ID-003: policies/agents/investigation-documenter.yaml
+  AGT-ID-MERMAID-001: policies/agents/investigation-documenter.yaml
+  AGT-ID-004: policies/agents/investigation-documenter.yaml
+not_applicable:
+  ARCH-TEAM-001: scope.platforms excludes copilot
+reference_map:
+  orchestration-state.md: policies/state.yaml + policies/watchdog.yaml
+  stage-workflow.md: policies/stage-workflow.yaml
+  handoff-contract-schema.md: policies/handoff.yaml
+  validation-rules.md: policies/validation-rules.yaml
+  trusted-source-policy.md: policies/trusted-sources.yaml
+  argument-parsing.md: policies/commands.yaml
+source_nuance_substitutions:
+- pattern: \[(?:references/)?(orchestration-state|stage-workflow|handoff-contract-schema|validation-rules|trusted-source-policy|argument-parsing)\.md\]\([^)]*\)
+  replacement: REFMAP
+- pattern: DudeWriteMyFeature Phase 1
+  replacement: DudeWriteMyFeature feature-design Step 2 (Resource Investigation)
+- pattern: must skip it and start at section 2;
+  replacement: must skip the host steps and start at the controller load set;
+- pattern: Sections 2–6 are executed only by the dedicated controller\.
+  replacement: Controller steps (manifest load set `controller`) are executed only by the dedicated controller.
+- pattern: completion gate for Phase 2 of `DudeWriteMyFeature`
+  replacement: completion gate for the feature-implementation stage of `DudeWriteMyFeature`
+- pattern: whether Phase 2 follows Phase 1 or
+  replacement: whether feature implementation follows feature design or
+- pattern: current Phase 2 state
+  replacement: current feature-implementation state
+- pattern: Phase 2 exits only on
+  replacement: The feature implementation/validation loop exits only on
+- pattern: to Phase 2 feature implementation verification
+  replacement: to feature implementation verification
+- pattern: '(?m)^version: \d+\.\d+\.\d+$'
+  replacement: 'version: <current value: installed frontmatter, see policies/metadata.yaml crews>'
+- pattern: 'Bundled agent crew version: `[^`]+`'
+  replacement: 'Bundled agent crew version: `<policies/metadata.yaml crews.agents.version>`'
+- pattern: 'Bundled skill crew version: `[^`]+`'
+  replacement: 'Bundled skill crew version: `<policies/metadata.yaml crews.skills.version>`'
+- pattern: \[references/workflow\.md\]\(references/workflow\.md\)
+  replacement: '`references/workflow.yaml` (manifest load set `stage.<skill>`)'
+- pattern: absolute shared-policy paths under this root's `references/`;
+  replacement: the absolute `policies/manifest.yaml` locator and digest plus host-computed policy snapshot
+    values (manifest.yaml integrity);
+- pattern: and its installed frontmatter model\nalias,
+  replacement: 'and the controller model ID
+
+    from the resolved model profile (bundled-default: installed frontmatter `model` alias),'
+- pattern: 'Invoke Task with `subagent_type: dev-dude-orchestrator`,'
+  replacement: 'Invoke Task with `subagent_type: dev-dude-orchestrator` and the controller model ID from
+    the resolved model profile,'
+- pattern: this skill and its references supply workflow\nauthority
+  replacement: 'the YAML policies indexed by `policies/manifest.yaml` supply workflow
+
+    authority'
+- pattern: '## 1\. Host Bootstrap — Prepare the Runtime\n\nThis section is host-only\.'
+  replacement: '## Host Bootstrap — Prepare the Runtime
+
+
+    The host steps (manifest load set `host.launch`) are host-only.'
+- pattern: must pass the selected agent's reasoning-agnostic frontmatter `model` alias\.
+  replacement: 'must pass the role model ID from the pinned model profile snapshot (bundled-default: the
+    agent''s reasoning-agnostic frontmatter `model` alias).'
+retained_prose:
+  SKILL.md: Frontmatter (host-required, derived from metadata.yaml) + loader and step index; nonnormative.
+  agents/*.md: Frontmatter (derived) + policy loader stub + nonnormative examples.
+  skills/*/SKILL.md: Frontmatter (derived) + stage loader stub.
+  skills/*/references/workflow.md: Nonnormative task-call examples and report skeletons.
+  references/doc-format-templates.md: Nonnormative template bodies for TPL-* policies.

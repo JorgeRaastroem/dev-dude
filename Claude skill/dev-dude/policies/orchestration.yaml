@@ -1,0 +1,504 @@
+schema_version: '1.0'
+bundle: claude
+domain: orchestration
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  ORCH-ENTRY-001:
+    title: Controller entry verification
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      ORCH-ENTRY-001.R01:
+        statement: Controller steps (manifest load set `controller`) run only in the dedicated controller.
+        amendment:
+          by: CNF-STALE-001
+          reason: Section numbers replaced by load sets.
+      ORCH-ENTRY-001.R02:
+        statement: Verify bootstrap entry role, identity, required child capabilities before starting.
+      ORCH-ENTRY-001.R03:
+        statement: After locating/reconciling run state record controller invocation identity and verified
+          capabilities.
+      ORCH-ENTRY-001.R04:
+        statement: Invalid packet -> return blocked with remediation; never execute host bootstrap or
+          specialist work.
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+    source_nuance:
+    - path: SKILL.md
+      lines: 208-214
+      text: '## 2. Orchestrator Entry — Route the Command
+
+
+        Controller steps (manifest load set `controller`) are executed only by the dedicated controller.
+        Verify the bootstrap entry role,
+
+        identity, and required child capabilities before starting. After locating and reconciling run
+        state,
+
+        record the controller invocation identity and verified execution capabilities under
+
+        `policies/state.yaml + policies/watchdog.yaml`. If the bootstrap packet is invalid,
+
+        return `blocked` with remediation; do not execute host bootstrap or specialist work.
+
+        '
+  ORCH-STATE-001:
+    title: State load points and state file locations (root)
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      ORCH-STATE-001.R01:
+        statement: Load policies/state.yaml, policies/watchdog.yaml and policies/stage-workflow.yaml on
+          every command entry, stage entry, direct resume, suspected compaction.
+        amendment:
+          by: CNF-STALE-001
+          reason: Reference Markdown replaced by YAML domain files.
+      ORCH-STATE-001.R02:
+        statement: Load policies/handoff.yaml and policies/validation-rules.yaml whenever creating/validating
+          a transition.
+        amendment:
+          by: CNF-STALE-001
+          reason: Reference Markdown replaced by YAML domain files.
+      ORCH-STATE-001.R03:
+        statement: Architecture state ./docs/ArchOverview/.dev-dude-run-state.md; feature state ./docs/<feature-slug>/.dev-dude-run-state.md.
+      ORCH-STATE-001.R04:
+        statement: Create state before first delegated task; reconcile existing state with outputs, task
+          results, repo changes, gate evidence before choosing a transition.
+      ORCH-STATE-001.R05:
+        statement: Update before and after every task, gate, workflow-block transition, validation attempt.
+    resolutions:
+      CNF-STALE-001: 'Stale labels replaced: TRI description and AGT-TRI-META-001.R02 cite feature-design
+        Step 2; FVAL-FEAT-001.R01 cites the feature stages; templates no longer cite Step 1.5/1.6 or Phase
+        2; statements citing root "sections" or deleted reference files now cite manifest load sets and
+        YAML files. Update staging (UPD-CMD-001.R05) validates the complete staged policy root (manifest
+        index, every indexed policy file, skill workflow.yaml files) instead of the deleted references/
+        files.'
+    source_nuance:
+    - path: SKILL.md
+      lines: 230-242
+      text: '## 3. Recover or Initialize State
+
+
+        Read `policies/state.yaml + policies/watchdog.yaml` and
+
+        `policies/stage-workflow.yaml` on every command entry, stage entry, direct resume,
+
+        or suspected compaction. Load `policies/handoff.yaml` and
+
+        `policies/validation-rules.yaml` whenever creating or validating a transition.
+
+
+        - Architecture state: `./docs/ArchOverview/.dev-dude-run-state.md`
+
+        - Feature state: `./docs/<feature-slug>/.dev-dude-run-state.md`
+
+
+        Create state before the first delegated task. If state exists, reconcile it with actual outputs,
+
+        task results, repository changes, and gate evidence before choosing a transition. Update it before
+
+        and after every task, gate, workflow-block transition, and validation attempt.
+
+        '
+  DISP-TABLE-001:
+    title: Functional workflow dispatch table
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      DISP-TABLE-001.R01:
+        condition: architecture run incomplete
+        action: invoke dev-dude-architecture at first incomplete step
+      DISP-TABLE-001.R02:
+        condition: feature design not explicitly approved
+        action: invoke dev-dude-feature-design at first incomplete step
+      DISP-TABLE-001.R03:
+        condition: design approved, implementation/test evidence incomplete
+        action: invoke dev-dude-feature-implementation
+      DISP-TABLE-001.R04:
+        condition: implementation + paired-test evidence complete
+        action: invoke dev-dude-validation
+      DISP-TABLE-001.R05:
+        condition: validation requests production/test remediation
+        action: invoke named implementation skill, then dev-dude-validation
+      DISP-TABLE-001.R06:
+        condition: feature clarification changes design materially
+        action: supersede implementation attempt; new root-validated design input contract for dev-dude-feature-design;
+          require renewed approval
+      DISP-TABLE-001.R07:
+        condition: workflow exit contract met
+        action: record final status and report
+    source_nuance:
+    - path: SKILL.md
+      lines: 244-254
+      text: '## 4. Dispatch Functional Workflows
+
+
+        | Reconciled condition | Load and execute |
+
+        |---|---|
+
+        | Architecture run is incomplete | Invoke `dev-dude-architecture` at its first incomplete step
+        |
+
+        | Feature design is not explicitly approved | Invoke `dev-dude-feature-design` at its first incomplete
+        step |
+
+        | Feature design is approved but implementation/test evidence is incomplete | Invoke `dev-dude-feature-implementation`
+        |
+
+        | Implementation and paired-test evidence is complete | Invoke `dev-dude-validation` |
+
+        | Validation requests production/test remediation | Invoke the named implementation skill, then
+        `dev-dude-validation` |
+
+        | Feature clarification changes the design materially | Supersede the implementation attempt and
+        create a new root-validated design input contract for `dev-dude-feature-design`; require renewed
+        approval |
+
+        | Workflow exit contract is met | Record final status and report |
+
+        '
+  DISP-STEP-001:
+    title: Per-dispatch procedure
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      DISP-STEP-001.R01:
+        statement: Each dispatch is a fresh bounded stage; declare objective, inputs, outputs, completion
+          criteria, one permitted transition.
+      DISP-STEP-001.R02:
+        statement: Create/select YAML input contract and run validation gate; no dispatch on failure;
+          return structured remediation.
+      DISP-STEP-001.R03:
+        statement: Invoke installed functional skill by name via Skill without prior-stage history; controlled
+          mode only with verified background polls + callable cancellation or enforced timeout; else cooperative
+          and record limitations before dispatch; missing cancellation is not a prerequisite failure/approval
+          gate; do not assume a background wrapper can cancel Skill or descendants.
+      DISP-STEP-001.R04:
+        statement: Pass only workflow definition, validated contract, authorized artifacts/tools, state
+          + stage-journal paths, shared-policy paths, schema/validation-rule paths, orchestration envelope.
+      DISP-STEP-001.R05:
+        statement: Pass $RESOURCE_RESEARCH_CONTEXT only when authorized for dev-dude-feature-design.
+      DISP-STEP-001.R06:
+        statement: Require typed output contract with completion evidence returning control to root.
+        platform: claude
+      DISP-STEP-001.R07:
+        statement: Validate, reconcile, checkpoint the contract before next dispatch; partial/blocked/failed
+          cannot advance to a different stage.
+    source_nuance:
+    - path: SKILL.md
+      lines: 256-274
+      text: "Treat each functional-skill dispatch as a fresh, bounded stage. At each dispatch:\n\n1. Declare\
+        \ the stage objective, inputs, outputs, completion criteria, and one permitted transition.\n2.\
+        \ Create or select its YAML input contract and run the contract validation gate. Do not dispatch\
+        \ on\n   failure; return structured remediation.\n3. Invoke the installed functional skill by\
+        \ name through the Skill capability with no prior-stage\n   conversation history using the runtime's\
+        \ supported invocation mechanism. Select controlled mode\n   only when this invocation supports\
+        \ background execution with bounded status polls and callable\n   cancellation, or an enforced\
+        \ timeout returning control within the check interval; otherwise\n   select cooperative mode and\n\
+        \   record its limitations before dispatch. Missing cancellation alone is not a prerequisite failure\n\
+        \   or approval gate. Do not assume a background Task wrapper can cancel Skill or its descendants.\n\
+        4. Pass only its workflow definition, validated contract, explicitly authorized artifacts and\
+        \ tools,\n   state and stage-journal paths, shared-policy paths, handoff schema and validation-rule\
+        \ paths,\n   and the orchestration envelope.\n5. Pass `$RESOURCE_RESEARCH_CONTEXT` only when authorized\
+        \ for `dev-dude-feature-design`.\n6. Require a typed output contract containing completion evidence\
+        \ and returning control to root.\n7. Validate, reconcile, and checkpoint that contract before\
+        \ any next dispatch. `partial`, `blocked`,\n   or `failed` work cannot advance to a different\
+        \ stage.\n"
+  INV-GLOBAL-001:
+    title: Global invariants
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - all stages
+    defaults:
+      concurrency:
+        code_flow_analyzer: 6
+        feature_implementer: 3
+    exceptions: []
+    rules:
+      INV-GLOBAL-001.R01:
+        statement: Root owns all phase transitions and gate status.
+      INV-GLOBAL-001.R02:
+        statement: A stage relies only on its workflow, validated handoff, authorized artifacts/tools,
+          independently retrieved evidence; missing info is unknown/blocking, never recovered from chat.
+      INV-GLOBAL-001.R03:
+        statement: Facts, assumptions, constraints, decisions, rejected approaches, open questions, blockers,
+          failures, artifacts stay distinct; never silently promote an assumption.
+      INV-GLOBAL-001.R04:
+        statement: No transition until contract passes structural, evidence, epistemic, workflow validation;
+          amendments explicit and versioned.
+      INV-GLOBAL-001.R05:
+        statement: Contracts carry evidence-backed outcomes; no chain-of-thought, scratchpads, tool chatter,
+          raw exploration, irrelevant history.
+      INV-GLOBAL-001.R06:
+        statement: Never infer user approval; pause at every gate until explicit decision recorded.
+      INV-GLOBAL-001.R07:
+        statement: 'Max concurrent Code-Flow-Analyzers: 6.'
+        key: concurrency.code_flow_analyzer
+        value: 6
+      INV-GLOBAL-001.R08:
+        statement: 'Max concurrent Feature-Implementers: 3.'
+        key: concurrency.feature_implementer
+        value: 3
+      INV-GLOBAL-001.R09:
+        statement: Every investigation-documenter task that changes files has explicit write permission.
+      INV-GLOBAL-001.R10:
+        statement: Every Feature-Implementer result has a corresponding Test-Implementer result before
+          validation.
+      INV-GLOBAL-001.R11:
+        statement: Root owns bounded validation attempt counter and all remediation re-dispatch.
+      INV-GLOBAL-001.R12:
+        statement: Feature work finishes only on validator SATISFIED or recorded bounded-unresolved state.
+      INV-GLOBAL-001.R13:
+        statement: Discover and run available build, test, lint, type-check commands before feature completion.
+      INV-GLOBAL-001.R14:
+        statement: Remove .tmp/ artifacts after consuming block finishes; preserve normal outputs and
+          .dev-dude-run-state.md.
+      INV-GLOBAL-001.R15:
+        platform: claude
+        statement: Shut down all team agents and delete the team after final state is recorded.
+    resolutions:
+      CNF-CONC-001: 'Root authority wins: at most 6 concurrent Phase 1 agents on both platforms; remaining
+        areas are batched. The baseline 4-6 lower bound was guidance, not a minimum.'
+      CNF-CONC-002: Phase 3 and additive/delta verification batch Code-Flow-Analyzer tasks to at most
+        6 concurrent (added rule ARCH-P3-001.R05).
+    source_nuance:
+    - path: SKILL.md
+      lines: 291-313
+      text: "## 5. Global Invariants\n\n- Root orchestration owns all phase transitions and gate status.\n\
+        - A stage may rely only on its workflow, validated handoff, authorized artifacts/tools, and evidence\n\
+        \  it independently retrieves. Missing information is unknown or blocking, never recovered from\
+        \ chat.\n- Preserve facts, assumptions, constraints, decisions, rejected approaches, open questions,\
+        \ blockers,\n  failures, and artifacts as distinct contract types; never silently promote an assumption.\n\
+        - No transition occurs until its contract passes structural, evidence, epistemic, and workflow\n\
+        \  validation. Workflow amendments are explicit and versioned.\n- Contracts contain evidence-backed\
+        \ outcomes, not chain-of-thought, scratchpads, tool chatter, raw\n  exploration, or irrelevant\
+        \ conversation history.\n- Never infer user approval. Pause at every gate until an explicit decision\
+        \ is recorded.\n- Maximum concurrent Code-Flow-Analyzers: 6.\n- Maximum concurrent Feature-Implementers:\
+        \ 3.\n- Every investigation-documenter task that changes files has explicit write permission.\n\
+        - Every Feature-Implementer result has a corresponding Test-Implementer result before validation.\n\
+        - Root owns the bounded validation attempt counter and all remediation re-dispatch.\n- Feature\
+        \ work finishes only on validator `SATISFIED` or a recorded bounded-unresolved state.\n- Discover\
+        \ and run available project build, test, lint, and type-check commands before feature\n  completion.\n\
+        - Remove `.tmp/` artifacts after their consuming block finishes. Preserve normal outputs and\n\
+        \  `.dev-dude-run-state.md`.\n- Shut down all team agents and delete the team after the final\
+        \ state is recorded.\n"
+  OUT-STABLE-001:
+    title: Stable output locations
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - documenter
+    defaults:
+      arch_dir: ./docs/ArchOverview/
+      feature_dir: ./docs/<feature-slug>/
+    exceptions: []
+    rules:
+      OUT-STABLE-001.R01:
+        statement: Architecture documents in ./docs/ArchOverview/.
+      OUT-STABLE-001.R02:
+        statement: Feature documents in ./docs/<feature-slug>/ following doc-format-templates.
+      OUT-STABLE-001.R03:
+        statement: Durable state is additive; does not replace investigation/design/implementation/verification
+          documents.
+    resolutions:
+      CNF-ASK-004: 'Orchestrated: the envelope Expected output and OUT-STABLE-001 locations are the storage
+        instruction; agents never ask where to store. Standalone without a location still asks.'
+    source_nuance:
+    - path: SKILL.md
+      lines: 315-320
+      text: '## 6. Stable Outputs
+
+
+        Architecture documents remain in `./docs/ArchOverview/`. Feature documents remain in
+
+        `./docs/<feature-slug>/` and follow
+
+        [doc-format-templates.md](references/doc-format-templates.md). Durable state is additive and does
+        not
+
+        replace investigation, design, implementation, or verification documents.
+
+        '
+  FSK-CONTRACT-001:
+    title: Functional skill input/output contract clauses
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - functional skills
+    defaults: {}
+    exceptions: []
+    rules:
+      FSK-CONTRACT-001.R01:
+        statement: 'All skills: accept only root-validated YAML handoff; fresh bounded stage using only
+          workflow, contract, authorized artifacts/tools, evidence retrieved now; restate objective +
+          criteria; never recover state from prior conversation or include raw reasoning; return typed
+          contract and control to root.'
+      FSK-CONTRACT-001.R02:
+        skill: dev-dude-architecture
+        required_inputs:
+        - reconciled run-state path
+        - current step
+        - orchestration envelope
+        - $INDEXER_CONTEXT
+        - command scope
+        - expected exit evidence
+        statement: Stay inside workflow; checkpoint each task and gate.
+      FSK-CONTRACT-001.R03:
+        skill: dev-dude-feature-design
+        required_inputs:
+        - reconciled state
+        - feature input and slug
+        - orchestration envelope
+        - $INDEXER_CONTEXT
+        - $RESOURCE_RESEARCH_CONTEXT
+        - trusted-source policy path
+        - expected exit evidence
+        statement: Stop after explicit design approval; no implementation clarification/planning/production
+          change/validation.
+      FSK-CONTRACT-001.R04:
+        skill: dev-dude-feature-implementation
+        required_inputs:
+        - reconciled state
+        - explicit design approval
+        - durable feature documents
+        - $INDEXER_CONTEXT
+        - orchestration envelope
+        - expected exit evidence
+        statement: Does not own final validation; return implementation + paired-test evidence for dispatch
+          to dev-dude-validation.
+      FSK-CONTRACT-001.R05:
+        skill: dev-dude-validation
+        required_inputs:
+        - reconciled state
+        - feature spec
+        - approved design
+        - implementation/test evidence
+        - changed paths
+        - orchestration envelope
+        - $INDEXER_CONTEXT
+        - current/max validation attempts
+        statement: Run completion gate; return SATISFIED, targeted remediation route, or bounded-unresolved
+          evidence; do not implement remediation.
+    source_nuance:
+    - path: skills/dev-dude-architecture/SKILL.md
+      lines: 19-24
+      text: 'Accept only a root-validated YAML handoff containing a reconciled run-state path, current
+        step,
+
+        orchestration envelope, `$INDEXER_CONTEXT`, command scope, and expected exit evidence. Treat the
+
+        invocation as a fresh, bounded stage: use only this workflow, the contract, authorized artifacts
+        and
+
+        tools, and evidence retrieved now. Restate the objective and completion criteria, stay inside
+        this
+
+        workflow, checkpoint each task and gate, then return a typed output contract and control to root.
+
+        Never recover missing state from prior conversation or include raw reasoning in the handoff.
+
+        '
+    - path: skills/dev-dude-feature-design/SKILL.md
+      lines: 19-26
+      text: 'Accept only a root-validated YAML handoff containing reconciled state, the feature input
+        and slug,
+
+        orchestration envelope, authorized `$INDEXER_CONTEXT` and `$RESOURCE_RESEARCH_CONTEXT`,
+
+        trusted-source policy path, and expected exit evidence. Treat the invocation as a fresh, bounded
+
+        stage: use only this workflow, the contract, authorized artifacts and tools, and evidence retrieved
+
+        now. Restate the objective and completion criteria. Stop after explicit design approval; do not
+
+        clarify implementation, plan work, change production code, or validate a feature. Return a typed
+
+        output contract and control to root. Never recover missing state from prior conversation or include
+
+        raw reasoning in the handoff.
+
+        '
+    - path: skills/dev-dude-feature-implementation/SKILL.md
+      lines: 19-25
+      text: 'Accept only a root-validated YAML handoff containing reconciled state, explicit design approval,
+
+        authorized durable feature documents and `$INDEXER_CONTEXT`, orchestration envelope, and expected
+
+        exit evidence. Treat the invocation as a fresh, bounded stage: use only this workflow, the contract,
+
+        authorized artifacts and tools, and evidence retrieved now. Restate the objective and completion
+
+        criteria. Do not own final validation. Return a typed contract containing implementation and
+
+        paired-test evidence to root for dispatch to `dev-dude-validation`. Never recover missing state
+        from
+
+        prior conversation or include raw reasoning in the handoff.
+
+        '
+    - path: skills/dev-dude-validation/SKILL.md
+      lines: 19-26
+      text: 'Accept only a root-validated YAML handoff containing reconciled state, authorized feature
+        spec and
+
+        approved design, implementation/test evidence, changed paths, orchestration envelope,
+
+        `$INDEXER_CONTEXT`, and current/max validation attempts. Treat the invocation as a fresh, bounded
+
+        stage: use only this workflow, the contract, authorized artifacts and tools, and evidence retrieved
+
+        now. Restate the objective and completion criteria. Run the completion gate and return a typed
+
+        contract with `SATISFIED`, a targeted remediation route, or bounded-unresolved evidence. Do not
+
+        implement remediation. Never recover missing state from prior conversation or include raw reasoning
+
+        in the handoff.
+
+        '

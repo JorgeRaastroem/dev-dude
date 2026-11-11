@@ -1,0 +1,189 @@
+schema_version: '1.0'
+bundle: copilot
+domain: models
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+roles:
+  dispatch:
+  - dev-dude-orchestrator
+  - architecture-reviewer
+  - ux-design-reviewer
+  - code-flow-analyzer
+  - technical-resource-investigator
+  - investigation-documenter
+  - feature-implementer
+  - test-implementer
+  - feature-validator
+  additional:
+  - critique
+  all_means: the nine dispatch roles; never critique
+bundled_default:
+  profile: bundled-default
+  models:
+    dev-dude-orchestrator: gpt-6.1-sol
+    architecture-reviewer: claude-opus-5
+    ux-design-reviewer: claude-opus-5
+    code-flow-analyzer: gpt-5.6-sol
+    technical-resource-investigator: gpt-5.6-luna
+    investigation-documenter: gpt-5.6-luna
+    feature-implementer: claude-opus-4.8
+    test-implementer: gpt-5.6-terra
+    feature-validator: gpt-5.6-sol
+  critique: null
+  critique_rule: 'critique null keeps the legacy rule (FDES-RES-001, AGT-TRI-002): the feature-design
+    stage must verify through the runtime a model stronger than the technical-resource-investigator model
+    before the critique pass; if it cannot, stop at MODEL CAPABILITY GATE.'
+  alias_note: Values are exactly the installed agent frontmatter `model:` values. Runtime-known aliases
+    (for example opus, haiku) are allowed only here and are passed through unchanged, never normalized.
+config:
+  files:
+    user: ~/.config/dev-dude/models.yaml
+    project: <repo>/.dev-dude/models.yaml
+  ownership: User-owned; outside every installation root; never written by update or install and never
+    included in install hashes.
+  schema:
+    type: mapping
+    required:
+    - schema_version
+    - runtimes
+    additional_keys: reject
+    properties:
+      schema_version:
+        type: string
+        const: '1.0'
+      runtimes:
+        type: mapping
+        keys:
+        - claude
+        - copilot
+        additional_keys: reject
+        values:
+          type: mapping
+          required:
+          - active_profile
+          - profiles
+          additional_keys: reject
+          properties:
+            active_profile:
+              type: string|null
+              pattern: profile_name or bundled-default
+            profiles:
+              type: mapping
+              keys: profile_name
+              values:
+                type: mapping
+                keys: roles.dispatch + critique
+                values: model_id
+                additional_keys: reject
+  limits:
+    max_bytes: 65536
+    single_document: true
+    reject:
+    - duplicate keys
+    - anchors/aliases
+    - explicit tags
+    - multiple YAML documents
+    - non-UTF-8
+    - keys matching reasoning*
+  namespaces: Each runtime edits only runtimes.<this bundle>; other runtime namespaces are preserved byte-for-byte
+    in meaning and order on write.
+syntax:
+  profile_name: ^[a-z][a-z0-9-]{0,39}$
+  reserved_profile_names:
+  - bundled-default
+  model_id: ^[A-Za-z0-9][A-Za-z0-9._:/@+-]{0,127}$
+  model_id_forbidden_substrings:
+  - ://
+  - ..
+  aliases_rejected_in_config:
+  - opus
+  - sonnet
+  - haiku
+  - inherit
+  - default
+  - fast
+  - best
+  - latest
+  matching: exact, case-sensitive; no fuzzy matching, alias expansion, or normalization
+resolution:
+  order:
+  - any config file present but invalid -> launch blocked (MODEL CONFIG GATE) naming the file and error;
+    no fallback
+  - project file runtimes.<bundle>.active_profile non-null -> that profile from the project file
+  - user file runtimes.<bundle>.active_profile non-null -> that profile from the user file
+  - bundled-default
+  rules:
+  - Profiles never merge across scopes or with bundled-default.
+  - A project namespace with active_profile null (draft profiles only) does not shadow the user selection.
+  - 'active_profile: bundled-default in a scope explicitly selects bundled-default and shadows lower scopes.'
+  - A selected custom profile must define all nine dispatch roles and critique; otherwise MODEL CONFIG
+    GATE.
+  - No config file and no namespace -> bundled-default (explicit no-config fallback).
+launch_validation:
+  when: 'host.launch, after crew install and before controller bootstrap. A resumed run never revalidates
+    or rebuilds its model selection from current config: the pinned snapshot governs, and a missing or
+    digest-mismatched snapshot blocks at MODEL PIN GATE (pinning). Launch validation runs again only inside
+    an approved re-pin (pinning.repin).'
+  method:
+  - Inspect the dispatch tool schema actually exposed in the current session (Claude Task / Copilot task)
+    and its current runtime documentation; a model is usable only if the tool exposes a per-dispatch model
+    parameter that accepts the exact ID (enumerated values or documented free-form IDs).
+  - 'Verify required capabilities for the role: Skill tool for stages, nested delegation for stages and
+    feature-implementer, write tools where the role writes.'
+  - 'Record evidence per role: tool name, parameter, accepted value source, result supported|unsupported|unknown.'
+  custom_profile: Any role unknown or unsupported -> MODEL CAPABILITY GATE before dispatch, with remediation
+    (choose an exposed ID, register it in the host, or `models use bundled-default`). No silent fallback
+    to defaults or another model.
+  bundled_default: 'Legacy path: pass the installed frontmatter model; if the runtime rejects it at dispatch,
+    stop at MODEL CAPABILITY GATE; never substitute.'
+  not_a_sandbox_enum: Support is never pinned to the model list of any particular session or sandbox;
+    each launch re-checks the current host.
+local_models:
+  statement: A local or self-hosted model is usable only when the host runtime itself has registered that
+    exact model ID and launch validation shows the dispatch tool accepts it with the required tools/delegation.
+    DevDude never hosts, proxies, downloads or configures models and does not promise local support.
+pinning:
+  snapshot_file: <run-output>/.dev-dude-model-profile.yaml
+  rules:
+  - The host passes the resolved profile in the bootstrap packet (BOOT-PKT-001.R14).
+  - The controller writes the snapshot once before the first dispatch, computes its sha256 with a runtime
+    hashing tool (manifest.yaml integrity.hashing), and records its absolute path and digest in run state
+    (STATE-SCHEMA-001.R07).
+  - Every envelope and handoff carries the snapshot locator and digest (ENV-001.R07, HOC-SCHEMA-001.R16);
+    children, including nested documenter calls, take their model from it.
+  - Resume uses the snapshot, never current config. A missing snapshot, a digest mismatch, or a snapshot
+    policy_snapshot_digest that differs from the run-state Policy snapshot digest blocks at MODEL PIN
+    GATE. The controller never revalidates, regenerates, or rebuilds a snapshot from mutable config to
+    clear this gate.
+  - Config edits never change a running run.
+  snapshot_contents:
+  - profile name, scope and source file
+  - per-role model IDs for the nine dispatch roles
+  - critique
+  - launch-validation evidence
+  - 'policy_snapshot_digest: the run policy snapshot digest (manifest.yaml integrity) the profile was
+    validated under'
+  - snapshot_version (1 for the first pin; incremented only by an approved re-pin)
+  repin:
+    meaning: 'An explicit, approved migration of a running run to a new model selection. It is not a repair
+      path: a missing, altered, or mismatched snapshot is an integrity failure that stays blocked and
+      is never treated as a re-pin request.'
+    requires:
+    - verified quiescence of the controller, every stage and every descendant invocation (WD-* evidence;
+      unknown status blocks)
+    - an explicit quoted user decision naming the new profile
+    - launch_validation of the new profile in the current session
+    - the current policy snapshot verified unchanged (manifest.yaml integrity), or an approved policy
+      migration first
+    - a new snapshot file with snapshot_version incremented; the previous snapshot is kept unchanged
+    - a run-state amendment recording old and new snapshot paths/digests and the quoted decision before
+      any further dispatch
+    otherwise: MODEL PIN GATE; no dispatch.
+reporting: Report configured (file + scope), selected profile, loaded (frontmatter) and effective (snapshot)
+  model per role separately; a mismatch needing host restart is reported, not hidden.
+reasoning_effort: Not configurable (PCH-MOD-007); keys matching reasoning* are rejected.
+planned_changes:
+  PCH-MOD-001: policies/models.yaml#bundled_default
+  PCH-MOD-003: policies/models.yaml#config
+  PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+  PCH-MOD-005: policies/models.yaml#launch_validation, policies/models.yaml#bundled_default.critique
+  PCH-MOD-007: policies/models.yaml#reasoning_effort

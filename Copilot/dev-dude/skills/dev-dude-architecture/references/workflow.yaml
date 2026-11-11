@@ -1,0 +1,640 @@
+schema_version: '1.0'
+bundle: copilot
+domain: workflow
+skill: dev-dude-architecture
+skill_version_ref: policies/metadata.yaml#crews.skills.version
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  ARCH-PRE-001:
+    title: Architecture workflow preamble (monitoring, ownership, per-task envelope)
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-PRE-001.R01:
+        statement: Detailed steps for DudeWhereIsMyArch.
+      ARCH-PRE-001.R02:
+        statement: Examples follow controlled/cooperative policy; background + bounded polls when supported
+          else record unavailable monitoring; deadlines/missing outputs do not prove stop; resume/retry
+          only after quiescence + reconciliation.
+      ARCH-PRE-001.R03:
+        statement: Root owns transitions; reconcile ./docs/ArchOverview/.dev-dude-run-state.md; load at
+          first incomplete step; return when exit contract met.
+      ARCH-PRE-001.R04:
+        statement: Before every delegated task add envelope + $INDEXER_CONTEXT; checkpoint before launch
+          and after result; .tmp/final documents are evidence, not substitutes for task result.
+      ARCH-PRE-001.R05:
+        platform: copilot
+        statement: Pass the agent's frontmatter model alias on every task call.
+        resolution:
+          PCH-MOD-004: Pass the role model ID from the pinned model profile snapshot; for bundled-default
+            it equals the installed frontmatter model, preserving baseline behavior. No fallback when
+            the runtime rejects it (MODEL CAPABILITY GATE).
+      ARCH-PRE-001.R06:
+        statement: Return control at Vertical Review Gate; root presents and re-dispatches after explicit
+          decision.
+    planned_changes:
+      PCH-MOD-004: policies/models.yaml#resolution, policies/models.yaml#pinning
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 1-20
+      text: '# Architecture Investigation Workflow
+
+
+        Detailed steps for the `DudeWhereIsMyArch` command.
+
+
+        All execution examples follow the supplied controlled/cooperative monitoring policy. Background
+
+        launches and bounded polls apply when supported; otherwise use the runtime''s supported invocation
+
+        and record unavailable live monitoring. Neither deadlines nor missing outputs prove work stopped.
+
+        Resume or retry only after prior invocations and descendants are confirmed quiescent and reconciled.
+
+
+        The root orchestrator owns transitions and checkpoints using the orchestration contract supplied
+        at
+
+        invocation. Reconcile
+
+        `./docs/ArchOverview/.dev-dude-run-state.md`, load this block at its first incomplete step, and
+
+        return control when the exit contract is met.
+
+
+        Before every delegated task, add the orchestration envelope and `$INDEXER_CONTEXT`, pass the
+
+        agent''s frontmatter `model` alias, then checkpoint the task before launch and after its result.
+
+        Expected `.tmp/` or final documents are completion evidence, not substitutes for the task result.
+
+        Return control to root at the Vertical Review Gate; root records and presents the gate and
+
+        re-dispatches this stage only after an explicit decision.
+
+
+        '
+  ARCH-P0-001:
+    title: Phase 0 codebase discovery
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions:
+    - 'Copilot: grep/glob/view fallback when indexer absent (CTX-IDX-001)'
+    rules:
+      ARCH-P0-001.R01:
+        statement: Scan project root via indexer list_dir (e.g. mcp__serena__list_dir).
+      ARCH-P0-001.R02:
+        statement: Read indexer memories/context.
+      ARCH-P0-001.R03:
+        statement: 'Identify package/module boundaries: package.json, Cargo.toml, go.mod, pom.xml, build.gradle,
+          pyproject.toml; find_file; scan src/, packages/, libs/, modules/, apps/, services/.'
+      ARCH-P0-001.R04:
+        statement: Identify tech stack from root config.
+      ARCH-P0-001.R05:
+        statement: Build area list.
+      ARCH-P0-001.R06:
+        statement: Identify entry points.
+      ARCH-P0-001.R07:
+        statement: 'Output: structured list of areas with paths and descriptions.'
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 21-36
+      text: "## Phase 0: Codebase Discovery\n\nBefore any investigation, dynamically discover the project\
+        \ structure:\n\n1. **Scan project root**: Use the indexer's `list_dir` capability (e.g., `mcp__serena__list_dir(\"\
+        .\", recursive=false)`) to see top-level structure\n2. **Read indexer memories/context**: Use\
+        \ the indexer's memory/context tools (e.g., `mcp__serena__list_memories()`) then read relevant\
+        \ ones for existing context\n3. **Identify package/module boundaries**:\n   - Look for `package.json`,\
+        \ `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `pyproject.toml` etc.\n   - Use `find_file`\
+        \ capability (e.g., `mcp__serena__find_file(\"package.json\", \".\")`) or equivalent for the project's\
+        \ language\n   - Scan key directories: `src/`, `packages/`, `libs/`, `modules/`, `apps/`, `services/`\n\
+        4. **Identify tech stack**: Read root config files to determine languages, frameworks, build tools\n\
+        5. **Build area list**: Create a list of investigation areas from discovered modules/packages/directories\n\
+        6. **Identify entry points**: Look for main files, app entry points, server startup, route definitions\n\
+        \nOutput: A structured list of areas to investigate with paths and brief descriptions.\n\n"
+  ARCH-BASE-001:
+    title: Base investigation trigger
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-BASE-001.R01:
+        statement: Triggered when area is all/broad OR ./docs/ArchOverview/ does not exist.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 37-40
+      text: '## Base Investigation (Full Codebase)
+
+
+        Triggered when area is "all"/broad OR `./docs/ArchOverview/` doesn''t exist.
+
+
+        '
+  ARCH-P1-001:
+    title: Phase 1 parallel investigation
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults:
+      max_concurrent_agents: '6'
+    exceptions: []
+    amendment:
+      by: CNF-CONC-001
+      reason: Root max 6.
+      changed:
+      - defaults
+    rules:
+      ARCH-P1-001.R02:
+        statement: Per area Task A Code-Flow-Analyzer 'Investigate <area>' inputs path, description, entry
+          points (+ $INDEXER_CONTEXT on Copilot); output ./docs/ArchOverview/.tmp/<area-slug>.md.
+      ARCH-P1-001.R03:
+        statement: Per area Task B UX-Design-Reviewer 'Review UX for <area>' inputs path/scope, screens/specs,
+          UX guidelines (or instruction to interview user and create them); output .tmp/ux-<area-slug>.md.
+      ARCH-P1-001.R04:
+        key: max_concurrent_agents
+        value: '6'
+        statement: At most 6 Phase 1 agents (Code-Flow-Analyzer + UX-Design-Reviewer) run concurrently
+          on either platform; batch remaining areas.
+        amendment:
+          by: CNF-CONC-001
+          reason: Root max of 6 applies on both platforms.
+      ARCH-P1-001.R05:
+        platform: copilot
+        statement: agent_type code-flow-analyzer-copilot / ux-design-reviewer-copilot, mode background.
+      ARCH-P1-001.R06:
+        statement: 'CFA per task: get_symbols_overview; trace flows via find_symbol/find_referencing_symbols;
+          map deps/integrations; document patterns; mermaid diagrams.'
+      ARCH-P1-001.R07:
+        platform: copilot
+        statement: Wait for all Phase 1 via bounded read_agent polls; reconcile before Phase 2.
+    resolutions:
+      CNF-CONC-001: 'Root authority wins: at most 6 concurrent Phase 1 agents on both platforms; remaining
+        areas are batched. The baseline 4-6 lower bound was guidance, not a minimum.'
+      CNF-ASK-001: 'Orchestrated mode (envelope present): any step that would ask or wait for the user
+        returns `blocked` to the invoking stage with the exact question, options and proposed default;
+        the stage returns a blocked handoff; root records waiting-for-user and asks. Standalone mode (no
+        envelope) keeps interactive asking unchanged.'
+    retained_prose:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      content: task-call examples
+      reason: Illustrative dispatch examples; rules in workflow.yaml.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 41-83
+      text: "### Phase 1: Parallel Investigation\n\nLaunch a Code-Flow-Analyzer and UX-Design-Reviewer\
+        \ agent per discovered area, all in parallel:\n\n```\nFor each discovered area, launch two task\
+        \ tool calls:\n  Task A:\n    agent_type: \"code-flow-analyzer-copilot\"\n    mode: \"background\"\
+        \n    prompt: \"Investigate <area-name>\"\n    Include in prompt:\n      - Area path (e.g., \"\
+        packages/core/auth/\")\n      - Area description from discovery\n      - Key entry points identified\n\
+        \      - $INDEXER_CONTEXT block\n    Expected output:\n      - ./docs/ArchOverview/.tmp/<area-slug>.md\n\
+        \n  Task B:\n    agent_type: \"ux-design-reviewer-copilot\"\n    mode: \"background\"\n    prompt:\
+        \ \"Review UX for <area-name>\"\n    Include in prompt:\n      - Area path or user-facing scope\n\
+        \      - Existing screens/specs relevant to the area\n      - Any project UX guidelines (or instruction\
+        \ to interview user and create them)\n      - $INDEXER_CONTEXT block\n    Expected output:\n \
+        \     - ./docs/ArchOverview/.tmp/ux-<area-slug>.md\n\nMax 4-6 concurrent agents. If more areas,\
+        \ batch them.\n```\n\nEach Code-Flow-Analyzer task should (using the indexer tools from `$INDEXER_CONTEXT`):\n\
+        1. Use `get_symbols_overview` (or equivalent) on key files in the area\n2. Trace major flows from\
+        \ entry points using `find_symbol` and `find_referencing_symbols` (or equivalent)\n3. Map internal\
+        \ dependencies and external integration points\n4. Document patterns, conventions, and design\
+        \ decisions\n5. Create mermaid diagrams for major flows\n\n**Wait for all Phase 1 tasks**: Poll\
+        \ each background agent with bounded `read_agent` waits under\nthe orchestration watchdog; do\
+        \ not proceed to Phase 2 until all required results are reconciled.\n\n"
+  ARCH-P2-001:
+    title: Phase 2 documentation
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-P2-001.R01:
+        statement: Every investigation-documenter task launched with write permissions.
+      ARCH-P2-001.R02:
+        statement: Capture git rev-parse HEAD before writing; set full SHA as **Source Commit** in overview
+          and every deep-dive.
+      ARCH-P2-001.R03:
+        statement: 'Task 1 overview (needs all Phase 1): inputs all .tmp area + ux files; output <project>-architecture-overview.md;
+          exec summary, mermaid HL diagram, area summaries/cross-refs, text-only UX collateral, glossary.'
+      ARCH-P2-001.R04:
+        statement: 'Tasks 2-N deep-dives (each blocked by own Phase 1 task): output <project>-<area-slug>.md;
+          component breakdown, data flow, interfaces, dependencies (+ text-only layout maps on Copilot).'
+      ARCH-P2-001.R05:
+        platform: copilot
+        statement: background mode; wait for all Phase 2 with bounded checks.
+    resolutions:
+      CNF-ASK-002: 'Orchestrated: write permission plus an Expected output path in the envelope is the
+        user-authorized approval for exactly those paths, including in-place delta updates; other paths
+        need a blocked gate. Delta refresh "ask before Base fallback" becomes a blocked handoff gate.
+        Standalone keeps "May I create this file at [path]?".'
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 84-116
+      text: "### Phase 2: Documentation (after all Phase 1 tasks complete)\n\nLaunch Investigation-Documenter\
+        \ agents:\n\nEvery `investigation-documenter-copilot` task must be launched with write permissions.\n\
+        \nCapture `git rev-parse HEAD` before writing documents and set that full SHA as `**Source Commit**`\n\
+        in the overview and every deep-dive.\n\n```\nTask 1: Overview document (needs ALL Phase 1 outputs)\n\
+        \  agent_type: \"investigation-documenter-copilot\"\n  permissions: \"write\"\n  mode: \"background\"\
+        \n  prompt:\n    - Input: All .tmp/<area>.md and .tmp/ux-<area>.md files\n    - Output: ./docs/ArchOverview/<project>-architecture-overview.md\n\
+        \    - Include: Executive summary, high-level architecture diagram (mermaid),\n      area summaries\
+        \ with cross-references, glossary, and text-only UX collateral when relevant\n\nTasks 2-N: Deep-dive\
+        \ documents (one per area)\n  agent_type: \"investigation-documenter-copilot\"\n  permissions:\
+        \ \"write\"\n  mode: \"background\"\n  prompt:\n    - Input: .tmp/<area>.md and .tmp/ux-<area>.md\
+        \ for the specific area\n    - Output: ./docs/ArchOverview/<project>-<area-slug>.md\n    - Include:\
+        \ Detailed component breakdown, data flow diagrams,\n      key interfaces, dependencies, and text-only\
+        \ layout maps when relevant\n```\n\n**Wait for all Phase 2 tasks** with bounded watchdog checks\
+        \ before proceeding.\n\n"
+  ARCH-GATE-001:
+    title: Vertical Review Gate
+    kind: gate
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-GATE-001.R01:
+        statement: 'After Phase 2, before Phase 3: return blocked handoff with editable vertical list
+          (name, description, deep-dive path).'
+      ARCH-GATE-001.R02:
+        statement: Root validates, records waiting-for-user, asks operator to confirm, exclude, or add
+          (requesting path/description).
+      ARCH-GATE-001.R03:
+        statement: Do not keep stage running while waiting; re-dispatch with decision in new validated
+          handoff.
+      ARCH-GATE-001.R04:
+        statement: 'Exclusions: remove from active list; update overview summaries/cross-refs/diagrams;
+          keep deep-dive but exclude from Phases 3-5.'
+      ARCH-GATE-001.R05:
+        statement: 'Additions: run Phases 1-2 for each and update overview.'
+      ARCH-GATE-001.R06:
+        statement: After any change return new blocked handoff with revised list for re-confirmation.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 117-130
+      text: "### Vertical Review Gate (after Phase 2; before Phase 3)\n\nReturn a `blocked` handoff to\
+        \ root with an editable vertical list. For each vertical, include its\nname, brief description,\
+        \ and deep-dive document path. Root validates the handoff, records\n`waiting-for-user`, and asks\
+        \ the operator to confirm the list, exclude named verticals, or add\nverticals (requesting a path\
+        \ or brief description when needed). Do not keep this stage running\nwhile waiting; root re-dispatches\
+        \ it with the recorded decision in a new validated handoff.\n\n- For exclusions, remove the vertical\
+        \ from the active list and update the overview's summaries,\n  cross-references, and diagrams.\
+        \ Keep its generated deep-dive, but do not include it in Phases 3-5.\n- For additions, run Phases\
+        \ 1 and 2 for each new vertical and update the overview to include it.\n- After any change, return\
+        \ a new `blocked` handoff with the revised list, including newly generated\n  deep-dives, for\
+        \ root to request confirmation again.\n\n"
+  ARCH-P3-001:
+    title: Phase 3 verification
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-P3-001.R01:
+        statement: One CFA per document (overview + each active vertical), parallel.
+      ARCH-P3-001.R02:
+        statement: Verify every file path, symbol/class/interface, snippet, dependency claim.
+      ARCH-P3-001.R03:
+        statement: Output .tmp/verification-<doc>.md.
+      ARCH-P3-001.R04:
+        platform: copilot
+        statement: background; wait with bounded checks.
+      ARCH-P3-001.R05:
+        added_by: CNF-CONC-002
+        statement: Batch Phase 3 and additive/delta Code-Flow-Analyzer verification tasks so at most 6
+          run concurrently.
+    resolutions:
+      CNF-CONC-002: Phase 3 and additive/delta verification batch Code-Flow-Analyzer tasks to at most
+        6 concurrent (added rule ARCH-P3-001.R05).
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 131-147
+      text: "### Phase 3: Verification (after the Vertical Review Gate)\n\nLaunch Code-Flow-Analyzer agents\
+        \ to verify each document:\n\n```\nOne task for the overview and one per active vertical document,\
+        \ all in parallel:\n  agent_type: \"code-flow-analyzer-copilot\"\n  mode: \"background\"\n  prompt:\n\
+        \    - Input: The overview or an active vertical's generated document\n    - Process: Verify every\
+        \ file path, symbol/class/interface,\n      code snippet, and dependency claim against actual\
+        \ code\n    - Output: ./docs/ArchOverview/.tmp/verification-<doc>.md\n```\n\n**Wait for all Phase\
+        \ 3 tasks** with bounded watchdog checks before proceeding.\n\n"
+  ARCH-P4-001:
+    title: Phase 4 architecture review
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-P4-001.R01:
+        statement: Single Architecture-Reviewer; input final overview + active deep-dives + all verification
+          reports.
+      ARCH-P4-001.R02:
+        statement: Critique reusability, performance, scalability, operational cost.
+      ARCH-P4-001.R04:
+        statement: Produce Future Considerations list; output .tmp/architecture-review.md.
+      ARCH-P4-001.R05:
+        platform: copilot
+        statement: background; poll with bounded checks before Phase 5.
+    resolutions:
+      CNF-ASK-001: 'Orchestrated mode (envelope present): any step that would ask or wait for the user
+        returns `blocked` to the invoking stage with the exact question, options and proposed default;
+        the stage returns a blocked handoff; root records waiting-for-user and asks. Standalone mode (no
+        envelope) keeps interactive asking unchanged.'
+      CNF-DRIFT-003: Copilot Phase 4 omits the explicit rubric interview line; AGT-AR-001 still establishes
+        criteria when absent through the CNF-ASK-001 blocked gate in orchestrated mode. No workflow text
+        added.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 148-164
+      text: "### Phase 4: Critical Architecture Review (after all Phase 3 tasks complete)\n\nLaunch a\
+        \ single Architecture-Reviewer to critique the mapped architecture:\n\n```\n  agent_type: \"architecture-reviewer-copilot\"\
+        \n  mode: \"background\"\n  prompt:\n    - Input: Final architecture overview + active vertical\
+        \ deep-dive documents\n    - Include: All verification reports\n    - Process: Critique reusability,\
+        \ performance, scalability, and operational cost\n    - Output: ./docs/ArchOverview/.tmp/architecture-review.md\n\
+        \    - Require: \"Future Considerations\" list for the project\n```\n\nPoll the Architecture-Reviewer\
+        \ with bounded watchdog checks before Phase 5.\n\n"
+  ARCH-P5-001:
+    title: Phase 5 fix application
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-P5-001.R01:
+        statement: Single Investigation-Documenter with write permission; inputs all verification reports
+          + architecture-review.md.
+      ARCH-P5-001.R02:
+        statement: Apply corrections; fix paths/symbols/descriptions; fold in review + future considerations;
+          note unverifiable items.
+      ARCH-P5-001.R03:
+        statement: Output updated docs in ./docs/ArchOverview/; remove .tmp/.
+      ARCH-P5-001.R04:
+        platform: copilot
+        statement: background; poll with bounded checks.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 165-183
+      text: "### Phase 5: Fix Application (after Phase 4 completes)\n\nLaunch a single Investigation-Documenter\
+        \ to apply corrections:\n\n```\n  agent_type: \"investigation-documenter-copilot\"\n  permissions:\
+        \ \"write\"\n  mode: \"background\"\n  prompt:\n    - Input: All verification reports and ./docs/ArchOverview/.tmp/architecture-review.md\n\
+        \    - Process: Apply corrections to documents, update inaccurate\n      file paths/symbol names/descriptions,\
+        \ fold in architecture critique,\n      add future considerations, note unverifiable items\n \
+        \   - Output: Updated documents in ./docs/ArchOverview/\n    - Cleanup: Remove .tmp/ directory\n\
+        ```\n\nPoll the Investigation-Documenter with bounded watchdog checks before proceeding.\n\n"
+  ARCH-ADD-001:
+    title: Additive investigation (specific area)
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-ADD-001.R01:
+        statement: 'Trigger: specific area AND ./docs/ArchOverview/ exists.'
+      ARCH-ADD-001.R02:
+        step: 1
+        statement: Parallel CFA deep-dive + UX review with existing overview context; outputs .tmp/<area-slug>.md,
+          .tmp/ux-<area-slug>.md.
+      ARCH-ADD-001.R03:
+        step: 2
+        statement: 'Two documenters (write): create deep-dive; update overview (area section, cross-refs,
+          HL diagram, UX notes).'
+      ARCH-ADD-001.R04:
+        step: 3
+        statement: CFA verifies new/updated content only -> .tmp/verification-<area>.md.
+      ARCH-ADD-001.R05:
+        step: 4
+        statement: Architecture-Reviewer critiques new/updated area -> .tmp/architecture-review.md.
+      ARCH-ADD-001.R06:
+        step: 5
+        statement: Documenter applies corrections; remove .tmp/.
+      ARCH-ADD-001.R07:
+        platform: copilot
+        statement: All steps background with bounded watchdog polls.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 184-228
+      text: "## Additive Investigation (Specific Area)\n\nTriggered when a specific area is requested\
+        \ AND `./docs/ArchOverview/` already exists.\n\n```\nStep 1: Parallel investigation\n  Task A:\n\
+        \    agent_type: \"code-flow-analyzer-copilot\"\n    mode: \"background\"\n    prompt: \"Deep-dive\
+        \ investigate <specific-area>\"\n    Input: Area path, existing overview doc for context\n   \
+        \ Output: ./docs/ArchOverview/.tmp/<area-slug>.md\n\n  Task B:\n    agent_type: \"ux-design-reviewer-copilot\"\
+        \n    mode: \"background\"\n    prompt: \"Review UX for <specific-area>\"\n    Input: Area path,\
+        \ relevant screens/specs, existing overview doc for context\n    Output: ./docs/ArchOverview/.tmp/ux-<area-slug>.md\n\
+        \nStep 2: Two Investigation-Documenters (parallel, after Step 1)\n  Permissions: write (both tasks)\n\
+        \  Task A (background): Create new deep-dive document\n    Output: ./docs/ArchOverview/<project>-<area-slug>.md\n\
+        \  Task B (background): Update overview document\n    - Add new area section\n    - Update cross-references\n\
+        \    - Update high-level diagram if needed\n    - Add UX notes/layout maps if relevant\n\n  Wait\
+        \ for both tasks with bounded watchdog checks.\n\nStep 3: Code-Flow-Analyzer (background, after\
+        \ Step 2; poll with bounded watchdog checks)\n  Verify new/updated content only\n  Output: ./docs/ArchOverview/.tmp/verification-<area>.md\n\
+        \nStep 4: Architecture-Reviewer (background, after Step 3; poll with bounded watchdog checks)\n\
+        \  Critique the new/updated area and produce future considerations\n  Output: ./docs/ArchOverview/.tmp/architecture-review.md\n\
+        \nStep 5: Investigation-Documenter (background, after Step 4; poll with bounded watchdog checks)\n\
+        \  Apply corrections and fold in architecture review\n  Cleanup: Remove .tmp/ directory\n```\n\
+        \n"
+  ARCH-DELTA-001:
+    title: Delta refresh trigger and delta resolution (Step 1)
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults:
+      allowed_branches:
+      - main
+      - master
+    exceptions: []
+    rules:
+      ARCH-DELTA-001.R01:
+        statement: Trigger <all|vertical> refresh with ./docs/ArchOverview/ existing; all = repo-wide,
+          else named vertical; missing dir -> explain nothing to refresh, run Base (all) or Additive (vertical).
+      ARCH-DELTA-001.R02:
+        statement: Require clean worktree on main or master; no branch switch; target = git rev-parse
+          HEAD.
+      ARCH-DELTA-001.R03:
+        statement: Select in-scope docs; use **Source Commit** if commit and ancestor of target else oldest
+          adding commit (git log --diff-filter=A --follow --format=%H -- <doc> | tail -1).
+      ARCH-DELTA-001.R04:
+        statement: Deepen shallow history; if no trustworthy baseline warn and ask before Base fallback.
+      ARCH-DELTA-001.R05:
+        statement: git diff --name-status <baseline>..<target> per document; earliest baseline for repo-wide
+          new-area check.
+      ARCH-DELTA-001.R06:
+        statement: For all, repeat Phase 0 at target, compare boundaries, new boundary = candidate vertical;
+          undocumented named vertical treated as new.
+      ARCH-DELTA-001.R07:
+        statement: Map changes to affected docs; produce affected docs + changes, candidate verticals
+          + evidence, doc-neutral files + reasons.
+      ARCH-DELTA-001.R08:
+        statement: No affected docs and no new verticals -> report current, stop without rewriting.
+    resolutions:
+      CNF-ASK-002: 'Orchestrated: write permission plus an Expected output path in the envelope is the
+        user-authorized approval for exactly those paths, including in-place delta updates; other paths
+        need a blocked gate. Delta refresh "ask before Base fallback" becomes a blocked handoff gate.
+        Standalone keeps "May I create this file at [path]?".'
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 229-264
+      text: "## Delta Refresh (`<scope> refresh`)\n\nTriggered when the request matches `<all|vertical>\
+        \ refresh` and `./docs/ArchOverview/` exists. `all`\nis a repository-wide scope; any other value\
+        \ names one architecture vertical. If the directory does\nnot exist, explain that there is nothing\
+        \ to refresh and run the Base Investigation for `all`, or an\nAdditive Investigation for the named\
+        \ vertical.\n\n### Step 1: Resolve the Delta\n\n1. Require a clean worktree checked out on `main`\
+        \ or `master`; do not switch branches or include\n   uncommitted changes. Set the target commit\
+        \ to `git rev-parse HEAD`.\n2. Select the current architecture documents in scope: every document\
+        \ for `all`, or the named\n   vertical's deep-dive plus the overview for a vertical refresh. Read\
+        \ each selected document's\n   `**Source Commit**` value. Use it only when it\n   is a commit\
+        \ and an ancestor of the target. If it is absent, invalid, or from divergent history,\n   use\
+        \ the oldest commit that added the file\n   (`git log --diff-filter=A --follow --format=%H --\
+        \ <document> | tail -1`).\n3. If history is shallow, deepen it before resolving creation commits.\
+        \ If a trustworthy baseline\n   still cannot be resolved, warn that a safe delta is unavailable\
+        \ and ask before falling back to a\n   Base Investigation.\n4. Use `git diff --name-status <document-baseline>..<target>`\
+        \ to collect additions, modifications,\n   renames, and deletions relevant to each document. Use\
+        \ the earliest resolved baseline for the\n   repository-wide new-area check.\n5. For `all`, repeat\
+        \ Phase 0 discovery at the target commit. Compare discovered module, package,\n   service, and\
+        \ domain boundaries with the areas covered by the overview and deep-dives. Treat a new\n   boundary\
+        \ as a candidate vertical even when its files are not under an existing area's path. For a\n \
+        \  named vertical not yet documented, discover that vertical's boundaries and treat it as new.\n\
+        6. Map changed files to affected documented areas within the requested scope using paths, symbols,\n\
+        \   dependencies, entry points, and cross-area flows. Produce:\n   - affected existing documents\
+        \ and the changes that affect each one;\n   - candidate new verticals and supporting paths/entry\
+        \ points;\n   - changed files that are documentation-neutral, with the reason they need no refresh.\n\
+        \nIf there are no affected in-scope documents and no in-scope new verticals, report that the requested\n\
+        architecture documentation is current and stop without rewriting files.\n\n"
+  ARCH-DELTA-002:
+    title: Delta refresh Steps 2-4
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-DELTA-002.R01:
+        step: 2
+        statement: CFA + UX in parallel only for affected areas and confirmed new verticals with diff,
+          target, doc context, $INDEXER_CONTEXT; existing = changed flows + transitive effects; new =
+          full investigation.
+      ARCH-DELTA-002.R02:
+        step: 3
+        statement: 'Documenters (write): update affected deep-dives in place without rewriting unaffected
+          sections; create deep-dive per new vertical; update overview only where affected.'
+      ARCH-DELTA-002.R03:
+        step: 3
+        statement: Preserve revision rows; prepend one refresh-dated row; new docs 'Initial document.';
+          header Date = newest revision date, Source Commit = full target SHA for every changed/created
+          doc.
+      ARCH-DELTA-002.R04:
+        step: 3
+        statement: Do not regenerate or touch unaffected deep-dives.
+      ARCH-DELTA-002.R05:
+        step: 4
+        statement: Verify only changed/new docs and changed overview sections; Architecture-Reviewer on
+          refreshed scope; documenter (write) applies fixes; refresh rows summarize finalized changes;
+          remove .tmp/.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 265-294
+      text: "### Step 2: Investigate Affected and New Areas\n\nRun code-flow-analyzer-copilot and ux-design-reviewer-copilot\
+        \ tasks in parallel only for affected\nexisting areas and confirmed new verticals. Give each task\
+        \ the relevant diff, target commit, existing\ndocument context, and `$INDEXER_CONTEXT`. Existing-area\
+        \ tasks must focus on changed flows and their\ntransitive effects; new-vertical tasks perform\
+        \ a complete investigation of that vertical.\n\n### Step 3: Update Documents\n\nRun investigation-documenter-copilot\
+        \ tasks to:\n- launch each task with write permissions;\n- update each affected deep-dive in place\
+        \ without rewriting unaffected sections;\n- create one deep-dive for each confirmed new vertical;\n\
+        - update the overview only where affected summaries, relationships, diagrams, cross-references,\
+        \ or\n  the set of verticals changed;\n- preserve existing revision-history rows and prepend one\
+        \ refresh-dated row with a concise summary of\n  the changes made to each updated document; initialize\
+        \ new documents with an `Initial document.` row;\n- set the header `**Date**` to the newest revision-history\
+        \ date and `**Source Commit**` to the full\n  target commit SHA in every document changed or created\
+        \ by this run.\n\nDo not regenerate or touch unaffected deep-dives.\n\n### Step 4: Verify, Review,\
+        \ and Apply Fixes\n\nVerify only changed/new documents and changed overview sections against the\
+        \ target commit. Then run\narchitecture-reviewer-copilot on the refreshed scope and investigation-documenter-copilot\
+        \ to apply\ncorrections and future considerations (with write permissions). Ensure each refresh\
+        \ row summarizes\nthe finalized changes.\nRemove `./docs/ArchOverview/.tmp/` after fixes are applied.\n\
+        \n"
+  ARCH-EXIT-001:
+    title: Architecture exit contract
+    kind: workflow
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - dev-dude-architecture stage
+    defaults: {}
+    exceptions: []
+    rules:
+      ARCH-EXIT-001.R01:
+        statement: Return control after active docs verified/corrected, review incorporated, .tmp/ removed.
+      ARCH-EXIT-001.R02:
+        statement: Run status complete; preserve state file; record final doc paths and source commit.
+      ARCH-EXIT-001.R03:
+        statement: No-change delta refresh may complete after no-op evidence recorded.
+    source_nuance:
+    - path: skills/dev-dude-architecture/references/workflow.md
+      lines: 295-300
+      text: '## Exit Contract
+
+
+        Return control to the root orchestrator after all active documents are verified and corrected,
+        the
+
+        architecture review is incorporated, and `.tmp/` is removed. Set run status to `complete`, preserve
+
+        `.dev-dude-run-state.md`, and record the final document paths and source commit. A no-change delta
+
+        refresh may also complete after its no-op evidence is recorded.
+
+        '

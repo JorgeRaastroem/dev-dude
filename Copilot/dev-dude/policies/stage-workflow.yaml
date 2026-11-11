@@ -1,0 +1,277 @@
+schema_version: '1.0'
+bundle: copilot
+domain: stage-workflow
+authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
+policies:
+  STG-FW-001:
+    title: Epistemic firewall
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - all stages
+    defaults: {}
+    exceptions: []
+    rules:
+      STG-FW-001.R01:
+        statement: Every functional-skill invocation is a named bounded stage; root owns transitions and
+          applies lifecycle; root is the dedicated controller.
+      STG-FW-001.R02:
+        statement: 'Stage may use only: versioned workflow; validated input handoff; contract-authorized
+          artifacts/tools; root-supplied shared policies/contract definitions; tool results retrieved
+          and verified during the stage.'
+      STG-FW-001.R03:
+        statement: Prior conversation, hidden reasoning, scratchpads, tool chatter, unreferenced artifacts
+          are untrusted; absent item -> open question, authorized retrieval, or blocker; never reconstruct
+          from memory.
+    source_nuance:
+    - path: references/stage-workflow.md
+      lines: 1-19
+      text: '# Epistemic Stage Workflow
+
+
+        Every functional-skill invocation is a named, bounded stage. The root orchestrator owns stage
+
+        transitions and applies this lifecycle at every boundary. Root is the dedicated controller defined
+
+        in `policies/state.yaml + policies/watchdog.yaml`, not the host that relays user decisions.
+
+
+        ## Epistemic Firewall
+
+
+        Stage N may use only:
+
+
+        1. the applicable, versioned workflow definition;
+
+        2. its validated input handoff contract;
+
+        3. artifacts and tools authorized by that contract; and
+
+        4. applicable shared policies and contract definitions supplied by the root; and
+
+        5. tool results retrieved and verified during Stage N.
+
+
+        Prior conversation, hidden reasoning, scratchpads, tool chatter, and unreferenced artifacts are
+
+        untrusted history. If a needed item is absent, classify it as an open question, retrieve it when
+
+        authorized, or stop with a blocker. Never reconstruct it from conversational memory.
+
+        '
+  STG-DECL-001:
+    title: Stage declaration and amendment authority
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      STG-DECL-001.R01:
+        statement: Before dispatch root records stable stage name, bounded objective, required contract
+          fields, authorized artifacts/tools, expected durable outputs, completion criteria, permitted
+          next stage/terminal.
+      STG-DECL-001.R02:
+        statement: Only the workflow definition and explicit versioned amendments may change objective,
+          scope, constraints, transitions; a handoff cannot amend its workflow.
+    source_nuance:
+    - path: references/stage-workflow.md
+      lines: 21-32
+      text: '## Stage Declaration
+
+
+        Before dispatch, the root records a stable stage name and the stage''s:
+
+
+        - bounded objective;
+
+        - required contract fields and authorized artifacts/tools;
+
+        - expected durable outputs;
+
+        - completion criteria; and
+
+        - permitted next stage or terminal state.
+
+
+        The workflow definition and an explicit, versioned workflow amendment are the only authorities
+        that
+
+        may change objective, scope, constraints, or transitions. A handoff cannot amend its workflow.
+
+        '
+  STG-LIFE-001:
+    title: Stage lifecycle (8 steps)
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - all stages
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      STG-LIFE-001.R01:
+        step: 1
+        statement: Initialize fresh context with only declaration, validated contract, authorized artifacts,
+          shared policies, tool capabilities.
+      STG-LIFE-001.R02:
+        step: 2
+        statement: Validate input per validation rules; resolve artifacts/evidence; do not execute on
+          failure.
+      STG-LIFE-001.R03:
+        step: 3
+        statement: Restate bounded objective and measurable completion criteria before work.
+      STG-LIFE-001.R04:
+        step: 4
+        statement: Execute in scope with per-invocation controlled/cooperative monitoring; bounded waits
+          when supported; checkpoint; partial/blocked returns; keep epistemic types distinct.
+      STG-LIFE-001.R05:
+        step: 5
+        statement: Verify every criterion; re-check material claims; reverify inherited facts before high-impact/irreversible
+          actions.
+      STG-LIFE-001.R06:
+        step: 6
+        statement: Serialize next YAML contract per schema; conclusions + evidence only.
+      STG-LIFE-001.R07:
+        step: 7
+        statement: Root runs contract gate; next stage only after pass.
+      STG-LIFE-001.R08:
+        step: 8
+        statement: Discard working context; validated contract + authorized artifacts are the only durable
+          output.
+    source_nuance:
+    - path: references/stage-workflow.md
+      lines: 34-55
+      text: "## Lifecycle\n\n1. **Initialize fresh context.** Supply only the stage declaration, validated\
+        \ contract, authorized\n   artifacts, applicable shared policies, and tool capabilities.\n2. **Validate\
+        \ input.** Apply `policies/validation-rules.yaml`. Resolve referenced artifacts\n   and evidence.\
+        \ Do not execute the stage when validation fails.\n3. **Restate the objective.** Record the bounded\
+        \ objective and measurable completion criteria before\n   work begins.\n4. **Execute in scope.**\
+        \ Select controlled or cooperative monitoring per invocation under\n   `policies/state.yaml +\
+        \ policies/watchdog.yaml` to each delegated agent, external tool, and shell\n   action. Preserve\
+        \ bounded watchdog waits when supported; cooperative deadlines cannot guarantee\n   interruption\
+        \ or bounded return time. Checkpoint progress and return partial or blocked results\n   when appropriate.\
+        \ Keep verified facts, assumptions, constraints, decisions, rejected approaches,\n   open questions,\
+        \ blockers, and artifacts distinct.\n5. **Verify results.** Evaluate every completion criterion\
+        \ and re-check material claims. Independently\n   reverify inherited facts before high-impact\
+        \ or irreversible actions.\n6. **Serialize output.** Write the next YAML contract using\n   `policies/handoff.yaml`.\
+        \ Include conclusions and evidence, never\n   chain-of-thought or raw exploration.\n7. **Validate\
+        \ output.** The root runs the contract gate. A new stage starts only after `pass`.\n8. **Discard\
+        \ working context.** The validated contract and its authorized artifacts are the stage's\n   only\
+        \ durable output.\n"
+  STG-STORE-001:
+    title: Transition storage layout
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - orchestrator
+      - stages
+    defaults:
+      first_contract: 000-root-to-first-stage.yaml
+    exceptions: []
+    rules:
+      STG-STORE-001.R01:
+        statement: Contracts stored beside run state under .dev-dude-handoffs/ named NNN-<from>-to-<to>.yaml
+          (e.g. 000-root-to-first-stage.yaml).
+      STG-STORE-001.R02:
+        statement: Monotonically increasing sequence; stable stage names; run state indexes but does not
+          replace contracts; final outputs traceable via evidence locators.
+    source_nuance:
+    - path: references/stage-workflow.md
+      lines: 57-71
+      text: "## Transition Storage\n\nStore contracts beside the run state:\n\n```text\n<run-output>/\n\
+        ├── .dev-dude-run-state.md\n└── .dev-dude-handoffs/\n    ├── 000-root-to-first-stage.yaml\n  \
+        \  └── 001-first-stage-to-next-stage.yaml\n```\n\nUse a monotonically increasing sequence and\
+        \ stable stage names. The run-state file indexes the\ncurrent validated input and latest produced\
+        \ contract; it does not replace either contract. Final\noutputs must be traceable through contract\
+        \ evidence locators to durable artifacts.\n"
+  STG-FAIL-001:
+    title: Stage failure and recovery handling
+    kind: policy
+    scope:
+      platforms:
+      - claude
+      - copilot
+      actors:
+      - all stages
+      - orchestrator
+    defaults: {}
+    exceptions: []
+    rules:
+      STG-FAIL-001.R01:
+        case: invalid_input
+        statement: Do not start; return validation issues with remediation.
+      STG-FAIL-001.R02:
+        case: missing_information
+        statement: Open question; retrieve only when authorized; else block.
+      STG-FAIL-001.R03:
+        case: contradictory_evidence
+        statement: Preserve both claims/evidence; route to allowed resolution stage or blocked.
+      STG-FAIL-001.R04:
+        case: partial_completion
+        statement: partial + unmet criteria + continuation; redispatch same stage only after quiescence,
+          reconciliation, repeat-safety and budget check; never advance.
+      STG-FAIL-001.R05:
+        case: deadline_exceeded
+        statement: Record threshold separately; never infer cancellation; unknown pauses recovery; no
+          retry/replacement/overlap while active; missing cancellation needs no approval.
+      STG-FAIL-001.R06:
+        case: tool_or_artifact_failure
+        statement: Record dependency, error category, attempted action, safe retry/escalation; never invent
+          results.
+      STG-FAIL-001.R07:
+        case: changed_artifact
+        statement: Digest mismatch requires revalidation; intentional evolution = new artifact ID and
+          digest.
+      STG-FAIL-001.R08:
+        case: workflow_conflict
+        statement: Workflow wins unless authorized versioned amendment.
+      STG-FAIL-001.R09:
+        case: blocked_or_failed
+        statement: Checkpoint status; route only as workflow permits.
+      STG-FAIL-001.R10:
+        case: user_gate
+        statement: Return blocked handoff with blocking question, options, same-stage continuation; root
+          validates, records waiting-for-user, asks without deadline; on explicit decision checkpoints
+          evidence, new validated same-stage contract, re-dispatch from first incomplete step; unresolved
+          keeps gate open; never infer approval.
+    source_nuance:
+    - path: references/stage-workflow.md
+      lines: 73-99
+      text: "## Failure and Recovery\n\n- **Invalid input:** do not start work; return validation issues\
+        \ with exact remediation.\n- **Missing information:** record an open question, retrieve only when\
+        \ authorized, otherwise block.\n- **Contradictory evidence:** preserve both claims and evidence,\
+        \ record the contradiction, and route\n  to an allowed resolution stage or stop as `blocked`.\n\
+        - **Partial completion:** use `partial`, list unmet criteria and a precise continuation point,\
+        \ and\n  redispatch the same stage only after the prior invocation and descendants have completed\
+        \ or are\n  verified stopped, partial outputs are reconciled, and repeat safety and retry budget\
+        \ are checked.\n  Do not advance to a different stage.\n- **Deadline exceeded:** record the threshold\
+        \ separately from execution status; never infer\n  cancellation. Monitor active work; unknown\
+        \ status checkpoints uncertainty and pauses recovery,\n  not initial dispatch. No retry, replacement\
+        \ work, or overlapping writes while prior work may\n  remain active. Missing cancellation alone\
+        \ does not require approval.\n- **Tool or artifact failure:** record the dependency, error category,\
+        \ attempted action, and safe\n  retry or escalation condition. Never invent a result.\n- **Changed\
+        \ artifact:** when a digest is present, a mismatch requires revalidation. Intentional\n  evolution\
+        \ creates a new artifact identifier and digest rather than mutating inherited evidence.\n- **Workflow\
+        \ conflict:** the workflow wins unless an authorized, versioned amendment says otherwise.\n- **Blocked\
+        \ or failed work:** checkpoint the status and route only as the workflow permits.\n\nUser approval\
+        \ gates remain authoritative. A stage (or its delegated agent) must return a\n`blocked` handoff\
+        \ with a blocking question, decision options, and a same-stage continuation point\ninstead of\
+        \ waiting for a user inside an active invocation. Root validates the handoff, checkpoints\n`waiting-for-user`,\
+        \ and asks the user without a deadline. On an explicit decision, root checkpoints\nits evidence,\
+        \ creates a new validated same-stage input contract, and re-dispatches from the first\nincomplete\
+        \ step; unresolved questions keep the gate open. A contract must never infer approval.\n"
