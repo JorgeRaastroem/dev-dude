@@ -4,7 +4,7 @@ description: "Use this agent when the user needs to understand how code executio
 tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash, Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
 model: opus
 color: purple
-version: 1.0.7
+version: 1.0.8
 ---
 
 # code-flow-analyzer

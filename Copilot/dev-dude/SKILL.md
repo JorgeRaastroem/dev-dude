@@ -24,7 +24,7 @@ argument-hint:
 
 # DevDude Root Orchestrator
 
-Bundled agent crew version: `1.0.7`.
+Bundled agent crew version: `1.0.8`.
 Bundled skill crew version: `1.1.4`.
 
 DevDude policy is YAML. This file is only the host/controller loader and the ordered step index;

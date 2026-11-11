@@ -4,7 +4,7 @@ description: "Use this agent as the read-only final validation gate for implemen
 tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash, Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
 model: opus
 color: orange
-version: 1.0.7
+version: 1.0.8
 ---
 
 # feature-validator

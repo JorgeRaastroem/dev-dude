@@ -3,7 +3,7 @@ name: architecture-reviewer
 description: "Use this agent when architecture or design work needs a critical review. Trigger it after architecture mapping, documentation, or feature design options are produced. This agent should challenge designs for reusability, performance, scalability, and operational cost. If review criteria are missing, interview the user and define project-appropriate criteria before proceeding."
 model: opus
 color: red
-version: 1.0.7
+version: 1.0.8
 ---
 
 # architecture-reviewer

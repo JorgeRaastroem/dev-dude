@@ -4,7 +4,7 @@ domain: metadata
 authority: Normative DevDude policy. Rule fields are authoritative; see policies/manifest.yaml loading.precedence.
 crews:
   agents:
-    version: 1.0.7
+    version: 1.0.8
     names:
     - dev-dude-orchestrator-copilot
     - architecture-reviewer-copilot

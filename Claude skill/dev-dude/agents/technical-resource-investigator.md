@@ -4,7 +4,7 @@ description: "Use this agent to investigate technical resources — external pac
 tools: Glob, Grep, Read, WebFetch, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool, Bash, Skill, TaskCreate, TaskGet, TaskUpdate, TaskList, ToolSearch
 model: haiku
 color: yellow
-version: 1.0.7
+version: 1.0.8
 ---
 
 # technical-resource-investigator

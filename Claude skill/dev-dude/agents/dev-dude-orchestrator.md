@@ -2,7 +2,7 @@
 name: dev-dude-orchestrator
 description: "Dedicated DevDude workflow controller. Invoke only from the DevDude root skill's host bootstrap to coordinate a new run or reconcile a resumed run. Not a specialist worker or a general-purpose implementation agent."
 model: opus
-version: 1.0.7
+version: 1.0.8
 ---
 
 # dev-dude-orchestrator
