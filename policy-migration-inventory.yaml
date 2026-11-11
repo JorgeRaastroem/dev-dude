@@ -42,7 +42,7 @@ inventory:
       permission: write/approval/authority boundary
       validation: verification procedure with pass/fail criteria
       documentation-mirror: README text that restates policy IDs
-      planned-change: approved future behavior change (recorded distinctly, not yet applied)
+      planned-change: proposed future behavior change (pending approval, not yet applied)
       conflict: detected inconsistency needing an explicit resolution decision
     status_values: [pending, migrated, verified, superseded-by-planned-change]
     precedence_at_baseline: >-
@@ -55,7 +55,7 @@ inventory:
     by_kind: {metadata: 15, role: 10, policy: 53, template: 8, platform-binding: 2, schema: 8, workflow: 27, gate: 3, permission: 1, validation: 1}
     by_status: {pending: 128}
     source_locators_by_bundle: {both: 72, claude: 68, copilot: 69}
-    destination_files: 41
+    destination_specifications: 41  # distinct destination.file strings, including composites and placeholders; not a file count
     planned_changes: 9
     conflicts: 25
     readme_mirrors: 9
@@ -2653,7 +2653,7 @@ policies:
     destination: {file: policies/agents/investigation-documenter.yaml, key: output}
     conflicts: [CNF-TPL-002, CNF-ASK-004]
 
-# ==================================================================== planned changes (approved, distinct)
+# ==================================================================== planned changes (proposed, pending approval)
 planned_changes:
   - id: PCH-MOD-001
     title: Authoritative model configuration in policies/models.yaml
@@ -2695,7 +2695,8 @@ planned_changes:
     description: >-
       Store overrides in user-owned config files that `update` never replaces and that
       installation-hash customization detection excludes. Proposed layers: user profile
-      <runtime-skill-dir>/dev-dude/.dev-dude-models.local.yaml and optional project profile
+      in a host-readable user configuration directory outside every owned installation root
+      (exact location pending approval), and project profile
       <repo>/.dev-dude/models.yaml. Overrides are dispatch-time configuration only.
     rules:
       - {id: PCH-MOD-003.R01, rule: "Precedence: project profile > user profile > static default from models.yaml (agent frontmatter)."}
@@ -2711,7 +2712,8 @@ planned_changes:
     behavior_change: true
     description: >-
       Effective model = configured override, applied only through a documented runtime per-dispatch
-      model parameter; otherwise the static frontmatter default remains effective. Runtime docs could
+      model parameter. Static defaults apply only when no override is configured; a configured
+      override with unsupported or unknown capability blocks dispatch without fallback. Runtime docs could
       not be verified in this environment (Claude sub-agents docs unreachable; GitHub custom-agents URL
       404), so capability support is recorded as `unknown` per platform and fails closed. Copilot today
       passes the frontmatter model alias per task call (INST-RT-001.R02, ARCH-PRE-001.R05,
@@ -2838,7 +2840,7 @@ readme_mirrors:
 # ==================================================================== coverage
 coverage:
   strategy:
-    - "Line coverage: every non-blank line of every in-scope bundle file falls inside >=1 policy source range (per bundle; `both` counts for both). Computed by scripts/policy_audit.py --inventory."
+    - "Line coverage: every non-blank line of every in-scope bundle file falls inside >=1 policy source range (per bundle; `both` counts for both). Verified with inline Python checks; scripts/policy_audit.py is proposed, not implemented."
     - "ID coverage: every policy/rule ID appears exactly once in its destination YAML; every destination file key resolves."
     - "Parity: shared YAML byte-identical across bundles except platform.yaml/models.yaml; platform-scoped rules only in the bundle they apply to."
     - "Frontmatter audit: agent/skill/root frontmatter equals metadata.yaml/models.yaml values."
@@ -2846,6 +2848,7 @@ coverage:
     - "No silent retirement: a rule can leave the inventory only via status superseded-by-planned-change with a PCH reference."
     - "Limits: line/ID/count coverage proves structural completeness only, NOT semantic equivalence. Semantic fidelity is certified by an independent model completeness audit requested by the parent (rule-by-rule comparison of baseline prose vs migrated YAML); the implementer does not self-certify."
   computed:
+    provenance: "Baseline counts independently rechecked with inline Python by Claude Sonnet 5.5 during checkpoint recovery on 2026-11-11; no reusable audit script exists yet."
     method: non-blank lines of every git-tracked bundle file at baseline must fall inside >=1 policy source range; brace paths expanded per bundle
     claude:
       files: 24
